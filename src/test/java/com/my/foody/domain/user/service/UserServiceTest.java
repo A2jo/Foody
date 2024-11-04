@@ -31,13 +31,7 @@ class UserServiceTest {
     @Test
     void signup_Success() throws Exception{
         //given
-        UserSignUpReqDto signUpReqDto = UserSignUpReqDto.builder()
-                .contact("010-1234-5678")
-                .email("user1234@naver.com")
-                .password(PasswordEncoder.encode("Password1234!"))
-                .name("userA")
-                .nickname("userrrr")
-                .build();
+        UserSignUpReqDto signUpReqDto = mockUserSignUpReqDto();
 
         when(userRepository.existsByEmail(signUpReqDto.getEmail())).thenReturn(false);
         when(userRepository.existsByNickname(signUpReqDto.getNickname())).thenReturn(false);
@@ -56,13 +50,7 @@ class UserServiceTest {
     @DisplayName(value = "회원가입 실패 테스트: 이메일 중복")
     void signup_EmailAlreadyExists(){
         //given
-        UserSignUpReqDto signUpReqDto = UserSignUpReqDto.builder()
-                .contact("010-1234-5678")
-                .email("user1234@naver.com")
-                .password(PasswordEncoder.encode("Password1234!"))
-                .name("userA")
-                .nickname("userrrr")
-                .build();
+        UserSignUpReqDto signUpReqDto = mockUserSignUpReqDto();
 
         when(userRepository.existsByEmail(signUpReqDto.getEmail())).thenReturn(true);
 
@@ -73,6 +61,34 @@ class UserServiceTest {
         verify(userRepository, times(1)).existsByEmail(signUpReqDto.getEmail());
         verify(userRepository, never()).existsByNickname(signUpReqDto.getNickname());
         verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    @DisplayName(value = "회원가입 실패 테스트: 닉네임 중복")
+    void signup_NicknameAlreadyExists(){
+        //given
+        UserSignUpReqDto signUpReqDto = mockUserSignUpReqDto();
+
+        when(userRepository.existsByEmail(signUpReqDto.getEmail())).thenReturn(false);
+        when(userRepository.existsByNickname(signUpReqDto.getNickname())).thenReturn(true);
+
+        //then
+        assertThatThrownBy(() -> userService.signUp(signUpReqDto))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.NICKNAME_ALREADY_EXISTS);
+        verify(userRepository, times(1)).existsByEmail(signUpReqDto.getEmail());
+        verify(userRepository, times(1)).existsByNickname(signUpReqDto.getNickname());
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    private UserSignUpReqDto mockUserSignUpReqDto(){
+        return UserSignUpReqDto.builder()
+                .contact("010-1234-5678")
+                .email("user1234@naver.com")
+                .password(PasswordEncoder.encode("Password1234!"))
+                .name("userA")
+                .nickname("userrrr")
+                .build();
     }
 
 }
