@@ -61,12 +61,14 @@ public class UserService {
         return new UserInfoRespDto(user);
     }
 
+
     public AddressCreateRespDto registerAddress(AddressCreateReqDto addressCreateReqDto, Long userId) {
         User user = findByIdOrFail(userId);
         Address address = addressCreateReqDto.toEntity(user);
         addressRepository.save(address);
         return new AddressCreateRespDto();
     }
+
 
     public User findByIdOrFail(Long userId){
         return userRepository.findById(userId)
