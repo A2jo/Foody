@@ -4,6 +4,7 @@ import com.my.foody.domain.owner.dto.req.OwnerJoinReqDto;
 import com.my.foody.domain.owner.dto.req.OwnerLoginReqDto;
 import com.my.foody.domain.owner.dto.resp.OwnerJoinRespDto;
 import com.my.foody.domain.owner.dto.resp.OwnerLoginRespDto;
+import com.my.foody.domain.owner.dto.resp.OwnerMyPageRespDto;
 import com.my.foody.domain.owner.entity.Owner;
 import com.my.foody.domain.owner.repo.OwnerRepository;
 import com.my.foody.global.jwt.JwtProvider;
@@ -60,6 +61,13 @@ public class OwnerService {
 
         // 4. 로그인 성공 응답 생성
         return new OwnerLoginRespDto(token, LOGIN_SUCCESS_MESSAGE);
+    }
+
+    //마이페이지 조회
+    public OwnerMyPageRespDto getMyPage(Long ownerId) {
+        Owner owner = ownerRepository.findById(ownerId)
+                .orElseThrow(() -> new IllegalArgumentException("사장님 정보를 찾을 수 없습니다."));
+        return new OwnerMyPageRespDto(owner.getId(), owner.getName(), owner.getContact(), owner.getEmail());
     }
 
     // 이메일 중복 확인
