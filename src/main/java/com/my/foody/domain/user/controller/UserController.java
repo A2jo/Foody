@@ -1,5 +1,7 @@
 package com.my.foody.domain.user.controller;
 
+import com.my.foody.domain.address.dto.req.AddressCreateReqDto;
+import com.my.foody.domain.address.dto.resp.AddressCreateRespDto;
 import com.my.foody.domain.user.dto.req.UserLoginReqDto;
 import com.my.foody.domain.user.dto.req.UserSignUpReqDto;
 import com.my.foody.domain.user.dto.resp.UserInfoRespDto;
@@ -43,6 +45,12 @@ public class UserController {
         return new ResponseEntity<>(ApiResult.success(userService.getUserInfo(tokenSubject.getId())), HttpStatus.OK);
     }
 
+    @RequireAuth(userType = UserType.USER)
+    @PostMapping("/mypage/address")
+    public ResponseEntity<ApiResult<AddressCreateRespDto>> registerAddress(@RequestBody @Valid AddressCreateReqDto addressCreateReqDto,
+                                                                           @CurrentUser TokenSubject tokenSubject){
+        return new ResponseEntity<>(ApiResult.success(userService.registerAddress(addressCreateReqDto, tokenSubject.getId())), HttpStatus.CREATED);
+    }
 
 
 
