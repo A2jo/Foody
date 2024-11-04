@@ -17,6 +17,11 @@ public enum ErrorCode {
     USER_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "존재하지 않는 유저입니다"),
     INVALID_PASSWORD(HttpStatus.BAD_REQUEST.value(), "비밀번호가 일치하지 않습니다"),
     INVALID_TOKEN(HttpStatus.UNAUTHORIZED.value(), "유효하지 않은 인증 정보 입니다"),
+
+    ORDER_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "존재하지 않는 주문입니다"),
+    STORE_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "존재하지 않는 가게입니다"),
+
+
     ;
 
     private final int status;
