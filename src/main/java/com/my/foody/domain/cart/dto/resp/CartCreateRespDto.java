@@ -1,6 +1,5 @@
 package com.my.foody.domain.cart.dto.resp;
 
-import com.my.foody.domain.cart.dto.req.CartCreateReqDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -17,5 +16,4 @@ public class CartCreateRespDto {
     private Long quantity;
     private Long totalAmount;
     private Long minOrderAmount;
-    private CartCreateReqDto cartCreateReqDto;
 }
