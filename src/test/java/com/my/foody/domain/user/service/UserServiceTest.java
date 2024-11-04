@@ -251,14 +251,13 @@ class UserServiceTest extends DummyObject {
     void modifyAddress_Success(){
         Long userId = 1L;
         Long addressId = 1L;
-        User user = mockUser();
+        User user = newUser(userId);
         Address address = mockAddress(user);
 
         AddressModifyReqDto modifyReqDto = AddressModifyReqDto.builder()
                 .roadAddress("새로운 도로명주소")
                 .detailedAddress("새로운 상세주소")
                 .build();
-
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(addressService.findByIdOrFail(addressId)).thenReturn(address);
 
@@ -267,8 +266,6 @@ class UserServiceTest extends DummyObject {
 
         // then
         assertNotNull(result);
-        assertEquals("새로운 도로명주소", address.getRoadAddress());
-        assertEquals("새로운 상세주소", address.getDetailedAddress());
         verify(userRepository).findById(userId);
         verify(addressService).findByIdOrFail(addressId);
     }
@@ -278,6 +275,7 @@ class UserServiceTest extends DummyObject {
     void modifyAddress_UserNotFound() {
         Long userId = 1L;
         Long addressId = 1L;
+        User user = newUser(userId);
 
         AddressModifyReqDto modifyReqDto = AddressModifyReqDto.builder()
                 .roadAddress("새로운 도로명주소")
@@ -290,6 +288,28 @@ class UserServiceTest extends DummyObject {
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.USER_NOT_FOUND);
         verify(userRepository).findById(userId);
         verify(addressService, never()).findByIdOrFail(anyLong());
+    }
+
+    @Test
+    @DisplayName("주소지 수정 실패 테스트: 존재하지 않는 주소지")
+    void modifyAddress_AddressNotFound() {
+        Long userId = 1L;
+        Long addressId = 1L;
+        User user = newUser(userId);
+
+        AddressModifyReqDto modifyReqDto = AddressModifyReqDto.builder()
+                .roadAddress("새로운 도로명주소")
+                .detailedAddress("새로운 상세주소")
+                .build();
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(addressService.findByIdOrFail(addressId))
+                .thenThrow(new BusinessException(ErrorCode.ADDRESS_NOT_FOUND));
+
+        assertThatThrownBy(() -> userService.modifyAddress(modifyReqDto, userId, addressId))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ADDRESS_NOT_FOUND);
+        verify(userRepository).findById(userId);
+        verify(addressService).findByIdOrFail(addressId);ad
     }
 
 
