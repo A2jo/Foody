@@ -37,6 +37,12 @@ public class Address extends BaseEntity {
     }
 
     public void modifyAll(String roadAddress, String detailedAddress){
+        validateAddress(roadAddress, detailedAddress);
+        this.roadAddress = roadAddress;
+        this.detailedAddress = detailedAddress;
+    }
+
+    private void validateAddress(String roadAddress, String detailedAddress) {
         if(roadAddress == null || roadAddress.trim().isEmpty()) {
             throw new BusinessException(ErrorCode.INVALID_ADDRESS_FORMAT);
         }

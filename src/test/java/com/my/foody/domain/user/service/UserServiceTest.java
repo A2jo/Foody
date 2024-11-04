@@ -309,7 +309,7 @@ class UserServiceTest extends DummyObject {
                 .isInstanceOf(BusinessException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ADDRESS_NOT_FOUND);
         verify(userRepository).findById(userId);
-        verify(addressService).findByIdOrFail(addressId);ad
+        verify(addressService).findByIdOrFail(addressId);
     }
 
 
