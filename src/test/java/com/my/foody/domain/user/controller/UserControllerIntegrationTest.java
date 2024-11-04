@@ -1,14 +1,11 @@
 package com.my.foody.domain.user.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.my.foody.domain.user.dto.req.UserLoginReqDto;
-import com.my.foody.domain.user.dto.resp.UserInfoRespDto;
 import com.my.foody.domain.user.entity.User;
 import com.my.foody.domain.user.repo.UserRepository;
 import com.my.foody.domain.user.service.UserService;
 import com.my.foody.global.jwt.JwtProvider;
-import com.my.foody.global.jwt.JwtVo;
 import com.my.foody.global.jwt.TokenSubject;
 import com.my.foody.global.jwt.UserType;
 import com.my.foody.global.util.DummyObject;
@@ -23,9 +20,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -34,7 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @AutoConfigureMockMvc
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
-class UserControllerTest extends DummyObject {
+class UserControllerIntegrationTest extends DummyObject {
 
     @Autowired
     private UserService userService;
@@ -91,15 +86,7 @@ class UserControllerTest extends DummyObject {
                 .andDo(print());
     }
 
-    @Test
-    @DisplayName("마이페이지 조회 성공 테스트")
-    void getUserInfo() throws Exception{
-        Long userId = 1L;
-        String token = "test token";
-        TokenSubject tokenSubject = new TokenSubject(userId, UserType.USER);
 
-
-    }
 
 
 }
