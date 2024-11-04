@@ -1,25 +1,31 @@
 package com.my.foody.domain.store.service;
 
+import com.my.foody.domain.category.entity.Category;
+import com.my.foody.domain.category.repo.CategoryRepository;
 import com.my.foody.domain.owner.entity.Owner;
 import com.my.foody.domain.owner.repo.OwnerRepository;
 import com.my.foody.domain.store.dto.req.StoreCreateReqDto;
 import com.my.foody.domain.store.dto.resp.StoreCreateRespDto;
 import com.my.foody.domain.store.entity.Store;
 import com.my.foody.domain.store.repo.StoreRepository;
+import com.my.foody.domain.storeCategory.entity.StoreCategory;
+import com.my.foody.domain.storeCategory.repo.StoreCategoryRepository;
 import com.my.foody.global.ex.BusinessException;
 import com.my.foody.global.ex.ErrorCode;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-@Slf4j
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class StoreService {
 
     private final StoreRepository storeRepository;
     private final OwnerRepository ownerRepository;
+    private final CategoryRepository categoryRepository;
+    private final StoreCategoryRepository storeCategoryRepository;
 
     public StoreCreateRespDto createStore(@Valid StoreCreateReqDto storeCreatereqDto, Long ownerId) {
         // owner 조회
@@ -35,7 +41,8 @@ public class StoreService {
             throw new BusinessException(ErrorCode.HAVE_FULL_STORE);
         }
         // 가게 생성
-        Store store = Store.builder().name(storeCreatereqDto.getName())
+        Store store = Store.builder()
+                .name(storeCreatereqDto.getName())
                 .owner(owner)
                 .description(storeCreatereqDto.getDescription())
                 .contact(storeCreatereqDto.getContact())
@@ -44,6 +51,18 @@ public class StoreService {
                 .endTime(storeCreatereqDto.getEndTime())
                 .build();
         storeRepository.save(store);
+        // 카테고리 저장
+        List<Long> categoryIds = storeCreatereqDto.getCategoryIds();
+        for (Long categoryId : categoryIds) {
+            Category category = categoryRepository.findById(categoryId).orElseThrow(() ->
+                    new BusinessException(ErrorCode.CATEGORY_NOT_FOUND)
+            );
+            StoreCategory storeCategory = StoreCategory.builder()
+                    .store(store)
+                    .category(category)
+                    .build();
+            storeCategoryRepository.save(storeCategory);
+        }
         return new StoreCreateRespDto(store);
     }
 }
