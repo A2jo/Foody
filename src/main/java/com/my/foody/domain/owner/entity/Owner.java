@@ -3,6 +3,7 @@ package com.my.foody.domain.owner.entity;
 import com.my.foody.domain.base.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -24,4 +25,13 @@ public class Owner extends BaseEntity {
     private String password;
     @Column(nullable = false)
     private Boolean isDeleted;
+
+    @Builder
+    public Owner(Long id, String name, String contact, String email, String password, Boolean isDeleted) {
+        this.name = name;
+        this.contact = contact;
+        this.email = email;
+        this.password = password;
+        this.isDeleted = isDeleted;
+    }
 }
