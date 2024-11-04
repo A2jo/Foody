@@ -1,7 +1,8 @@
-package com.my.foody.domain.cart.entity;
+package com.my.foody.domain.order.entity;
 
+import com.my.foody.domain.address.entity.Address;
 import com.my.foody.domain.base.BaseEntity;
-import com.my.foody.domain.menu.entity.Menu;
+import com.my.foody.domain.owner.entity.OrderStatus;
 import com.my.foody.domain.store.entity.Store;
 import com.my.foody.domain.user.entity.User;
 import jakarta.persistence.*;
@@ -12,7 +13,9 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Cart extends BaseEntity {
+@Table(name = "orders")
+public class Order extends BaseEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -26,7 +29,13 @@ public class Cart extends BaseEntity {
     private Store store;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "menu_id")
-    private Menu menu;
-    private Long quantity;
+    @JoinColumn(name = "address_id")
+    private Address address;
+
+    @Column(nullable = false)
+    private Long totalAmount;
+
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private OrderStatus orderStatus;
 }
