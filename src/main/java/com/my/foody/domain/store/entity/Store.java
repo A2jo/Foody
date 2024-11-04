@@ -11,6 +11,7 @@ import java.time.LocalTime;
 
 @Entity
 @Getter
+@Table(name = "store")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Store extends BaseEntity {
     @Id
