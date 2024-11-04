@@ -1,5 +1,7 @@
 package com.my.foody.domain.user.dto.req;
 
+import com.my.foody.domain.user.entity.User;
+import com.my.foody.global.util.PasswordEncoder;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
@@ -28,4 +30,15 @@ public class UserSignUpReqDto {
     @NotBlank(message = "닉네임을 입력해야 합니다")
     @Length(min = 1, max = 100, message = "닉네임은 최소 1자 최대 100자로 입력해야 합니다")
     private String nickname;
+
+    public User toEntity(){
+        return User.builder()
+                .contact(contact)
+                .email(email)
+                .nickname(nickname)
+                .password(PasswordEncoder.encode(password))
+                .name(name)
+                .isDeleted(false)
+                .build();
+    }
 }
