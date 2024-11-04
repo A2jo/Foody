@@ -1,6 +1,10 @@
 package com.my.foody.domain.user.service;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.my.foody.domain.address.dto.req.AddressCreateReqDto;
+import com.my.foody.domain.address.dto.resp.AddressCreateRespDto;
+import com.my.foody.domain.address.entity.Address;
+import com.my.foody.domain.address.repo.AddressRepository;
 import com.my.foody.domain.user.dto.req.UserLoginReqDto;
 import com.my.foody.domain.user.dto.req.UserSignUpReqDto;
 import com.my.foody.domain.user.dto.resp.UserInfoRespDto;
@@ -25,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class UserService {
     private final UserRepository userRepository;
+    private final AddressRepository addressRepository;
     private final JwtProvider jwtProvider;
 
     public UserSignUpRespDto signUp(UserSignUpReqDto userSignUpReqDto){
@@ -52,8 +57,21 @@ public class UserService {
 
 
     public UserInfoRespDto getUserInfo(Long userId) {
+        User user = findByIdOrFail(userId);
+        return new UserInfoRespDto(user);
+    }
+
+
+    public AddressCreateRespDto registerAddress(AddressCreateReqDto addressCreateReqDto, Long userId) {
+        User user = findByIdOrFail(userId);
+        Address address = addressCreateReqDto.toEntity(user);
+        addressRepository.save(address);
+        return new AddressCreateRespDto();
+    }
+
+
+    public User findByIdOrFail(Long userId){
         return userRepository.findById(userId)
-                .map(UserInfoRespDto::new)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
     }
 }

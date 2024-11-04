@@ -1,5 +1,6 @@
 package com.my.foody.global.util;
 
+import com.my.foody.domain.address.entity.Address;
 import com.my.foody.domain.user.entity.User;
 
 public class DummyObject {
@@ -12,6 +13,15 @@ public class DummyObject {
                 .contact("010-1234-5678")
                 .name("userA")
                 .nickname("userrr")
+                .build();
+    }
+
+
+    protected Address mockAddress(User user){
+        return Address.builder()
+                .user(user)
+                .roadAddress("도로명주소")
+                .detailedAddress("상세주소")
                 .build();
     }
 }
