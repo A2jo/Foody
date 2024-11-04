@@ -34,7 +34,7 @@ public class StoreServiceTest {
     @Mock
     OwnerRepository ownerRepository;
 
-    // 가게 생성 성공 테스트
+    @DisplayName("가게 생성 성공")
     @Test
     public void testCreateStore_Success() {
         StoreCreateReqDto storeCreateReqDto = new StoreCreateReqDto();
@@ -45,40 +45,46 @@ public class StoreServiceTest {
         storeCreateReqDto.setMinOrderAmount(1000L);
         storeCreateReqDto.setOpenTime(LocalTime.parse("11:00"));
         storeCreateReqDto.setEndTime(LocalTime.parse("21:00"));
-
         Owner owner = mock(Owner.class);
-
         when(ownerRepository.findById(ownerId)).thenReturn(Optional.of(owner));
         when(storeRepository.existsByName(storeCreateReqDto.getName())).thenReturn(false);
         when(storeRepository.countByOwnerId(ownerId)).thenReturn(2L);
-
         StoreCreateRespDto storeCreateRespDto = storeService.createStore(storeCreateReqDto, ownerId);
-
         assertNotNull(storeCreateRespDto);
         verify(storeRepository).save(any(Store.class));
     }
 
-    // 가게 생성 실패 테스트 - 동일한 가게 이름
     @DisplayName("실패 테스트 - 동일한 이름")
     @Test
     public void testCreateStore_Fail_DuplicateStoreName() {
         StoreCreateReqDto storeCreateReqDto = new StoreCreateReqDto();
         Long ownerId = 1L;
         storeCreateReqDto.setName("Test Store");
-
         Owner owner = mock(Owner.class);
-
         when(ownerRepository.findById(ownerId)).thenReturn(Optional.of(owner));
         when(storeRepository.existsByName(storeCreateReqDto.getName())).thenReturn(true);
-
         BusinessException exception = assertThrows(BusinessException.class, () ->
                 storeService.createStore(storeCreateReqDto, ownerId)
         );
-
         assertEquals(ErrorCode.STORENAME_ALREADY_EXISTS, exception.getErrorCode());
         System.out.println(exception.getMessage());
     }
 
     // 가게 생성 실패 테스트 - 가게 생성 수 제한
-
+    @DisplayName("실패 테스트 - 최대 생성 수 제한")
+    @Test
+    public void testCreateStore_Fail_MaxStoreLimit() {
+        StoreCreateReqDto storeCreateReqDto = new StoreCreateReqDto();
+        Long ownerId = 1L;
+        storeCreateReqDto.setName("Test Store");
+        Owner owner = mock(Owner.class);
+        when(ownerRepository.findById(ownerId)).thenReturn(Optional.of(owner));
+        when(storeRepository.existsByName(storeCreateReqDto.getName())).thenReturn(false);
+        when(storeRepository.countByOwnerId(ownerId)).thenReturn(3L);
+        BusinessException exception = assertThrows(BusinessException.class, () ->
+                storeService.createStore(storeCreateReqDto, ownerId)
+        );
+        assertEquals(ErrorCode.HAVE_FULL_STORE, exception.getErrorCode());
+        System.out.println(exception.getMessage());
+    }
 }
