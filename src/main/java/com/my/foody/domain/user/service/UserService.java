@@ -3,6 +3,7 @@ package com.my.foody.domain.user.service;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.my.foody.domain.user.dto.req.UserLoginReqDto;
 import com.my.foody.domain.user.dto.req.UserSignUpReqDto;
+import com.my.foody.domain.user.dto.resp.UserInfoRespDto;
 import com.my.foody.domain.user.dto.resp.UserLoginRespDto;
 import com.my.foody.domain.user.dto.resp.UserSignUpRespDto;
 import com.my.foody.domain.user.entity.User;
@@ -40,6 +41,7 @@ public class UserService {
         return new UserSignUpRespDto();
     }
 
+
     public UserLoginRespDto login(UserLoginReqDto userLoginReqDto){
         User user = userRepository.findByEmail(userLoginReqDto.getEmail())
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
@@ -49,4 +51,9 @@ public class UserService {
     }
 
 
+    public UserInfoRespDto getUserInfo(Long userId) {
+        return userRepository.findById(userId)
+                .map(UserInfoRespDto::new)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+    }
 }
