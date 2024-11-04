@@ -4,12 +4,16 @@ import com.my.foody.domain.user.entity.User;
 import com.my.foody.global.util.PasswordEncoder;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.validator.constraints.Length;
 
 @NoArgsConstructor
 @Getter
+@AllArgsConstructor
+@Builder
 public class UserSignUpReqDto {
 
     @Email(message = "유효하지 않은 이메일 형식입니다")
