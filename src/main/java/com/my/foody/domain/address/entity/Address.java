@@ -33,4 +33,13 @@ public class Address extends BaseEntity {
         this.roadAddress = roadAddress;
         this.detailedAddress = detailedAddress;
     }
+
+    public void modifyAll(String roadAddress, String detailedAddress){
+        if(!roadAddress.isEmpty()){
+            this.roadAddress = roadAddress;
+        }
+        if(!detailedAddress.isEmpty()){
+            this.detailedAddress = detailedAddress;
+        }
+    }
 }
