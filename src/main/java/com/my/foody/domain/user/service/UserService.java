@@ -81,8 +81,9 @@ public class UserService {
 
     @Transactional
     public AddressModifyRespDto modifyAddress(AddressModifyReqDto addressModifyReqDto, Long userId, Long addressId) {
-        findByIdOrFail(userId);
+        User user = findByIdOrFail(userId);
         Address address = addressService.findByIdOrFail(addressId);
+        address.validateUser(user);
         address.modifyAll(addressModifyReqDto.getRoadAddress(), addressModifyReqDto.getDetailedAddress());
         return new AddressModifyRespDto();
     }

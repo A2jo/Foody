@@ -1,9 +1,12 @@
 package com.my.foody.domain.user.service;
 
 import com.my.foody.domain.address.dto.req.AddressCreateReqDto;
+import com.my.foody.domain.address.dto.req.AddressModifyReqDto;
 import com.my.foody.domain.address.dto.resp.AddressCreateRespDto;
+import com.my.foody.domain.address.dto.resp.AddressModifyRespDto;
 import com.my.foody.domain.address.entity.Address;
 import com.my.foody.domain.address.repo.AddressRepository;
+import com.my.foody.domain.address.service.AddressService;
 import com.my.foody.domain.user.dto.req.UserLoginReqDto;
 import com.my.foody.domain.user.dto.req.UserSignUpReqDto;
 import com.my.foody.domain.user.dto.resp.UserInfoRespDto;
@@ -28,7 +31,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -38,6 +41,10 @@ class UserServiceTest extends DummyObject {
     private UserRepository userRepository;
     @Mock
     private JwtProvider jwtProvider;
+
+    @Mock
+    private AddressService addressService;
+
 
     @InjectMocks
     private UserService userService;
@@ -237,6 +244,52 @@ class UserServiceTest extends DummyObject {
         );
         verify(userRepository, times(1)).findById(userId);
         verify(addressRepository, never()).save(any(Address.class));
+    }
+
+    @Test
+    @DisplayName("주소지 수정 성공 테스트")
+    void modifyAddress_Success(){
+        Long userId = 1L;
+        Long addressId = 1L;
+        User user = mockUser();
+        Address address = mockAddress(user);
+
+        AddressModifyReqDto modifyReqDto = AddressModifyReqDto.builder()
+                .roadAddress("새로운 도로명주소")
+                .detailedAddress("새로운 상세주소")
+                .build();
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(addressService.findByIdOrFail(addressId)).thenReturn(address);
+
+        // when
+        AddressModifyRespDto result = userService.modifyAddress(modifyReqDto, userId, addressId);
+
+        // then
+        assertNotNull(result);
+        assertEquals("새로운 도로명주소", address.getRoadAddress());
+        assertEquals("새로운 상세주소", address.getDetailedAddress());
+        verify(userRepository).findById(userId);
+        verify(addressService).findByIdOrFail(addressId);
+    }
+
+    @Test
+    @DisplayName("주소지 수정 실패 테스트: 존재하지 않는 사용자")
+    void modifyAddress_UserNotFound() {
+        Long userId = 1L;
+        Long addressId = 1L;
+
+        AddressModifyReqDto modifyReqDto = AddressModifyReqDto.builder()
+                .roadAddress("새로운 도로명주소")
+                .detailedAddress("새로운 상세주소")
+                .build();
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> userService.modifyAddress(modifyReqDto, userId, addressId))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.USER_NOT_FOUND);
+        verify(userRepository).findById(userId);
+        verify(addressService, never()).findByIdOrFail(anyLong());
     }
 
 
