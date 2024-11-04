@@ -13,6 +13,6 @@ public class StoreCreateReqDto {
     private String contact;
     private Long minOrderAmount;
     private LocalTime openTime;
-    private LocalTime closeTime;
+    private LocalTime endTime;
     private boolean isDeleted;
 }
