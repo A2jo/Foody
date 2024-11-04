@@ -16,7 +16,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -57,5 +57,15 @@ public class UserControllerTest extends DummyObject {
                 .andExpect(jsonPath("$.data.name").value(user.getName()))
                 .andExpect(jsonPath("$.data.email").value(user.getEmail()))
                 .andDo(print());
+    }
+
+    @Test
+    @DisplayName("마이페이지 조회 실패 테스트: 토큰 없음")
+    void getUserInfo_NoToken() throws Exception{
+        mvc.perform(get("/api/users/mypage"))
+                .andExpect(status().isUnauthorized())
+                .andDo(print());
+
+        verify(userService, never()).getUserInfo(any());
     }
 }
