@@ -9,6 +9,7 @@ import com.my.foody.domain.address.repo.AddressRepository;
 import com.my.foody.domain.address.service.AddressService;
 import com.my.foody.domain.user.dto.req.UserLoginReqDto;
 import com.my.foody.domain.user.dto.req.UserSignUpReqDto;
+import com.my.foody.domain.user.dto.resp.AddressDeleteRespDto;
 import com.my.foody.domain.user.dto.resp.UserInfoRespDto;
 import com.my.foody.domain.user.dto.resp.UserLoginRespDto;
 import com.my.foody.domain.user.dto.resp.UserSignUpRespDto;
@@ -312,6 +313,88 @@ class UserServiceTest extends DummyObject {
         verify(addressService).findByIdOrFail(addressId);
     }
 
+    @Test
+    @DisplayName("주소지 삭제 성공 테스트")
+    void deleteAddressById_Success(){
+        Long userId = 1L;
+        Long addressId = 1L;
+        User user = newUser(userId);
+        Address address = mockAddress(user);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(addressService.findByIdOrFail(addressId)).thenReturn(address);
+        doNothing().when(addressRepository).delete(address);
+
+        AddressDeleteRespDto result = userService.deleteAddressById(addressId, userId);
+
+        assertNotNull(result);
+        verify(userRepository).findById(userId);
+        verify(addressService).findByIdOrFail(addressId);
+        verify(addressRepository).delete(address);
+    }
+
+    @Test
+    @DisplayName("주소지 삭제 실패 테스트: 존재하지 않는 사용자")
+    void deleteAddressById_UserNotFound() {
+        Long userId = 1111L;
+        Long addressId = 1L;
+
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> userService.deleteAddressById(addressId, userId))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.USER_NOT_FOUND);
+
+        verify(userRepository).findById(userId);
+        verify(addressService, never()).findByIdOrFail(anyLong());
+        verify(addressRepository, never()).delete(any(Address.class));
+    }
+
+    @Test
+    @DisplayName("주소지 삭제 실패 테스트: 존재하지 않는 주소")
+    void deleteAddressById_AddressNotFound() {
+        Long userId = 1L;
+        Long addressId = 999L;
+        User user = newUser(userId);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(addressService.findByIdOrFail(addressId))
+                .thenThrow(new BusinessException(ErrorCode.ADDRESS_NOT_FOUND));
+
+        // when & then
+        assertThatThrownBy(() -> userService.deleteAddressById(addressId, userId))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ADDRESS_NOT_FOUND);
+
+        verify(userRepository).findById(userId);
+        verify(addressService).findByIdOrFail(addressId);
+        verify(addressRepository, never()).delete(any(Address.class));
+    }
+
+    @Test
+    @DisplayName("주소지 삭제 실패 테스트: 다른 사용자의 주소")
+    void deleteAddressById_UnauthorizedUser() {
+        Long userId = 1L;
+        Long addressId = 1L;
+        Long otherUserId = 2L;
+
+        User user = newUser(userId);
+        User otherUser = newUser(otherUserId);
+        Address address = mockAddress(otherUser);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(addressService.findByIdOrFail(addressId)).thenReturn(address);
+
+        // when & then
+        assertThatThrownBy(() -> userService.deleteAddressById(addressId, userId))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.UNAUTHORIZED_ADDRESS_ACCESS);
+
+        verify(userRepository).findById(userId);
+        verify(addressService).findByIdOrFail(addressId);
+        verify(addressRepository, never()).delete(any(Address.class));
+    }
 
     private UserSignUpReqDto mockUserSignUpReqDto(){
         return UserSignUpReqDto.builder()
