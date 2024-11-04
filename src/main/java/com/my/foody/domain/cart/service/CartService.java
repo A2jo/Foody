@@ -1,17 +1,14 @@
 package com.my.foody.domain.cart.service;
 
-import com.my.foody.domain.cart.dto.req.CartCreateReqDto;
 import com.my.foody.domain.cart.dto.resp.CartCreateRespDto;
 import com.my.foody.domain.cart.entity.Cart;
 import com.my.foody.domain.cart.repo.CartRepository;
-import com.my.foody.domain.store.repo.StoreRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
