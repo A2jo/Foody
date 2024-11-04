@@ -5,7 +5,7 @@ import com.my.foody.domain.owner.dto.resp.OwnerJoinRespDto;
 import com.my.foody.domain.owner.entity.Owner;
 import com.my.foody.domain.owner.repo.OwnerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import com.my.foody.global.util.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 
@@ -13,15 +13,12 @@ import org.springframework.stereotype.Service;
 public class OwnerService {
 
     private final OwnerRepository ownerRepository;
-    private final PasswordEncoder passwordEncoder;
-
     private static final String SUCCESS_MESSAGE = "회원가입 완료 되었습니다.";
 
 
     @Autowired
-    public OwnerService(OwnerRepository ownerRepository, PasswordEncoder passwordEncoder) {
+    public OwnerService(OwnerRepository ownerRepository) {
         this.ownerRepository = ownerRepository;
-        this.passwordEncoder = passwordEncoder;
     }
 
     public OwnerJoinRespDto signup(OwnerJoinReqDto reqDto) {
@@ -31,7 +28,7 @@ public class OwnerService {
                 .name(reqDto.getName())
                 .contact(reqDto.getContact())
                 .email(reqDto.getEmail())
-                .password(passwordEncoder.encode(reqDto.getPassword()))
+                .password(PasswordEncoder.encode(reqDto.getPassword()))
                 .isDeleted(false)
                 .build();
 
