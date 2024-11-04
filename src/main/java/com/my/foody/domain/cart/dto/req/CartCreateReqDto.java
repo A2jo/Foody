@@ -1,6 +1,5 @@
 package com.my.foody.domain.cart.dto.req;
 
-import com.my.foody.domain.cart.dto.resp.CartCreateRespDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -11,11 +10,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class CartCreateReqDto {
-    private String storeName;
-    private String menuName;
-    private Long menuPrice;
-    private Long quantity;
-    private Long totalAmount;
-    private Long minOrderAmount;
-    private CartCreateRespDto cartCreateRespDto;
+    private int page; // current page number
+    private int limit; // page size
+    private long totalItems; // total number of items in the cart
+    private int totalPages;
 }
