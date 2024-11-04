@@ -1,11 +1,9 @@
 package com.my.foody.domain.user.dto.req;
 
-import com.my.foody.domain.user.dto.req.valid.ValidPassword;
 import com.my.foody.domain.user.entity.User;
 import com.my.foody.global.util.PasswordEncoder;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -28,11 +26,9 @@ public class UserSignUpReqDto {
 
     @NotBlank(message = "전화번호를 입력해야 합니다")
     @Length(max = 15, message = "전화번호는 15자 이내여야 합니다")
-    @Pattern(regexp = "^010-\\d{4}-\\d{4}$", message = "전화번호 형식이 올바르지 않습니다")
     private String contact;
 
     @NotBlank(message = "비밀번호를 입력해야 합니다")
-    @ValidPassword
     private String password;
 
     @NotBlank(message = "닉네임을 입력해야 합니다")
@@ -46,6 +42,7 @@ public class UserSignUpReqDto {
                 .nickname(nickname)
                 .password(PasswordEncoder.encode(password))
                 .name(name)
+                .isDeleted(false)
                 .build();
     }
 }
