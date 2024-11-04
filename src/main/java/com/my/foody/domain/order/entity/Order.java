@@ -37,5 +37,5 @@ public class Order extends BaseEntity {
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    private OrderStatus orderStatus;
+    private OrderStatus orderStatus = OrderStatus.PENDING; //기본값 설정
 }
