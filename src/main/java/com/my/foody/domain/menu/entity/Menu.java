@@ -10,6 +10,7 @@ import org.springframework.jmx.export.annotation.ManagedNotifications;
 
 @Entity
 @Getter
+@Table(name = "menu")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Menu extends BaseEntity {
     @Id
