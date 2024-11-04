@@ -4,14 +4,12 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
-@NoArgsConstructor
 public class OwnerLoginRespDto {
 
-    private String token;
-    private String message;
+    private final String token;
+    private final String message = "로그인 성공"; // DTO에 메시지 기본값 설정
 
-    public OwnerLoginRespDto(String token, String message) {
+    public OwnerLoginRespDto(String token) {
         this.token = token;
-        this.message = message;
     }
 }

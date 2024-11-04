@@ -7,37 +7,33 @@ import com.my.foody.domain.owner.dto.resp.OwnerJoinRespDto;
 import com.my.foody.domain.owner.dto.resp.OwnerLoginRespDto;
 import com.my.foody.domain.owner.dto.resp.OwnerMyPageRespDto;
 import com.my.foody.domain.owner.service.OwnerService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import com.my.foody.global.util.api.ApiResult;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/owners")
+@RequiredArgsConstructor
 public class OwnerController {
     private final OwnerService ownerService;
 
-    @Autowired
-    public OwnerController(OwnerService ownerService) {
-        this.ownerService = ownerService;
-    }
-
     @PostMapping("/signup")
-    public ResponseEntity<OwnerJoinRespDto> signup(@RequestBody OwnerJoinReqDto ownerJoinReqDto) {
+    public ResponseEntity<ApiResult<OwnerJoinRespDto>> signup(@RequestBody OwnerJoinReqDto ownerJoinReqDto) {
         OwnerJoinRespDto responseMessage = ownerService.signup(ownerJoinReqDto);
-        return new ResponseEntity<>(responseMessage, HttpStatus.OK);
+        return ResponseEntity.ok(ApiResult.success(responseMessage));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<OwnerLoginRespDto> login(@RequestBody OwnerLoginReqDto ownerLoginReqDto) {
+    public ResponseEntity<ApiResult<OwnerLoginRespDto>> login(@RequestBody OwnerLoginReqDto ownerLoginReqDto) {
         OwnerLoginRespDto responseMessage = ownerService.login(ownerLoginReqDto);
-        return new ResponseEntity<>(responseMessage, HttpStatus.OK);
+        return ResponseEntity.ok(ApiResult.success(responseMessage));
     }
 
     @GetMapping("/mypage")
-    public ResponseEntity<OwnerMyPageRespDto> getMyPage(@AuthenticationPrincipal Long ownerId) {
+    public ResponseEntity<ApiResult<OwnerMyPageRespDto>> getMyPage(@AuthenticationPrincipal Long ownerId) {
         OwnerMyPageRespDto response = ownerService.getMyPage(ownerId);
-        return new ResponseEntity<>(response, HttpStatus.OK);
+        return ResponseEntity.ok(ApiResult.success(response));
     }
 }
