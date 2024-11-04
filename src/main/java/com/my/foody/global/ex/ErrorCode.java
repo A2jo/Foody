@@ -14,6 +14,9 @@ public enum ErrorCode {
     FORBIDDEN_ACCESS(HttpStatus.FORBIDDEN.value(), "접근 권한이 없습니다"),
     EMAIL_ALREADY_EXISTS(HttpStatus.CONFLICT.value(), "이미 사용 중인 이메일입니다"),
     NICKNAME_ALREADY_EXISTS(HttpStatus.CONFLICT.value(), "이미 사용 중인 닉네임입니다"),
+    USER_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "존재하지 않는 유저입니다"),
+    INVALID_PASSWORD(HttpStatus.BAD_REQUEST.value(), "비밀번호가 일치하지 않습니다"),
+    INVALID_TOKEN(HttpStatus.UNAUTHORIZED.value(), "유효하지 않은 인증 정보 입니다"),
     STORENAME_ALREADY_EXISTS(HttpStatus.CONFLICT.value(), "이미 사용 중인 가게이름입니다"),
     HAVE_FULL_STORE(HttpStatus.CONFLICT.value(), "생성 가능한 가게 수를 초과합니다."),
     OWNER_NOT_FOUND(HttpStatus.CONFLICT.value(), "OWNER를 찾을 수 없습니다.");
