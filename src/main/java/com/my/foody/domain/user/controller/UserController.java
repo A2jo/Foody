@@ -24,6 +24,7 @@ public class UserController {
         return new ResponseEntity<>(ApiResult.success(userService.signUp(userSignUpReqDto)), HttpStatus.CREATED);
     }
 
+    @PostMapping("/login")
 
 
 
