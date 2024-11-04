@@ -2,6 +2,7 @@ package com.my.foody.domain.user.service;
 
 import com.my.foody.domain.user.dto.req.UserLoginReqDto;
 import com.my.foody.domain.user.dto.req.UserSignUpReqDto;
+import com.my.foody.domain.user.dto.resp.UserInfoRespDto;
 import com.my.foody.domain.user.dto.resp.UserLoginRespDto;
 import com.my.foody.domain.user.dto.resp.UserSignUpRespDto;
 import com.my.foody.domain.user.entity.User;
@@ -10,6 +11,7 @@ import com.my.foody.global.ex.BusinessException;
 import com.my.foody.global.ex.ErrorCode;
 import com.my.foody.global.jwt.JwtProvider;
 import com.my.foody.global.jwt.TokenSubject;
+import com.my.foody.global.util.DummyObject;
 import com.my.foody.global.util.PasswordEncoder;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -25,7 +27,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class UserServiceTest {
+class UserServiceTest extends DummyObject {
 
     @Mock
     private UserRepository userRepository;
@@ -152,6 +154,36 @@ class UserServiceTest {
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_PASSWORD);
         verify(userRepository, times(1)).findByEmail(userLoginReqDto.getEmail());
         verify(jwtProvider, never()).create(any(TokenSubject.class));
+    }
+
+    @Test
+    @DisplayName("마이페이지 조회 성공 테스트")
+    void getUserInfo_Success(){
+        User user = mockUser();
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+
+        //when
+        UserInfoRespDto result = userService.getUserInfo(user.getId());
+
+        //then
+        assertThat(result.getName()).isEqualTo(user.getName());
+        assertThat(result.getContact()).isEqualTo(user.getContact());
+        assertThat(result.getEmail()).isEqualTo(user.getEmail());
+        assertThat(result.getNickname()).isEqualTo(user.getNickname());
+        verify(userRepository, times(1)).findById(user.getId());
+    }
+
+    @Test
+    @DisplayName("마이페이지 조회 실패 테스트: 존재하지 않는 유저")
+    void getUserInfo_UserNotFound(){
+        User user = mockUser();
+        when(userRepository.findById(user.getId())).thenReturn(Optional.empty());
+
+        //when & then
+        assertThatThrownBy(() -> userService.getUserInfo(user.getId()))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.USER_NOT_FOUND);
+        verify(userRepository, times(1)).findById(user.getId());
     }
 
 
