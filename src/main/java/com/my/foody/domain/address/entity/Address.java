@@ -4,6 +4,7 @@ import com.my.foody.domain.base.BaseEntity;
 import com.my.foody.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -25,4 +26,11 @@ public class Address extends BaseEntity {
     @Column(length = 30, nullable = false)
     private String detailedAddress;
 
+    @Builder
+    public Address(Long id, User user, String roadAddress, String detailedAddress) {
+        this.id = id;
+        this.user = user;
+        this.roadAddress = roadAddress;
+        this.detailedAddress = detailedAddress;
+    }
 }
