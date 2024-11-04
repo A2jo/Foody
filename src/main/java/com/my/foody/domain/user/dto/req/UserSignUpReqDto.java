@@ -1,5 +1,6 @@
 package com.my.foody.domain.user.dto.req;
 
+import com.my.foody.domain.user.dto.req.valid.ValidPassword;
 import com.my.foody.domain.user.entity.User;
 import com.my.foody.global.util.PasswordEncoder;
 import jakarta.validation.constraints.Email;
@@ -29,6 +30,7 @@ public class UserSignUpReqDto {
     private String contact;
 
     @NotBlank(message = "비밀번호를 입력해야 합니다")
+    @ValidPassword
     private String password;
 
     @NotBlank(message = "닉네임을 입력해야 합니다")
