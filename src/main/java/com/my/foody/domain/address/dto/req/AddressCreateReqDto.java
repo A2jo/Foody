@@ -3,12 +3,16 @@ package com.my.foody.domain.address.dto.req;
 import com.my.foody.domain.address.entity.Address;
 import com.my.foody.domain.user.entity.User;
 import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.validator.constraints.Length;
 
 @NoArgsConstructor
 @Getter
+@AllArgsConstructor
+@Builder
 public class AddressCreateReqDto {
 
     @NotBlank(message = "도로명 주소를 입력해야 합니다")
