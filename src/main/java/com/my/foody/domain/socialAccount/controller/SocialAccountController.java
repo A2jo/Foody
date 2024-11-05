@@ -1,6 +1,7 @@
 package com.my.foody.domain.socialAccount.controller;
 
 import com.my.foody.domain.socialAccount.dto.resp.LinkageTokenRespDto;
+import com.my.foody.domain.socialAccount.dto.resp.SocialAccountListRespDto;
 import com.my.foody.domain.socialAccount.dto.resp.SocialLoginRespDto;
 import com.my.foody.domain.socialAccount.entity.SocialAccount;
 import com.my.foody.domain.socialAccount.service.AccountLinkageService;
@@ -59,6 +60,12 @@ public class SocialAccountController {
         SocialLoginRespDto socialLoginRespDto = socialAccountService.processOAuth2Callback(provider, code);
         response.setHeader(JwtVo.HEADER, socialLoginRespDto.getToken());
         return new ResponseEntity<>(ApiResult.success(socialLoginRespDto), HttpStatus.OK);
+    }
+
+    @GetMapping("/api/users/mypage/social-accounts")
+    @RequireAuth(userType = UserType.USER)
+    public ResponseEntity<ApiResult<SocialAccountListRespDto>> getAllSocialAccount(@CurrentUser TokenSubject tokenSubject){
+        return new ResponseEntity<>(ApiResult.success(socialAccountService.getAllSocialAccount(tokenSubject.getId())), HttpStatus.OK);
     }
 
 }

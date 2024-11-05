@@ -37,7 +37,8 @@ public enum ErrorCode {
     SOCIAL_ACCOUNT_NOT_FOUND(HttpStatus.BAD_REQUEST.value(), "연동된 소셜 계정을 찾을 수 없습니다"),
     UNSUPPORTED_OAUTH_PROVIDER(HttpStatus.BAD_REQUEST.value(), "지원하지 않는 Oauth2 입니다"),
     MENU_NOT_FOUND(HttpStatus.BAD_REQUEST.value(), "존재하지 않는 메뉴입니다"),
-    MENU_NOT_AVAILABLE(HttpStatus.BAD_REQUEST.value(), "현재 주문할 수 없는 메뉴입니다");
+    MENU_NOT_AVAILABLE(HttpStatus.BAD_REQUEST.value(), "현재 주문할 수 없는 메뉴입니다"),
+    OAUTH_CALLBACK_FAILED(HttpStatus.INTERNAL_SERVER_ERROR.value(), "소셜 인증 서버와 통신 중 오류가 발생했습니다");
 
 
     private final int status;
