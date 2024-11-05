@@ -3,11 +3,15 @@ package com.my.foody.domain.user.dto.req;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.my.foody.domain.user.dto.req.valid.ValidPassword;
 import jakarta.validation.constraints.AssertTrue;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
 @Getter
+@AllArgsConstructor
+@Builder
 public class UserPasswordModifyReqDto {
 
     @ValidPassword

@@ -50,7 +50,7 @@ public class User extends BaseEntity {
 
     public void validPassword(String currentPassword) {
         if(!PasswordEncoder.matches(currentPassword, this.password)){
-            throw new BusinessException(ErrorCode.INVALID_PASSWORD)
+            throw new BusinessException(ErrorCode.INVALID_PASSWORD);
         }
     }
 

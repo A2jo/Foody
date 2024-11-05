@@ -8,11 +8,9 @@ import com.my.foody.domain.address.entity.Address;
 import com.my.foody.domain.address.repo.AddressRepository;
 import com.my.foody.domain.address.service.AddressService;
 import com.my.foody.domain.user.dto.req.UserLoginReqDto;
+import com.my.foody.domain.user.dto.req.UserPasswordModifyReqDto;
 import com.my.foody.domain.user.dto.req.UserSignUpReqDto;
-import com.my.foody.domain.user.dto.resp.AddressDeleteRespDto;
-import com.my.foody.domain.user.dto.resp.UserInfoRespDto;
-import com.my.foody.domain.user.dto.resp.UserLoginRespDto;
-import com.my.foody.domain.user.dto.resp.UserSignUpRespDto;
+import com.my.foody.domain.user.dto.resp.*;
 import com.my.foody.domain.user.entity.User;
 import com.my.foody.domain.user.repo.UserRepository;
 import com.my.foody.global.ex.BusinessException;
@@ -27,6 +25,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Optional;
 
@@ -395,6 +394,66 @@ class UserServiceTest extends DummyObject {
         verify(addressService).findByIdOrFail(addressId);
         verify(addressRepository, never()).delete(any(Address.class));
     }
+
+    @Test
+    @DisplayName("비밀번호 변경 성공 테스트")
+    void modifyUserPassword_Success() {
+        Long userId = 1L;
+        String currentPassword = "Maeda1234!";
+        String newPassword = "BBnew123!";
+        User user = newUser(userId);
+
+        UserPasswordModifyReqDto reqDto = UserPasswordModifyReqDto.builder()
+                .currentPassword(currentPassword)
+                .newPassword(newPassword)
+                .build();
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+
+        // when
+        UserPasswordModifyRespDto respDto = userService.modifyUserPassword(reqDto, userId);
+
+        // then
+        assertThat(PasswordEncoder.matches(newPassword, user.getPassword())).isTrue();
+        verify(userRepository, times(1)).findById(userId);
+    }
+
+    @Test
+    @DisplayName("비밀번호 변경 실패 테스트: 존재하지 않는 유저")
+    void modifyUserPassword_UserNotFound() {
+        Long userId = 999L;
+        UserPasswordModifyReqDto reqDto = new UserPasswordModifyReqDto();
+
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> userService.modifyUserPassword(reqDto, userId))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.USER_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("비밀번호 변경 실패 테스트: 비밀번호 불일치")
+    void modifyUserPassword_InvalidCurrentPassword() {
+        // given
+        Long userId = 1L;
+        String wrongPassword = "wrong123!";
+        String newPassword = "new123!";
+        User user = newUser(userId);
+
+        UserPasswordModifyReqDto reqDto = UserPasswordModifyReqDto.builder()
+                .currentPassword(wrongPassword)
+                .newPassword(newPassword)
+                .build();
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+
+        // when & then
+        assertThatThrownBy(() -> userService.modifyUserPassword(reqDto, userId))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode",ErrorCode.INVALID_PASSWORD);
+    }
+
 
     private UserSignUpReqDto mockUserSignUpReqDto(){
         return UserSignUpReqDto.builder()
