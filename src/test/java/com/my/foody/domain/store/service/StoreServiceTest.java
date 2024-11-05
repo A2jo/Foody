@@ -51,11 +51,6 @@ public class StoreServiceTest {
         StoreCreateReqDto storeCreateReqDto = new StoreCreateReqDto();
         Long ownerId = 1L;
         storeCreateReqDto.setName("Test Store");
-        storeCreateReqDto.setDescription("Test Description");
-        storeCreateReqDto.setContact("123456789");
-        storeCreateReqDto.setMinOrderAmount(1000L);
-        storeCreateReqDto.setOpenTime(LocalTime.parse("11:00"));
-        storeCreateReqDto.setEndTime(LocalTime.parse("21:00"));
         storeCreateReqDto.setCategoryIds(List.of(1L, 2L));
 
         Owner owner = mock(Owner.class);
@@ -73,6 +68,30 @@ public class StoreServiceTest {
         assertNotNull(storeCreateRespDto);
         verify(storeRepository).save(any(Store.class));
         verify(storeCategoryRepository, times(2)).save(any(StoreCategory.class));
+    }
+
+    @DisplayName(("실패 테스트 - 존재하지 않는 카테고리 ID"))
+    @Test
+    public void testCreateStore_Fail_NotFoundCategoryId() {
+        StoreCreateReqDto storeCreateReqDto = new StoreCreateReqDto();
+        Long ownerId = 1L;
+        storeCreateReqDto.setName("Test Store");
+        storeCreateReqDto.setCategoryIds(List.of(1L, 999L)); // 존재하지 않는 카테고리 ID
+
+        Owner owner = mock(Owner.class);
+        Category category1 = mock(Category.class);
+
+        when(ownerRepository.findById(ownerId)).thenReturn(Optional.of(owner));
+        when(storeRepository.existsByName(storeCreateReqDto.getName())).thenReturn(false);
+        when(storeRepository.countByOwnerId(ownerId)).thenReturn(2L);
+        when(categoryRepository.findById(1L)).thenReturn(Optional.of(category1));
+        when(categoryRepository.findById(999L)).thenReturn(Optional.empty());
+
+        BusinessException exception = assertThrows(BusinessException.class, () ->
+                storeService.createStore(storeCreateReqDto, ownerId)
+        );
+        assertEquals(ErrorCode.CATEGORY_NOT_FOUND, exception.getErrorCode());
+        System.out.println(exception.getMessage());
     }
 
     @DisplayName("실패 테스트 - 동일한 이름")
