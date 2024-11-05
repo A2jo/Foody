@@ -11,7 +11,7 @@ import java.util.List;
 @Getter
 public class SocialAccountListRespDto {
 
-    private List<SocialAccountRespDto> socialAccountList;g 
+    private List<SocialAccountRespDto> socialAccountList;
     private int totalCount;
 
     public SocialAccountListRespDto(List<SocialAccount> socialAccountList) {
