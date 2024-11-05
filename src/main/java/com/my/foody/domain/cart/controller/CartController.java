@@ -25,8 +25,8 @@ public class CartController {
     @RequireAuth(userType = UserType.USER) // User 인증 확인
     @GetMapping
     public ResponseEntity<ApiResult<Page<CartCreateRespDto>>> getCartItems(
-            @RequestParam int page,
-            @RequestParam int limit,
+            @RequestParam(value = "page") int page,
+            @RequestParam(value = "limit") int limit,
             @CurrentUser TokenSubject tokenSubject) {
 
         Long userId = tokenSubject.getId();

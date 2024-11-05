@@ -4,12 +4,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.my.foody.domain.address.dto.req.AddressCreateReqDto;
 import com.my.foody.domain.address.dto.resp.AddressCreateRespDto;
 import com.my.foody.domain.address.entity.Address;
+import com.my.foody.domain.review.dto.resp.ReviewListRespDto;
+import com.my.foody.domain.review.repo.dto.ReviewProjectionRespDto;
+import com.my.foody.domain.review.service.ReviewService;
+import com.my.foody.domain.user.dto.resp.AddressListRespDto;
 import com.my.foody.domain.user.dto.req.UserInfoModifyReqDto;
 import com.my.foody.domain.user.dto.resp.UserInfoModifyRespDto;
 import com.my.foody.domain.user.dto.resp.UserInfoRespDto;
 import com.my.foody.domain.user.entity.User;
 import com.my.foody.domain.user.service.UserService;
-import com.my.foody.global.ex.BusinessException;
 import com.my.foody.global.ex.CustomJwtException;
 import com.my.foody.global.ex.ErrorCode;
 import com.my.foody.global.jwt.JwtProvider;
@@ -17,14 +20,23 @@ import com.my.foody.global.jwt.JwtVo;
 import com.my.foody.global.jwt.TokenSubject;
 import com.my.foody.global.jwt.UserType;
 import com.my.foody.global.util.DummyObject;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -44,6 +56,9 @@ public class UserControllerTest extends DummyObject {
 
     @MockBean
     private JwtProvider jwtProvider;
+
+    @MockBean
+    private ReviewService reviewService;
 
     @Test
     @DisplayName("마이페이지 조회 성공 테스트")
@@ -131,13 +146,68 @@ public class UserControllerTest extends DummyObject {
 
 
     @Test
+    @DisplayName("전체 주소지 조회 성공 테스트: 주소지 크기 5")
+    void getAllAddress_Success() throws Exception {
+        Long userId = 1L;
+        String token = "test.token";
+        TokenSubject tokenSubject = new TokenSubject(userId, UserType.USER);
+        User user = mockUser();
+
+        List<Address> addressList = new ArrayList<>();
+        for(int i = 0;i<5;i++){
+            addressList.add(mockAddress(user));
+        }
+
+        AddressListRespDto result = new AddressListRespDto(addressList);
+        
+        when(jwtProvider.validate(token)).thenReturn(tokenSubject);
+        when(userService.getAllAddress(userId)).thenReturn(result);
+
+        //when & then
+        mvc.perform(get("/api/users/mypage/address")
+                        .header(JwtVo.HEADER, JwtVo.TOKEN_PREFIX + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.addressList").isArray())
+                .andExpect(jsonPath("$.data.addressList", hasSize(addressList.size())))
+                .andExpect(jsonPath("$.data.addressList[0].roadAddress").exists())
+                .andExpect(jsonPath("$.data.addressList[0].detailedAddress").exists())
+                .andDo(print());
+    }
+
+    @Test
     @DisplayName("유저 정보 수정 성공 테스트")
     void modifyUserInfo_Success() throws Exception {
         // given
+
         Long userId = 1L;
         String token = "test.token";
         TokenSubject tokenSubject = new TokenSubject(userId, UserType.USER);
 
+
+        AddressListRespDto result = new AddressListRespDto(new ArrayList<>());
+
+        when(jwtProvider.validate(token)).thenReturn(tokenSubject);
+        when(userService.getAllAddress(userId)).thenReturn(result);
+
+        // when & then
+        mvc.perform(get("/api/users/mypage/address")
+                        .header(JwtVo.HEADER, JwtVo.TOKEN_PREFIX + token)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.addressList").isArray())
+                .andExpect(jsonPath("$.data.addressList", hasSize(0)))
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("전체 주소지 조회 성공 테스트: 빈 주소 목록")
+    void getAllAddress_EmptyList() throws Exception {
+
+        Long userId = 1L;
+        String token = "test.token";
+        TokenSubject tokenSubject = new TokenSubject(userId, UserType.USER);
         UserInfoModifyReqDto requestDto = UserInfoModifyReqDto.builder()
                 .email("test@example.com")
                 .name("테스트")
@@ -255,5 +325,65 @@ public class UserControllerTest extends DummyObject {
 
         verify(userService, never()).modifyUserInfo(any(), any());
     }
+
+
+    @Test
+    @DisplayName("리뷰 목록 조회 성공 테스트")
+    void getAllReview_Success() throws Exception {
+        // given
+        Long userId = 1L;
+        String token = "test.token";
+        int page = 0;
+        int limit = 10;
+        TokenSubject tokenSubject = new TokenSubject(userId, UserType.USER);
+
+
+        List<ReviewListRespDto.ReviewRespDto> reviewList = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            reviewList.add(new ReviewListRespDto.ReviewRespDto(
+                    createMockReviewProjection((long)(i + 1), 1L, "리쿠네김치찌개", 5, "너무 맛있네요" + i)
+            ));
+        }
+
+        Page<ReviewProjectionRespDto> reviewPage = new PageImpl<>(
+                Arrays.asList(createMockReviewProjection(1L, 1L, "가게입니다", 5, "천상의맛")),
+                PageRequest.of(page, limit),
+                1
+        );
+
+        ReviewListRespDto responseDto = new ReviewListRespDto(reviewPage);
+
+        when(jwtProvider.validate(token)).thenReturn(tokenSubject);
+        when(reviewService.getAllReviewByUser(userId, page, limit)).thenReturn(responseDto);
+
+        // when & then
+        mvc.perform(get("/api/users/mypage/reviews")
+                        .header(JwtVo.HEADER, JwtVo.TOKEN_PREFIX + token)
+                        .param("page", String.valueOf(page))
+                        .param("limit", String.valueOf(limit))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.reviewList").isArray())
+                .andExpect(jsonPath("$.data.reviewList[0].reviewId").exists())
+                .andExpect(jsonPath("$.data.pageInfo.pageNumber").value(page))
+                .andExpect(jsonPath("$.data.pageInfo.pageSize").value(limit))
+                .andDo(print());
+
+        verify(reviewService).getAllReviewByUser(userId, page, limit);
+    }
+
+
+    private ReviewProjectionRespDto createMockReviewProjection(
+            Long reviewId, Long storeId, String storeName, Integer rating, String comment) {
+        return new ReviewProjectionRespDto() {
+            @Override public Long getReviewId() { return reviewId; }
+            @Override public Long getStoreId() { return storeId; }
+            @Override public String getStoreName() { return storeName; }
+            @Override public Integer getRating() { return rating; }
+            @Override public String getComment() { return comment; }
+        };
+    }
+
 
 }
