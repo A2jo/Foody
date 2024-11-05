@@ -3,13 +3,15 @@ package com.my.foody.domain.cart.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
-import com.my.foody.domain.cart.dto.resp.CartCreateRespDto;
+import com.my.foody.domain.cart.dto.resp.CartItemRespDto;
 import com.my.foody.domain.cart.entity.Cart;
 import com.my.foody.domain.cart.repo.CartRepository;
 import java.util.Arrays;
 
 import com.my.foody.domain.menu.entity.Menu;
 import com.my.foody.domain.store.entity.Store;
+import com.my.foody.domain.user.entity.User;
+import com.my.foody.domain.user.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,14 +30,23 @@ public class CartServiceTest {
     @Mock
     private CartRepository cartRepository;
 
+    @Mock
+    private UserService userService;
+
     @InjectMocks
     private CartService cartService;
 
     private Cart cartItem;
+    private User user;
 
 
     @BeforeEach
     public void setUp() {
+
+        user = User.builder()
+                .id(1L)
+                .name("Test user")
+                .build();
 
         Store store = Store.builder()
                 .name("Test 음식점")
@@ -63,14 +74,17 @@ public class CartServiceTest {
         Pageable pageable = PageRequest.of(page, limit, Sort.by("id").descending());
 
         Page<Cart> cartItemsPage = new PageImpl<>(Arrays.asList(cartItem));
+
+        //userService의 findById 스텁 추가
+        when(userService.findActivateUserByIdOrFail(userId)).thenReturn(user);
         when(cartRepository.findByUserId(userId, pageable)).thenReturn(cartItemsPage);
 
         // when
-        Page<CartCreateRespDto> result = cartService.getCartItems(userId, page, limit);
+        Page<CartItemRespDto> result = cartService.getCartItems(userId, page, limit);
 
         // then
         assertEquals(1, result.getTotalElements());
-        CartCreateRespDto cartDto = result.getContent().get(0);
+        CartItemRespDto cartDto = result.getContent().get(0);
 
         assertEquals("Test 음식점", cartDto.getStoreName());
         assertEquals("Sample 메뉴", cartDto.getMenuName());
