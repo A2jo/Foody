@@ -12,6 +12,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class WebMvcConfig implements WebMvcConfigurer {
     private final AuthInterceptor authInterceptor;
+
     private final TokenSubjectArgumentResolver tokenSubjectArgumentResolver;
 
     @Override

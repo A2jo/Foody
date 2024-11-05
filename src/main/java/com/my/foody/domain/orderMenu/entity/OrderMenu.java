@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
+@Table(name = "order_menu")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class OrderMenu extends BaseEntity {
     @Id

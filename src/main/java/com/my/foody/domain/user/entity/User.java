@@ -9,6 +9,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.util.StringUtils;
 
 @Entity
 @Getter
@@ -32,14 +33,14 @@ public class User extends BaseEntity {
     private Boolean isDeleted;
 
     @Builder
-    public User(Long id, String name, String nickname, String password, String email, String contact) {
+    public User(Long id, String name, String nickname, String password, String email, String contact, Boolean isDeleted) {
         this.id = id;
         this.name = name;
         this.nickname = nickname;
         this.password = password;
         this.email = email;
         this.contact = contact;
-        this.isDeleted = false;
+        this.isDeleted = isDeleted;
     }
 
     public void matchPassword(String password){
@@ -48,13 +49,32 @@ public class User extends BaseEntity {
         }
     }
 
+
+    public void modifyBasicInfo(String name, String nickname, String contact, String email){
+        this.name = updateIfValid(name, this.name);
+        this.nickname = updateIfValid(nickname, this.nickname);
+        this.contact = updateIfValid(contact, this.contact);
+        this.email = updateIfValid(email, this.email);
+    }
+
+    private String updateIfValid(String newValue, String currentValue) {
+        return StringUtils.hasText(newValue) ? newValue.trim() : currentValue;
+    }
+
+
     public void validPassword(String currentPassword) {
         if(!PasswordEncoder.matches(currentPassword, this.password)){
             throw new BusinessException(ErrorCode.INVALID_PASSWORD);
         }
     }
 
+
     public void changePassword(String newPassword) {
         this.password = PasswordEncoder.encode(newPassword);
+    }
+
+
+    public void deactivate(){
+        this.isDeleted = true;
     }
 }
