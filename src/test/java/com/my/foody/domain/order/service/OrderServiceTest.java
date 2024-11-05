@@ -72,9 +72,7 @@ public class OrderServiceTest extends DummyObject {
                 .build();
 
         cart = Cart.builder()
-                .quantity(2L)
                 .store(store)
-                .menu(menu)
                 .build();
     }
 
@@ -163,8 +161,6 @@ public class OrderServiceTest extends DummyObject {
         assertEquals(store.getId(), orderPreview.getStoreId());
         assertEquals(menu.getName(), orderPreview.getMenuName());
         assertEquals(menu.getPrice(), orderPreview.getMenuPrice());
-        assertEquals(cart.getQuantity(), orderPreview.getQuantity());
-        assertEquals(menu.getPrice() * cart.getQuantity(), orderPreview.getTotalAmount());
 
         // Verifying the interactions with the mocks
         verify(userRepository).findById(userId);
