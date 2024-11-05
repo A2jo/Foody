@@ -8,8 +8,14 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import lombok.*;
+import org.springframework.jmx.export.annotation.ManagedNotifications;
+
 @Entity
 @Getter
+@Builder
+@Table(name = "menu")
+@AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 
 public class Menu extends BaseEntity {
