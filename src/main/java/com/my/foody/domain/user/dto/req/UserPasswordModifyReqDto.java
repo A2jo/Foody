@@ -22,7 +22,7 @@ public class UserPasswordModifyReqDto {
 
     @AssertTrue(message = "새로운 비밀번호는 현재 비밀번호와 달라야 합니다")
     public boolean isPasswordDifferent(){
-        if(currentPassword != null || newPassword != null){
+        if(currentPassword == null || newPassword == null){
             return true;
         }
         return !currentPassword.equals(newPassword);
