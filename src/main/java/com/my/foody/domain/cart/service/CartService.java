@@ -11,9 +11,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
 @Service
 @RequiredArgsConstructor
 public class CartService {
@@ -23,8 +20,8 @@ public class CartService {
 
     public Page<CartItemRespDto> getCartItems(Long userId, int page, int limit) {
 
-        //User의 존재 검증
-        userService.findByIdOrFail(userId);
+        //Active User의 존재 검증
+        userService.findActivateUserByIdOrFail(userId);
 
         Pageable pageable = PageRequest.of(page, limit, Sort.by("id").descending());
         Page<Cart> cartItemsPage = cartRepository.findByUserId(userId, pageable);
