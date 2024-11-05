@@ -18,8 +18,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class MenuService {
 
-    private MenuRepository menuRepository;
-    private StoreRepository storeRepository;
+    private final MenuRepository menuRepository;
+    private final StoreRepository storeRepository;
 
 
     @Transactional
