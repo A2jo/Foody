@@ -1,15 +1,22 @@
 package com.my.foody.domain.order.dto.req;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
-@Getter
-@Builder
-@Setter
 @NoArgsConstructor
+@Getter
 @AllArgsConstructor
 public class OrderCreateReqDto {
-    private Long addressId;
+
+    @NotNull
+    private Long userAddressId;
+
+    @NotNull
     private Long userId;
-    private Long totalAmount;
-    private Long menuId;
+
+    @NotNull(message = "최소 금액 이상 주문이 가능합니다.")
+    private Long paymentAmount;
+
+    @NotNull
+    private Long menuItemId;
 }
