@@ -5,6 +5,7 @@ import com.my.foody.domain.category.repo.CategoryRepository;
 import com.my.foody.domain.owner.entity.Owner;
 import com.my.foody.domain.owner.repo.OwnerRepository;
 import com.my.foody.domain.store.dto.req.StoreCreateReqDto;
+import com.my.foody.domain.store.dto.resp.GetStoreRespDto;
 import com.my.foody.domain.store.dto.resp.StoreCreateRespDto;
 import com.my.foody.domain.store.entity.Store;
 import com.my.foody.domain.store.repo.StoreRepository;
@@ -45,16 +46,13 @@ public class StoreService {
         return new StoreCreateRespDto(store);
     }
 
-    // 유효성 검사
-    public void validateCreateStore(StoreCreateReqDto storeCreatereqDto, Long ownerId) {
-        // 가게이름 중복 검사
-        if (storeRepository.existsByName(storeCreatereqDto.getName())) {
-            throw new BusinessException(ErrorCode.STORENAME_ALREADY_EXISTS);
-        }
-        // 사장님 가게 3개 이상 생성 불가
-        if (storeRepository.countByOwnerId(ownerId) >= 3) {
-            throw new BusinessException(ErrorCode.HAVE_FULL_STORE);
-        }
+    public List<GetStoreRespDto> getAllStoresByOwnerId(Long ownerId) {
+        // 해당 ID의 가게 조회
+        List<Store> storeList = storeRepository.findByOwnerId(ownerId);
+
+        return storeList.stream()
+                .map(store -> new GetStoreRespDto(store))
+                .toList();
     }
 
     // 카테고리 저장
@@ -69,6 +67,18 @@ public class StoreService {
                     .category(category)
                     .build();
             storeCategoryRepository.save(storeCategory);
+        }
+    }
+
+    // 유효성 검사
+    public void validateCreateStore(StoreCreateReqDto storeCreatereqDto, Long ownerId) {
+        // 가게이름 중복 검사
+        if (storeRepository.existsByName(storeCreatereqDto.getName())) {
+            throw new BusinessException(ErrorCode.STORENAME_ALREADY_EXISTS);
+        }
+        // 사장님 영업중인 가게 3개 이상인 경우 생성 불가
+        if (storeRepository.countByOwnerIdAndIsDeletedFalse(ownerId) >= 3) {
+            throw new BusinessException(ErrorCode.HAVE_FULL_STORE);
         }
     }
 }

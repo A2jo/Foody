@@ -19,7 +19,7 @@ public class DummyObject {
                 .name("맛있는가게")
                 .openTime(LocalTime.now())
                 .endTime(LocalTime.now())
-                .id(1L)
+//                .id(1L)
                 .contact("010-1234-2342")
                 .isDeleted(false)
                 .minOrderAmount(1000L)
