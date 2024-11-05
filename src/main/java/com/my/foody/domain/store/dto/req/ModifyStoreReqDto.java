@@ -1,12 +1,9 @@
 package com.my.foody.domain.store.dto.req;
 
 
-import com.my.foody.domain.owner.entity.Owner;
-import com.my.foody.domain.store.entity.Store;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -17,7 +14,7 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
-public class PatchStoreReqDto {
+public class ModifyStoreReqDto {
     @NotBlank(message = "가게 이름를 입력해주세요")
     @Size(min = 1, max = 20, message = "가게 이름은 최대 20자까지 입력할 수 있습니다.")
     private String name;
@@ -41,17 +38,4 @@ public class PatchStoreReqDto {
     @NotBlank(message = "가게의 영업상태를 설정해주세요")
     private boolean isDeleted;
 
-    @Builder
-    public Store toPatchEntity(Owner owner) {
-        return Store.builder()
-                .name(name)
-                .owner(owner)
-                .description(description)
-                .contact(contact)
-                .minOrderAmount(minOrderAmount)
-                .openTime(openTime)
-                .endTime(endTime)
-                .isDeleted(isDeleted)
-                .build();
-    }
 }
