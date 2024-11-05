@@ -48,6 +48,7 @@ public class OrderService {
         return new OrderStatusUpdateRespDto(savedOrder.getOrderStatus().name());
     }
 
+    //TODO 이거 수정해야 함!!
     public OrderPreviewRespDto getOrderPreview(Long userId, Long storeId, Long cartId) {
 
         User user = userRepository.findById(userId)
@@ -58,23 +59,24 @@ public class OrderService {
 
         Cart cart = cartRepository.findWithStoreAndMenuByIdAndUserIdAndStoreId(cartId, userId, storeId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.CART_ITEM_NOT_FOUND));
+        return null;
 
-        Store store = cart.getStore();
-        Menu menu = cart.getMenu();
-
-        Long totalAmount = menu.getPrice() * cart.getQuantity();
-
-        return OrderPreviewRespDto.builder()
-                .roadAddress(address.getRoadAddress())
-                .detailedAddress(address.getDetailedAddress())
-                .userContact(user.getContact())
-                .storeName(store.getName())
-                .storeId(store.getId())
-                .menuName(menu.getName())
-                .menuPrice(menu.getPrice())
-                .quantity(cart.getQuantity())
-                .totalAmount(totalAmount)
-                .build();
+//        Store store = cart.getStore();
+//        Menu menu = cart.getMenu();
+//
+//        Long totalAmount = menu.getPrice() * cart.getQuantity();
+//
+//        return OrderPreviewRespDto.builder()
+//                .roadAddress(address.getRoadAddress())
+//                .detailedAddress(address.getDetailedAddress())
+//                .userContact(user.getContact())
+//                .storeName(store.getName())
+//                .storeId(store.getId())
+//                .menuName(menu.getName())
+//                .menuPrice(menu.getPrice())
+//                .quantity(cart.getQuantity())
+//                .totalAmount(totalAmount)
+//                .build();
     }
 
     public String createOrder(OrderCreateReqDto requestDto) {
