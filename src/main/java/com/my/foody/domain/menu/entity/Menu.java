@@ -48,4 +48,14 @@ public class Menu extends BaseEntity {
         this.isDeleted = false;
     }
 
+    //메뉴명 수정
+    public void updateName(String name) {
+        this.name = name;
+    }
+
+    //가격 수정
+    public void updatePrice(Long price) {
+        this.price = price;
+    }
+
 }
