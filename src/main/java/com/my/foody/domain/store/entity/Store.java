@@ -9,8 +9,10 @@ import java.time.LocalTime;
 
 @Entity
 @Getter
-@Setter
+@Builder
+@Table(name = "store")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 public class Store extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -42,7 +44,7 @@ public class Store extends BaseEntity {
     private Boolean isDeleted; //삭제되면 true, 운영 중이면 false
 
     @Builder
-    public Store(String name, Owner owner, String description, String contact, Long minOrderAmount, LocalTime openTime, LocalTime endTime){
+    public Store(String name, Owner owner, String description, String contact, Long minOrderAmount, LocalTime openTime, LocalTime endTime, Boolean isDeleted) {
         this.name = name;
         this.owner = owner;
         this.description = description;
@@ -52,5 +54,4 @@ public class Store extends BaseEntity {
         this.endTime = endTime;
         this.isDeleted = false;
     }
-
 }
