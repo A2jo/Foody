@@ -148,8 +148,8 @@ public class OrderServiceTest extends DummyObject {
 
         //when
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(addressRepository.findByUserId(userId)).thenReturn(Optional.of(address));
-        when(cartRepository.findByIdAndUserIdAndStoreId(cartId, userId, storeId))
+        when(addressRepository.findByUserIdAndIsMain(userId,true)).thenReturn(Optional.of(address));
+        when(cartRepository.findWithStoreAndMenuByIdAndUserIdAndStoreId(cartId, userId, storeId))
                 .thenReturn(Optional.of(cart));
 
         //then
@@ -168,8 +168,8 @@ public class OrderServiceTest extends DummyObject {
 
         // Verifying the interactions with the mocks
         verify(userRepository).findById(userId);
-        verify(addressRepository).findByUserId(userId);
-        verify(cartRepository).findByIdAndUserIdAndStoreId(cartId, userId, storeId);
+        verify(addressRepository).findByUserIdAndIsMain(userId, true);
+        verify(cartRepository).findWithStoreAndMenuByIdAndUserIdAndStoreId(cartId, userId, storeId);
     }
 
     @Test
@@ -197,17 +197,15 @@ public class OrderServiceTest extends DummyObject {
         Long storeId = store.getId();
         Long cartId = cart.getId();
 
-        // Mocking behavior for dependencies
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(addressRepository.findByUserId(userId)).thenReturn(Optional.empty());
+        when(addressRepository.findByUserIdAndIsMain(userId, true)).thenReturn(Optional.empty());
 
-        // Exception verification
         assertThrows(BusinessException.class, () -> {
             orderService.getOrderPreview(userId, storeId, cartId);
         }, "예상된 ADDRESS_NOT_FOUND의 예외 처리");
 
         verify(userRepository).findById(userId);
-        verify(addressRepository).findByUserId(userId);
+        verify(addressRepository).findByUserIdAndIsMain(userId, true);
     }
 
     @Test
@@ -221,8 +219,8 @@ public class OrderServiceTest extends DummyObject {
 
         // when
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(addressRepository.findByUserId(userId)).thenReturn(Optional.of(address));
-        when(cartRepository.findByIdAndUserIdAndStoreId(cartId, userId, storeId))
+        when(addressRepository.findByUserIdAndIsMain(userId, true)).thenReturn(Optional.of(address));
+        when(cartRepository.findWithStoreAndMenuByIdAndUserIdAndStoreId(cartId, userId, storeId))
                 .thenReturn(Optional.empty());
 
        //then
@@ -231,7 +229,7 @@ public class OrderServiceTest extends DummyObject {
         }, "예상된 CART_ITEM_NOT_FOUND의 예외 처리");
 
         verify(userRepository).findById(userId);
-        verify(addressRepository).findByUserId(userId);
-        verify(cartRepository).findByIdAndUserIdAndStoreId(cartId, userId, storeId);
+        verify(addressRepository).findByUserIdAndIsMain(userId, true);
+        verify(cartRepository).findWithStoreAndMenuByIdAndUserIdAndStoreId(cartId, userId, storeId);
     }
 }
