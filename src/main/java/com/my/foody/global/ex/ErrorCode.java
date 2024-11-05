@@ -62,6 +62,10 @@ public enum ErrorCode {
     ORDER_NOT_COMPLETED(HttpStatus.BAD_REQUEST.value(), "리뷰는 완료된 주문에 대해서만 작성할 수 있습니다"),
     REVIEW_ALREADY_EXISTS(HttpStatus.BAD_REQUEST.value(), "해당 주문에 대한 리뷰가 존재합니다");
 
+    MENU_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "존재하지 않는 메뉴입니다"),
+    INVALID_MENU_NAME(HttpStatus.BAD_REQUEST.value(), "메뉴 이름은 1자 이상 30자 이하여야 합니다"),
+    INVALID_MENU_PRICE(HttpStatus.BAD_REQUEST.value(), "메뉴 가격은 1원 이상이어야 합니다");
+
 
     private final int status;
     private final String msg;
