@@ -10,6 +10,8 @@ import com.my.foody.domain.store.entity.Store;
 import com.my.foody.domain.user.entity.User;
 import com.my.foody.domain.user.repo.UserRepository;
 import com.my.foody.domain.user.service.UserService;
+import com.my.foody.global.ex.BusinessException;
+import com.my.foody.global.ex.ErrorCode;
 import com.my.foody.global.jwt.JwtProvider;
 import com.my.foody.global.util.DummyObject;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,8 +27,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
+
 @ExtendWith(MockitoExtension.class)
 class ReviewServiceTest extends DummyObject {
     @InjectMocks
@@ -94,6 +96,25 @@ class ReviewServiceTest extends DummyObject {
 
         verify(userService).findActivateUserByIdOrFail(userId);
         verify(reviewRepository).findReviewsByUser(user, pageable);
+    }
+
+
+    @Test
+    @DisplayName("유저 리뷰 목록 조회 실패 테스트: 존재하지 않는 유저")
+    void getAllReviewByUser_UserNotFound() {
+        Long userId = 999L;
+        int page = 0;
+        int limit = 10;
+
+        when(userService.findActivateUserByIdOrFail(userId))
+                .thenThrow(new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        // when & then
+        assertThrows(BusinessException.class,
+                () -> reviewService.getAllReviewByUser(userId, page, limit));
+
+        verify(userService).findActivateUserByIdOrFail(userId);
+        verify(reviewRepository, never()).findReviewsByUser(any(), any());
     }
 
     private ReviewProjectionRespDto createMockReviewProjection(
