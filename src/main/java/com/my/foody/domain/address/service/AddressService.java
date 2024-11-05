@@ -2,6 +2,7 @@ package com.my.foody.domain.address.service;
 
 import com.my.foody.domain.address.entity.Address;
 import com.my.foody.domain.address.repo.AddressRepository;
+import com.my.foody.domain.user.entity.User;
 import com.my.foody.global.ex.BusinessException;
 import com.my.foody.global.ex.ErrorCode;
 import lombok.RequiredArgsConstructor;
