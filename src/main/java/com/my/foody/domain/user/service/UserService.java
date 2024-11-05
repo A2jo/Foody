@@ -100,9 +100,4 @@ public class UserService {
         addressRepository.delete(address);
         return new AddressDeleteRespDto();
     }
-
-    public Long getUserIdFromToken(String token) {
-        TokenSubject tokenSubject = jwtProvider.validate(token);
-        return tokenSubject.getId();
-    }
 }
