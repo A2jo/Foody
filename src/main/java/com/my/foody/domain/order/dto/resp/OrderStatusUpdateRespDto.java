@@ -6,5 +6,5 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class OrderStatusUpdateRespDto {
-    private  String orderStaust;
+    private  String orderStatus;
 }
