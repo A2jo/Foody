@@ -94,7 +94,7 @@ public class UserController {
     }
 
     @RequireAuth(userType = UserType.USER)
-    @GetMapping("/reviews")
+    @GetMapping("/mypage/reviews")
     public ResponseEntity<ApiResult<ReviewListRespDto>> getAllReview(@RequestParam(value = "page")int page,
                                                                      @RequestParam(value = "limit") int limit,
                                                                      @CurrentUser TokenSubject tokenSubject){
