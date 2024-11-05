@@ -6,6 +6,10 @@ import com.my.foody.domain.address.dto.resp.AddressCreateRespDto;
 import com.my.foody.domain.address.dto.resp.AddressModifyRespDto;
 import com.my.foody.domain.address.entity.Address;
 import com.my.foody.domain.address.repo.AddressRepository;
+import com.my.foody.domain.category.entity.Category;
+import com.my.foody.domain.category.repo.CategoryRepository;
+import com.my.foody.domain.store.entity.Store;
+import com.my.foody.domain.store.repo.StoreRepository;
 import com.my.foody.domain.user.dto.req.UserDeleteReqDto;
 import com.my.foody.domain.user.dto.req.UserInfoModifyReqDto;
 import com.my.foody.domain.user.dto.req.UserLoginReqDto;
@@ -36,6 +40,21 @@ public class UserService {
     private final AddressRepository addressRepository;
     private final AddressService addressService;
     private final JwtProvider jwtProvider;
+    private final CategoryRepository categoryRepository;
+    private final StoreRepository storeRepository;
+
+    // 메인 화면 조회 메서드 추가
+    public UserHomeRespDto getUserHomeData() {
+
+        // 모든 카테고리 조회
+        List<Category> categories = categoryRepository.findAll();
+
+        // 모든 가게 조회
+        List<Store> stores = storeRepository.findAll();
+
+        // DTO로 반환
+        return new UserHomeRespDto(categories, stores);
+    }
 
     public UserSignUpRespDto signUp(UserSignUpReqDto userSignUpReqDto){
         //이메일 중복 검사
