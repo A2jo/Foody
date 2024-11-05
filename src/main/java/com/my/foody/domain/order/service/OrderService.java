@@ -5,6 +5,9 @@ import com.my.foody.domain.address.repo.AddressRepository;
 import com.my.foody.domain.address.service.AddressService;
 import com.my.foody.domain.cart.entity.Cart;
 import com.my.foody.domain.cart.repo.CartRepository;
+import com.my.foody.domain.menu.entity.Menu;
+import com.my.foody.domain.menu.repo.MenuRepository;
+import com.my.foody.domain.order.dto.req.OrderCreateReqDto;
 import com.my.foody.domain.cartMenu.CartMenu;
 import com.my.foody.domain.cartMenu.CartMenuRepository;
 import com.my.foody.domain.order.dto.req.OrderStatusUpdateReqDto;
@@ -49,6 +52,7 @@ public class OrderService {
     private final OwnerService ownerService;
     private final StoreRepository storeRepository;
     private final OrderMenuRepository orderMenuRepository;
+    private final MenuRepository menuRepository;
 
     @Transactional
     public OrderStatusUpdateRespDto updateOrderStatus(OrderStatusUpdateReqDto requestDto, Long orderId, Long ownerId) {
@@ -72,6 +76,14 @@ public class OrderService {
         User user = userService.findActivateUserByIdOrFail(userId);
         Store store = storeService.findActivateStoreByIdOrFail(storeId);
         Cart cart = cartRepository.findByIdAndUser(cartId, user)
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        Address address = addressRepository.findByUserIdAndIsMain(userId, true)
+                .orElseThrow(() -> new BusinessException(ErrorCode.ADDRESS_NOT_FOUND));
+
+        Cart cart = cartRepository.findWithStoreAndMenuByIdAndUserIdAndStoreId(cartId, userId, storeId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.CART_ITEM_NOT_FOUND));
 
         //기본 주소지 찾기
@@ -108,5 +120,28 @@ public class OrderService {
         Page<OrderProjectionRespDto> orderPage
                 = orderMenuRepository.findByOwnerWithOrderWithStoreWithMenu(owner, pageable);
         return new OrderListRespDto(orderPage);
+    }
+
+    public String createOrder(OrderCreateReqDto requestDto) {
+
+        User user = userRepository.findById(requestDto.getUserId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        Address address = addressRepository.findById(requestDto.getAddressId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.ADDRESS_NOT_FOUND));
+
+        Menu menu = menuRepository.findById(requestDto.getMenuId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.MENU_NOT_FOUND));
+
+        Order order = Order.builder()
+                .user(user)
+                .address(address)
+                .store(menu.getStore())
+                .totalAmount(requestDto.getTotalAmount())
+                .build();
+
+        orderRepository.save(order);
+
+        return "주문이 완료되었습니다.";
     }
 }
