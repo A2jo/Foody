@@ -79,7 +79,7 @@ public class MenuDeleteServiceTest {
 
         // given: 가게가 존재하고 소유자가 일치
         when(storeRepository.findById(storeId)).thenReturn(Optional.of(store));
-        when(menuRepository.findById(menuId)).thenReturn(Optional.of(menu));
+        when(menuRepository.findByIdAndIsDeletedFalse(menuId)).thenReturn(Optional.of(menu));
 
         // when: 메뉴 수정 호출
         MenuDeleteRespDto response = menuService.SoftDeleteMenu(storeId, menuId, ownerId);
