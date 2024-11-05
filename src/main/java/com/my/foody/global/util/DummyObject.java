@@ -1,15 +1,39 @@
 package com.my.foody.global.util;
 
 import com.my.foody.domain.address.entity.Address;
+import com.my.foody.domain.review.entity.Review;
 import com.my.foody.domain.order.entity.Order;
 import com.my.foody.domain.owner.entity.OrderStatus;
 import com.my.foody.domain.owner.entity.Owner;
 import com.my.foody.domain.store.entity.Store;
 import com.my.foody.domain.user.entity.User;
 
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 public class DummyObject {
+
+    protected Store mockStore(){
+        return Store.builder()
+                .owner(null)
+                .name("맛있는가게")
+                .openTime(LocalTime.now())
+                .endTime(LocalTime.now())
+                .id(1L)
+                .contact("010-1234-2342")
+                .isDeleted(false)
+                .minOrderAmount(1000L)
+                .build();
+    }
+
+    protected Review newReview(Store store, User user){
+        return Review.builder()
+                .store(store)
+                .user(user)
+                .comment("너무맛있어용")
+                .rating(3)
+                .build();
+    }
 
     protected User newUser(Long id){
         String password = "Maeda1234!";
@@ -19,7 +43,7 @@ public class DummyObject {
                 .password(PasswordEncoder.encode(password))
                 .contact("010-1234-5678")
                 .name("userA")
-                .nickname("userrr")
+                .nickname("절대중복되지않는닉네임..")
                 .build();
     }
 
@@ -30,7 +54,8 @@ public class DummyObject {
                 .password(PasswordEncoder.encode(password))
                 .contact("010-1234-5678")
                 .name("userA")
-                .nickname("userrr")
+                .nickname("절대중복되지않는닉네임..")
+                .isDeleted(false)
                 .build();
     }
 
@@ -51,20 +76,6 @@ public class DummyObject {
                 .password(PasswordEncoder.encode(password))
                 .contact("010-1234-5678")
                 .name("ownerA")
-                .build();
-    }
-
-
-    //id 가진 user
-    protected User newUser(Long id){
-        String password = "Maeda1234!";
-        return User.builder()
-                .id(id)
-                .email("user1234@naver.com")
-                .password(PasswordEncoder.encode(password))
-                .contact("010-1234-5678")
-                .name("userA")
-                .nickname("userrr")
                 .build();
     }
 
