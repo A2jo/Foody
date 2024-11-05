@@ -116,7 +116,10 @@ public class OwnerService {
         // 3. 탈퇴 처리: Owner의 삭제 상태를 true로 설정 (markAsDeleted() 메서드 사용)
         owner.markAsDeleted();
 
-        // 4. 탈퇴 성공 메시지 반환
+        // 4. 변경 사항을 데이터베이스에 반영
+        ownerRepository.save(owner);
+
+        // 5. 탈퇴 성공 메시지 반환
         return OwnerDeleteRespDto.INSTANCE;
     }
 }
