@@ -1,7 +1,12 @@
 package com.my.foody.domain.order.service;
 
 import com.my.foody.domain.address.entity.Address;
+import com.my.foody.domain.address.repo.AddressRepository;
+import com.my.foody.domain.cart.entity.Cart;
+import com.my.foody.domain.cart.repo.CartRepository;
+import com.my.foody.domain.menu.entity.Menu;
 import com.my.foody.domain.order.dto.req.OrderStatusUpdateReqDto;
+import com.my.foody.domain.order.dto.resp.OrderPreviewRespDto;
 import com.my.foody.domain.order.dto.resp.OrderStatusUpdateRespDto;
 import com.my.foody.domain.order.entity.Order;
 import com.my.foody.domain.order.repo.OrderRepository;
@@ -9,6 +14,7 @@ import com.my.foody.domain.owner.entity.OrderStatus;
 import com.my.foody.domain.owner.entity.Owner;
 import com.my.foody.domain.store.entity.Store;
 import com.my.foody.domain.user.entity.User;
+import com.my.foody.domain.user.repo.UserRepository;
 import com.my.foody.global.ex.BusinessException;
 import com.my.foody.global.ex.ErrorCode;
 import com.my.foody.global.util.DummyObject;
@@ -35,11 +41,22 @@ public class OrderServiceTest extends DummyObject {
     @Mock
     private OrderRepository orderRepository;
 
+    @Mock
+    private UserRepository userRepository;
+
+    @Mock
+    private CartRepository cartRepository;
+
+    @Mock
+    private AddressRepository addressRepository;
+
     private Order order;
     private Owner owner;
     private Store store;
     private User user;
     private Address address;
+    private Cart cart;
+    private Menu menu;
 
     @BeforeEach
     public void setUp() {
@@ -48,6 +65,17 @@ public class OrderServiceTest extends DummyObject {
         user = newUser(1L);
         address = mockAddress(user);
         order = mockOrder(owner, user, address);
+
+        menu = Menu.builder()
+                .price(100L)
+                .name("테스트 메뉴")
+                .build();
+
+        cart = Cart.builder()
+                .quantity(2L)
+                .store(store)
+                .menu(menu)
+                .build();
     }
 
     @Test
@@ -109,5 +137,101 @@ public class OrderServiceTest extends DummyObject {
         verify(orderRepository, never()).save(any(Order.class));
     }
 
+    @Test
+    @DisplayName("주문 미리보기 성공 테스트")
+    void getOrderPreview_Success() {
 
+        //given
+        Long userId = user.getId();
+        Long storeId = store.getId();
+        Long cartId = cart.getId();
+
+        //when
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(addressRepository.findByUserId(userId)).thenReturn(Optional.of(address));
+        when(cartRepository.findByIdAndUserIdAndStoreId(cartId, userId, storeId))
+                .thenReturn(Optional.of(cart));
+
+        //then
+        OrderPreviewRespDto orderPreview = orderService.getOrderPreview(userId, storeId, cartId);
+
+        assertNotNull(orderPreview);
+        assertEquals(address.getRoadAddress(), orderPreview.getRoadAddress());
+        assertEquals(address.getDetailedAddress(), orderPreview.getDetailedAddress());
+        assertEquals(user.getContact(), orderPreview.getUserContact());
+        assertEquals(store.getName(), orderPreview.getStoreName());
+        assertEquals(store.getId(), orderPreview.getStoreId());
+        assertEquals(menu.getName(), orderPreview.getMenuName());
+        assertEquals(menu.getPrice(), orderPreview.getMenuPrice());
+        assertEquals(cart.getQuantity(), orderPreview.getQuantity());
+        assertEquals(menu.getPrice() * cart.getQuantity(), orderPreview.getTotalAmount());
+
+        // Verifying the interactions with the mocks
+        verify(userRepository).findById(userId);
+        verify(addressRepository).findByUserId(userId);
+        verify(cartRepository).findByIdAndUserIdAndStoreId(cartId, userId, storeId);
+    }
+
+    @Test
+    @DisplayName("주문 미리보기 실패 테스트 - 사용자 미발견")
+    void getOrderPreview_UserNotFound() {
+        Long userId = 1L;
+        Long storeId = 1L;
+        Long cartId = 1L;
+
+        // Mocking behavior for dependencies
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+        // Exception verification
+        assertThrows(BusinessException.class, () -> {
+            orderService.getOrderPreview(userId, storeId, cartId);
+        }, " 예상된 USER_NOT_FOUND의 예외 처리");
+
+        verify(userRepository).findById(userId);
+    }
+
+    @Test
+    @DisplayName("주문 미리보기 실패 테스트 - 주소 미발견")
+    void getOrderPreview_AddressNotFound() {
+        Long userId = user.getId();
+        Long storeId = store.getId();
+        Long cartId = cart.getId();
+
+        // Mocking behavior for dependencies
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(addressRepository.findByUserId(userId)).thenReturn(Optional.empty());
+
+        // Exception verification
+        assertThrows(BusinessException.class, () -> {
+            orderService.getOrderPreview(userId, storeId, cartId);
+        }, "예상된 ADDRESS_NOT_FOUND의 예외 처리");
+
+        verify(userRepository).findById(userId);
+        verify(addressRepository).findByUserId(userId);
+    }
+
+    @Test
+    @DisplayName("주문 미리보기 실패 테스트 - 카트 항목 미발견")
+    void getOrderPreview_CartItemNotFound() {
+
+        //given
+        Long userId = user.getId();
+        Long storeId = store.getId();
+        Long cartId = cart.getId();
+
+        // when
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(addressRepository.findByUserId(userId)).thenReturn(Optional.of(address));
+        when(cartRepository.findByIdAndUserIdAndStoreId(cartId, userId, storeId))
+                .thenReturn(Optional.empty());
+
+       //then
+        assertThrows(BusinessException.class, () -> {
+            orderService.getOrderPreview(userId, storeId, cartId);
+        }, "예상된 CART_ITEM_NOT_FOUND의 예외 처리");
+
+        verify(userRepository).findById(userId);
+        verify(addressRepository).findByUserId(userId);
+        verify(cartRepository).findByIdAndUserIdAndStoreId(cartId, userId, storeId);
+    }
 }
