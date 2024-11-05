@@ -7,12 +7,10 @@ import com.my.foody.domain.address.dto.resp.AddressModifyRespDto;
 import com.my.foody.domain.address.entity.Address;
 import com.my.foody.domain.address.repo.AddressRepository;
 import com.my.foody.domain.address.service.AddressService;
+import com.my.foody.domain.user.dto.req.UserInfoModifyReqDto;
 import com.my.foody.domain.user.dto.req.UserLoginReqDto;
 import com.my.foody.domain.user.dto.req.UserSignUpReqDto;
-import com.my.foody.domain.user.dto.resp.AddressDeleteRespDto;
-import com.my.foody.domain.user.dto.resp.UserInfoRespDto;
-import com.my.foody.domain.user.dto.resp.UserLoginRespDto;
-import com.my.foody.domain.user.dto.resp.UserSignUpRespDto;
+import com.my.foody.domain.user.dto.resp.*;
 import com.my.foody.domain.user.entity.User;
 import com.my.foody.domain.user.repo.UserRepository;
 import com.my.foody.global.ex.BusinessException;
@@ -28,6 +26,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -396,6 +396,120 @@ class UserServiceTest extends DummyObject {
         verify(addressRepository, never()).delete(any(Address.class));
     }
 
+    @Test
+<<<<<<< HEAD
+    @DisplayName(value = "전체 주소지 조회 성공 테스트")
+    void getAllAddress_Success(){
+        Long userId = 1L;
+        User user = newUser(userId);
+        List<Address> addressList = new ArrayList<>();
+        for(int i = 0;i<5;i++){
+            addressList.add(mockAddress(user));
+        }
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(addressRepository.findAllByUserOrderByCreatedAtDesc(user)).thenReturn(addressList);
+
+        //when
+        AddressListRespDto result = userService.getAllAddress(userId);
+
+        //then
+        assertNotNull(result);
+        assertThat(result.getAddressList().size()).isEqualTo(addressList.size());
+        verify(userRepository).findById(userId);
+        verify(addressRepository).findAllByUserOrderByCreatedAtDesc(user);
+    }
+
+    @Test
+    @DisplayName(value = "전체 주소지 조회 실패 테스트: 존재하지 않는 유저")
+    void getAllAddress_UserNotFound(){
+        Long userId = 1L;
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+        //when & then
+        assertThatThrownBy(() -> userService.getAllAddress(userId))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.USER_NOT_FOUND);
+        verify(userRepository, times(1)).findById(userId);
+        verify(addressRepository, never()).findAllByUserOrderByCreatedAtDesc(any(User.class));
+    }
+
+=======
+    @DisplayName("유저 정보 수정 성공 테스트")
+    void modifyUserInfo_Success() {
+        Long userId = 1L;
+        User user = newUser(userId);
+        UserInfoModifyReqDto requestDto = UserInfoModifyReqDto.builder()
+                .email("new@test.com")
+                .name("newName")
+                .nickname("newNickname")
+                .contact("010-2222-2222")
+                .build();
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(userRepository.existsByEmail(requestDto.getEmail())).thenReturn(false);
+        when(userRepository.existsByNickname(requestDto.getNickname())).thenReturn(false);
+
+        // when
+        UserInfoModifyRespDto response = userService.modifyUserInfo(requestDto, userId);
+
+        // then
+        assertNotNull(response);
+        verify(userRepository).findById(userId);
+        verify(userRepository).existsByEmail(requestDto.getEmail());
+        verify(userRepository).existsByNickname(requestDto.getNickname());
+    }
+
+    @Test
+    @DisplayName("유저 정보 수정 실패 테스트: 중복된 이메일")
+    void modifyUserInfo_DuplicateEmail() {
+        Long userId = 1L;
+        User user = newUser(userId);
+        UserInfoModifyReqDto requestDto = UserInfoModifyReqDto.builder()
+                .email("new@test.com")
+                .name("newName")
+                .nickname("newNickname")
+                .contact("010-2222-2222")
+                .build();
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(userRepository.existsByEmail(requestDto.getEmail())).thenReturn(true);
+
+        // when & then
+        BusinessException exception = assertThrows(BusinessException.class,
+                () -> userService.modifyUserInfo(requestDto, userId));
+        assertEquals(ErrorCode.EMAIL_ALREADY_EXISTS, exception.getErrorCode());
+        verify(userRepository).findById(userId);
+        verify(userRepository).existsByEmail(requestDto.getEmail());
+        verify(userRepository, never()).existsByNickname(any());
+    }
+
+    @Test
+    @DisplayName("유저 정보 수정 실패 테스트: 중복된 닉네임")
+    void modifyUserInfo_DuplicateNickname() {
+        Long userId = 1L;
+        User user = newUser(userId);
+        UserInfoModifyReqDto requestDto = UserInfoModifyReqDto.builder()
+                .email("new@test.com")
+                .name("newName")
+                .nickname("newNickname")
+                .contact("010-2222-2222")
+                .build();
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(userRepository.existsByEmail(requestDto.getEmail())).thenReturn(true);
+        when(userRepository.existsByNickname(requestDto.getNickname())).thenReturn(false);  // 조건문 로직상 false일 때 예외 발생
+
+        // when & then
+        BusinessException exception = assertThrows(BusinessException.class,
+                () -> userService.modifyUserInfo(requestDto, userId));
+        assertEquals(ErrorCode.NICKNAME_ALREADY_EXISTS, exception.getErrorCode());
+        verify(userRepository).findById(userId);
+        verify(userRepository).existsByEmail(requestDto.getEmail());
+        verify(userRepository).existsByNickname(requestDto.getNickname());
+    }
+
+
+
+>>>>>>> 03898e5ce6d7c689db5b8e3c04447cf9f23cd023
     private UserSignUpReqDto mockUserSignUpReqDto(){
         return UserSignUpReqDto.builder()
                 .contact("010-1234-5678")
