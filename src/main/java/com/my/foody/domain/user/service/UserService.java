@@ -1,13 +1,17 @@
 package com.my.foody.domain.user.service;
 
 import com.my.foody.domain.address.dto.req.AddressCreateReqDto;
+import com.my.foody.domain.address.dto.req.AddressModifyReqDto;
 import com.my.foody.domain.address.dto.resp.AddressCreateRespDto;
+import com.my.foody.domain.address.dto.resp.AddressModifyRespDto;
 import com.my.foody.domain.address.entity.Address;
 import com.my.foody.domain.address.repo.AddressRepository;
 import com.my.foody.domain.user.dto.req.UserInfoModifyReqDto;
 import com.my.foody.domain.user.dto.req.UserLoginReqDto;
 import com.my.foody.domain.user.dto.req.UserSignUpReqDto;
 import com.my.foody.domain.user.dto.resp.UserInfoModifyRespDto;
+import com.my.foody.domain.address.service.AddressService;
+import com.my.foody.domain.user.dto.resp.AddressDeleteRespDto;
 import com.my.foody.domain.user.dto.resp.UserInfoRespDto;
 import com.my.foody.domain.user.dto.resp.UserLoginRespDto;
 import com.my.foody.domain.user.dto.resp.UserSignUpRespDto;
@@ -29,6 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserService {
     private final UserRepository userRepository;
     private final AddressRepository addressRepository;
+    private final AddressService addressService;
     private final JwtProvider jwtProvider;
 
     public UserSignUpRespDto signUp(UserSignUpReqDto userSignUpReqDto){
@@ -85,14 +90,32 @@ public class UserService {
     }
 
 
-    private void validateDuplicatedUserInfo(UserInfoModifyReqDto userInfoModifyReqDto){
+    private void validateDuplicatedUserInfo(UserInfoModifyReqDto userInfoModifyReqDto) {
         //이메일 중복 검증
-        if(userInfoModifyReqDto.getEmail() != null && !userRepository.existsByEmail(userInfoModifyReqDto.getEmail())) {
+        if (userInfoModifyReqDto.getEmail() != null && !userRepository.existsByEmail(userInfoModifyReqDto.getEmail())) {
             throw new BusinessException(ErrorCode.EMAIL_ALREADY_EXISTS);
         }
         //닉네임 중복 검증
-        if(userInfoModifyReqDto.getNickname() != null && !userRepository.existsByNickname(userInfoModifyReqDto.getNickname())){
+        if (userInfoModifyReqDto.getNickname() != null && !userRepository.existsByNickname(userInfoModifyReqDto.getNickname())) {
             throw new BusinessException(ErrorCode.NICKNAME_ALREADY_EXISTS);
         }
+    }
+
+    public AddressModifyRespDto modifyAddress(AddressModifyReqDto addressModifyReqDto, Long userId, Long addressId) {
+        User user = findByIdOrFail(userId);
+        Address address = addressService.findByIdOrFail(addressId);
+        address.validateUser(user);
+        address.modifyAll(addressModifyReqDto.getRoadAddress(), addressModifyReqDto.getDetailedAddress());
+        return new AddressModifyRespDto();
+    }
+
+
+    @Transactional
+    public AddressDeleteRespDto deleteAddressById(Long addressId, Long userId) {
+        User user = findByIdOrFail(userId);
+        Address address = addressService.findByIdOrFail(addressId);
+        address.validateUser(user);
+        addressRepository.delete(address);
+        return new AddressDeleteRespDto();
     }
 }
