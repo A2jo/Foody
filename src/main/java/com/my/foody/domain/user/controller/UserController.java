@@ -2,8 +2,10 @@ package com.my.foody.domain.user.controller;
 
 import com.my.foody.domain.address.dto.req.AddressCreateReqDto;
 import com.my.foody.domain.address.dto.resp.AddressCreateRespDto;
+import com.my.foody.domain.user.dto.req.UserInfoModifyReqDto;
 import com.my.foody.domain.user.dto.req.UserLoginReqDto;
 import com.my.foody.domain.user.dto.req.UserSignUpReqDto;
+import com.my.foody.domain.user.dto.resp.UserInfoModifyRespDto;
 import com.my.foody.domain.user.dto.resp.UserInfoRespDto;
 import com.my.foody.domain.user.dto.resp.UserLoginRespDto;
 import com.my.foody.domain.user.dto.resp.UserSignUpRespDto;
@@ -52,6 +54,11 @@ public class UserController {
         return new ResponseEntity<>(ApiResult.success(userService.registerAddress(addressCreateReqDto, tokenSubject.getId())), HttpStatus.CREATED);
     }
 
-
+    @RequireAuth(userType = UserType.USER)
+    @PatchMapping("/mypage")
+    public ResponseEntity<ApiResult<UserInfoModifyRespDto>> modifyUserInfo(@RequestBody @Valid UserInfoModifyReqDto userInfoModifyReqDto,
+                                                                           @CurrentUser TokenSubject tokenSubject){
+        return new ResponseEntity<>(ApiResult.success(userService.modifyUserInfo(userInfoModifyReqDto, tokenSubject.getId())), HttpStatus.OK);
+    }
 
 }
