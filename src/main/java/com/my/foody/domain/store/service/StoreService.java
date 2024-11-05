@@ -19,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -154,5 +155,16 @@ public class StoreService {
     public Store findActivateStoreByIdOrFail(Long storeId){
         return storeRepository.findActivateStore(storeId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.STORE_NOT_FOUND));
+    }
+
+    public List<GetStoreRespDto> getStoreByCategory(Long categoryId) {
+        List<StoreCategory> storeCategories = storeCategoryRepository.findByCategoryId(categoryId);
+        // 유효성 검사 - 카테고리를 찾을 수 없는 경우
+        if (!categoryRepository.existsById(categoryId)) {
+            throw new BusinessException(ErrorCode.CATEGORY_NOT_FOUND);
+        }
+        return storeCategories.stream()
+                .map(storeCategory -> new GetStoreRespDto(storeCategory.getStore()))
+                .toList();
     }
 }
