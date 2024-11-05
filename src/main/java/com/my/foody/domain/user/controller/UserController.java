@@ -40,6 +40,14 @@ public class UserController {
 
     private final UserService userService;
     private final ReviewService reviewService;
+
+    // 메인 화면 조회
+    @GetMapping("/home")
+    public ResponseEntity<UserHomeRespDto> getUserHome() {
+        UserHomeRespDto response = userService.getUserHomeData();
+        return ResponseEntity.ok(response);
+    }
+
     @PostMapping("/signup")
     public ResponseEntity<ApiResult<UserSignUpRespDto>> signUp(@RequestBody @Valid UserSignUpReqDto userSignUpReqDto){
         return new ResponseEntity<>(ApiResult.success(userService.signUp(userSignUpReqDto)), HttpStatus.CREATED);
