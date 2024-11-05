@@ -1,18 +1,28 @@
 package com.my.foody.domain.cart.service;
 
+import static org.hibernate.validator.internal.util.Contracts.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
+import com.my.foody.domain.cart.dto.req.CartMenuCreateReqDto;
 import com.my.foody.domain.cart.dto.resp.CartItemRespDto;
+import com.my.foody.domain.cart.dto.resp.CartMenuCreateRespDto;
 import com.my.foody.domain.cart.entity.Cart;
 import com.my.foody.domain.cart.repo.CartRepository;
 import java.util.Arrays;
+import java.util.Optional;
 
+import com.my.foody.domain.cartMenu.CartMenu;
+import com.my.foody.domain.cartMenu.CartMenuRepository;
 import com.my.foody.domain.menu.entity.Menu;
+import com.my.foody.domain.menu.service.MenuService;
 import com.my.foody.domain.store.entity.Store;
+import com.my.foody.domain.store.service.StoreService;
 import com.my.foody.domain.user.entity.User;
 import com.my.foody.domain.user.service.UserService;
+import com.my.foody.global.util.DummyObject;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -25,75 +35,58 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
 @ExtendWith(MockitoExtension.class)
-public class CartServiceTest {
+public class CartServiceTest extends DummyObject {
 
-    @Mock
-    private CartRepository cartRepository;
-
-    @Mock
-    private UserService userService;
 
     @InjectMocks
     private CartService cartService;
 
-    private Cart cartItem;
-    private User user;
-
-
-    @BeforeEach
-    public void setUp() {
-
-        user = User.builder()
-                .id(1L)
-                .name("Test user")
-                .build();
-
-        Store store = Store.builder()
-                .name("Test 음식점")
-                .minOrderAmount(5000L)
-                .build();
-
-        Menu menu = Menu.builder()
-                .name("Sample 메뉴")
-                .price(2000L)
-                .build();
-
-        cartItem = Cart.builder()
-                .store(store)
-                .menu(menu)
-                .quantity(3L) // 주문 총금액 = 2000 * 3 = 6000
-                .build();
-    }
+    @Mock
+    private UserService userService;
+    @Mock
+    private StoreService storeService;
+    @Mock
+    private MenuService menuService;
+    @Mock
+    private CartRepository cartRepository;
+    @Mock
+    private CartMenuRepository cartMenuRepository;
 
     @Test
-    public void testGetCartItems() {
+    @DisplayName("장바구니에 메뉴 추가 성공 테스트: 장바구니가 이미 존재하는 경우")
+    void addCartItem_ExistingCart_Success() {
         // given
         Long userId = 1L;
-        int page = 0;
-        int limit = 10;
-        Pageable pageable = PageRequest.of(page, limit, Sort.by("id").descending());
+        Long storeId = 1L;
+        Long menuId = 1L;
+        CartMenuCreateReqDto request = new CartMenuCreateReqDto(2L);
 
-        Page<Cart> cartItemsPage = new PageImpl<>(Arrays.asList(cartItem));
+        User user = mock(User.class);
+        Store store = mock(Store.class);
+        Menu menu = mock(Menu.class);
+        Cart cart = mock(Cart.class);
+        CartMenu cartMenu = mock(CartMenu.class);
 
-        //userService의 findById 스텁 추가
         when(userService.findActivateUserByIdOrFail(userId)).thenReturn(user);
-        when(cartRepository.findByUserId(userId, pageable)).thenReturn(cartItemsPage);
+        when(storeService.findActivateStoreByIdOrFail(storeId)).thenReturn(store);
+        when(menuService.findByIdOrFail(menuId)).thenReturn(menu);
+        when(cartRepository.findByUser(user)).thenReturn(Optional.of(cart));
+        when(cartMenuRepository.save(any(CartMenu.class))).thenReturn(cartMenu);
 
         // when
-        Page<CartItemRespDto> result = cartService.getCartItems(userId, page, limit);
+        CartMenuCreateRespDto result = cartService.addCartItem(storeId, menuId, request, userId);
 
         // then
-        assertEquals(1, result.getTotalElements());
-        CartItemRespDto cartDto = result.getContent().get(0);
-
-        assertEquals("Test 음식점", cartDto.getStoreName());
-        assertEquals("Sample 메뉴", cartDto.getMenuName());
-        assertEquals(2000L, cartDto.getMenuPrice());
-        assertEquals(3L, cartDto.getQuantity());
-        assertEquals(6000L, cartDto.getTotalOrderAmount());
-        assertEquals(5000L, cartDto.getMinOrderAmount());
-
-        verify(cartRepository, times(1)).findByUserId(userId, pageable);
+        assertNotNull(result);
+        verify(userService).findActivateUserByIdOrFail(userId);
+        verify(storeService).findActivateStoreByIdOrFail(storeId);
+        verify(menuService).findByIdOrFail(menuId);
+        verify(cartRepository).findByUser(user);
+        verify(cartRepository, never()).save(any(Cart.class));
+        verify(cartMenuRepository).save(any(CartMenu.class));
     }
+
+
+
 }
 

@@ -5,6 +5,7 @@ import com.my.foody.domain.cart.entity.Cart;
 import com.my.foody.domain.menu.entity.Menu;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -26,4 +27,12 @@ public class CartMenu extends BaseEntity {
     private Menu menu;
 
     private Long quantity;
+
+    @Builder
+    public CartMenu(Long id, Cart cart, Menu menu, Long quantity) {
+        this.id = id;
+        this.cart = cart;
+        this.menu = menu;
+        this.quantity = quantity;
+    }
 }
