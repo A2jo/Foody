@@ -2,6 +2,8 @@ package com.my.foody.domain.menu.entity;
 
 import com.my.foody.domain.base.BaseEntity;
 import com.my.foody.domain.store.entity.Store;
+import com.my.foody.global.ex.BusinessException;
+import com.my.foody.global.ex.ErrorCode;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -50,11 +52,17 @@ public class Menu extends BaseEntity {
 
     //메뉴명 수정
     public void updateName(String name) {
+        if (name == null || name.isBlank()) {
+            throw new BusinessException(ErrorCode.INVALID_MENU_NAME);
+        }
         this.name = name;
     }
 
     //가격 수정
     public void updatePrice(Long price) {
+        if (price == null || price < 1) {
+            throw new BusinessException(ErrorCode.INVALID_MENU_PRICE);
+        }
         this.price = price;
     }
 
