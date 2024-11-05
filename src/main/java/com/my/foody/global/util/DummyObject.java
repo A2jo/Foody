@@ -8,6 +8,7 @@ import com.my.foody.domain.owner.entity.Owner;
 import com.my.foody.domain.store.entity.Store;
 import com.my.foody.domain.user.entity.User;
 
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 public class DummyObject {
@@ -16,7 +17,12 @@ public class DummyObject {
         return Store.builder()
                 .owner(null)
                 .name("맛있는가게")
+                .openTime(LocalTime.now())
+                .endTime(LocalTime.now())
                 .id(1L)
+                .contact("010-1234-2342")
+                .isDeleted(false)
+                .minOrderAmount(1000L)
                 .build();
     }
 
@@ -37,7 +43,7 @@ public class DummyObject {
                 .password(PasswordEncoder.encode(password))
                 .contact("010-1234-5678")
                 .name("userA")
-                .nickname("userrr")
+                .nickname("절대중복되지않는닉네임..")
                 .build();
     }
 
@@ -48,7 +54,8 @@ public class DummyObject {
                 .password(PasswordEncoder.encode(password))
                 .contact("010-1234-5678")
                 .name("userA")
-                .nickname("userrr")
+                .nickname("절대중복되지않는닉네임..")
+                .isDeleted(false)
                 .build();
     }
 

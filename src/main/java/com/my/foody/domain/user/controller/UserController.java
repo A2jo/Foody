@@ -95,13 +95,14 @@ public class UserController {
 
     @RequireAuth(userType = UserType.USER)
     @GetMapping("/mypage/reviews")
-    public ResponseEntity<ApiResult<ReviewListRespDto>> getAllReview(@RequestParam(value = "page")int page,
-                                                                     @RequestParam(value = "limit") int limit,
+    public ResponseEntity<ApiResult<ReviewListRespDto>> getAllReview(@RequestParam(value = "page", required = false, defaultValue = "0")int page,
+                                                                     @RequestParam(value = "limit", required = false, defaultValue = "10") int limit,
                                                                      @CurrentUser TokenSubject tokenSubject){
         return new ResponseEntity<>(ApiResult.success(reviewService.getAllReviewByUser(tokenSubject.getId(), page, limit)), HttpStatus.OK);
     }
 
 
+    @RequireAuth(userType = UserType.USER)
     @GetMapping("/mypage/address")
     public ResponseEntity<ApiResult<AddressListRespDto>> getAllAddress(@CurrentUser TokenSubject tokenSubject){
         return new ResponseEntity<>(ApiResult.success(userService.getAllAddress(tokenSubject.getId())), HttpStatus.OK);
