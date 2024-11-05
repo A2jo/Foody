@@ -99,7 +99,7 @@ public class SocialAccountService {
         //소셜 계정 정보로 기존 연동 정보 조회
         SocialAccount socialAccount = socialAccountRepository.findByProviderAndProviderId(provider, userInfo.getProviderId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.SOCIAL_ACCOUNT_NOT_FOUND));
-        User user = socialAccount.getUser();
+        User user = userService.findActivateUserByIdOrFail(socialAccount.getUser().getId());
 
         if (user.getIsDeleted()) {
             throw new BusinessException(ErrorCode.ALREADY_DEACTIVATED_USER);

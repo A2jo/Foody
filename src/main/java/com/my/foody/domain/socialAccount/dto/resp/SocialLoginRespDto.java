@@ -11,9 +11,6 @@ import lombok.NoArgsConstructor;
 @Getter
 public class SocialLoginRespDto {
     private Long userId;
-    private String userEmail;
-    private String userNickname;
-
     private String socialEmail;
     private String socialNickname;
     private Provider provider;
@@ -22,8 +19,6 @@ public class SocialLoginRespDto {
 
     public SocialLoginRespDto(User user, SocialAccount socialAccount, String token) {
         this.userId = user.getId();
-        this.userEmail = user.getEmail();
-        this.userNickname = user.getNickname();
         this.socialEmail = socialAccount.getEmail();
         this.socialNickname = socialAccount.getNickname();
         this.provider = socialAccount.getProvider();
