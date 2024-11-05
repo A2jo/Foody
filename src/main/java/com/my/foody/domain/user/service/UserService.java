@@ -1,12 +1,18 @@
 package com.my.foody.domain.user.service;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.my.foody.domain.address.dto.req.AddressCreateReqDto;
+import com.my.foody.domain.address.dto.req.AddressModifyReqDto;
 import com.my.foody.domain.address.dto.resp.AddressCreateRespDto;
+import com.my.foody.domain.address.dto.resp.AddressModifyRespDto;
 import com.my.foody.domain.address.entity.Address;
 import com.my.foody.domain.address.repo.AddressRepository;
+import com.my.foody.domain.user.dto.req.UserInfoModifyReqDto;
 import com.my.foody.domain.user.dto.req.UserLoginReqDto;
 import com.my.foody.domain.user.dto.req.UserSignUpReqDto;
+import com.my.foody.domain.user.dto.resp.*;
+import com.my.foody.domain.user.dto.resp.UserInfoModifyRespDto;
+import com.my.foody.domain.address.service.AddressService;
+import com.my.foody.domain.user.dto.resp.AddressDeleteRespDto;
 import com.my.foody.domain.user.dto.resp.UserInfoRespDto;
 import com.my.foody.domain.user.dto.resp.UserLoginRespDto;
 import com.my.foody.domain.user.dto.resp.UserSignUpRespDto;
@@ -16,12 +22,12 @@ import com.my.foody.global.ex.BusinessException;
 import com.my.foody.global.ex.ErrorCode;
 import com.my.foody.global.jwt.JwtProvider;
 import com.my.foody.global.jwt.TokenSubject;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +36,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserService {
     private final UserRepository userRepository;
     private final AddressRepository addressRepository;
+    private final AddressService addressService;
     private final JwtProvider jwtProvider;
 
     public UserSignUpRespDto signUp(UserSignUpReqDto userSignUpReqDto){
@@ -73,5 +80,52 @@ public class UserService {
     public User findByIdOrFail(Long userId){
         return userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+    }
+
+
+    @Transactional
+    public UserInfoModifyRespDto modifyUserInfo(UserInfoModifyReqDto userInfoModifyReqDto, Long userId) {
+        User user = findByIdOrFail(userId);
+        validateDuplicatedUserInfo(userInfoModifyReqDto);
+        user.modifyBasicInfo(userInfoModifyReqDto.getName(), userInfoModifyReqDto.getNickname(),
+                userInfoModifyReqDto.getContact(), userInfoModifyReqDto.getEmail());
+        return new UserInfoModifyRespDto();
+    }
+
+
+    private void validateDuplicatedUserInfo(UserInfoModifyReqDto userInfoModifyReqDto) {
+        //이메일 중복 검증
+        if (userInfoModifyReqDto.getEmail() != null && userRepository.existsByEmail(userInfoModifyReqDto.getEmail())) {
+            throw new BusinessException(ErrorCode.EMAIL_ALREADY_EXISTS);
+        }
+        //닉네임 중복 검증
+        if (userInfoModifyReqDto.getNickname() != null && userRepository.existsByNickname(userInfoModifyReqDto.getNickname())) {
+            throw new BusinessException(ErrorCode.NICKNAME_ALREADY_EXISTS);
+        }
+    }
+
+    public AddressModifyRespDto modifyAddress(AddressModifyReqDto addressModifyReqDto, Long userId, Long addressId) {
+        User user = findByIdOrFail(userId);
+        Address address = addressService.findByIdOrFail(addressId);
+        address.validateUser(user);
+        address.modifyAll(addressModifyReqDto.getRoadAddress(), addressModifyReqDto.getDetailedAddress());
+        return new AddressModifyRespDto();
+    }
+
+
+    @Transactional
+    public AddressDeleteRespDto deleteAddressById(Long addressId, Long userId) {
+        User user = findByIdOrFail(userId);
+        Address address = addressService.findByIdOrFail(addressId);
+        address.validateUser(user);
+        addressRepository.delete(address);
+        return new AddressDeleteRespDto();
+    }
+
+
+    public AddressListRespDto getAllAddress(Long userId) {
+        User user = findByIdOrFail(userId);
+        List<Address> addressList = addressRepository.findAllByUserOrderByCreatedAtDesc(user);
+        return new AddressListRespDto(addressList);
     }
 }

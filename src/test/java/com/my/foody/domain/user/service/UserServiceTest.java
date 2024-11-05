@@ -1,14 +1,16 @@
 package com.my.foody.domain.user.service;
 
 import com.my.foody.domain.address.dto.req.AddressCreateReqDto;
+import com.my.foody.domain.address.dto.req.AddressModifyReqDto;
 import com.my.foody.domain.address.dto.resp.AddressCreateRespDto;
+import com.my.foody.domain.address.dto.resp.AddressModifyRespDto;
 import com.my.foody.domain.address.entity.Address;
 import com.my.foody.domain.address.repo.AddressRepository;
+import com.my.foody.domain.address.service.AddressService;
+import com.my.foody.domain.user.dto.req.UserInfoModifyReqDto;
 import com.my.foody.domain.user.dto.req.UserLoginReqDto;
 import com.my.foody.domain.user.dto.req.UserSignUpReqDto;
-import com.my.foody.domain.user.dto.resp.UserInfoRespDto;
-import com.my.foody.domain.user.dto.resp.UserLoginRespDto;
-import com.my.foody.domain.user.dto.resp.UserSignUpRespDto;
+import com.my.foody.domain.user.dto.resp.*;
 import com.my.foody.domain.user.entity.User;
 import com.my.foody.domain.user.repo.UserRepository;
 import com.my.foody.global.ex.BusinessException;
@@ -24,11 +26,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -38,6 +42,10 @@ class UserServiceTest extends DummyObject {
     private UserRepository userRepository;
     @Mock
     private JwtProvider jwtProvider;
+
+    @Mock
+    private AddressService addressService;
+
 
     @InjectMocks
     private UserService userService;
@@ -239,7 +247,269 @@ class UserServiceTest extends DummyObject {
         verify(addressRepository, never()).save(any(Address.class));
     }
 
+    @Test
+    @DisplayName("주소지 수정 성공 테스트")
+    void modifyAddress_Success(){
+        Long userId = 1L;
+        Long addressId = 1L;
+        User user = newUser(userId);
+        Address address = mockAddress(user);
 
+        AddressModifyReqDto modifyReqDto = AddressModifyReqDto.builder()
+                .roadAddress("새로운 도로명주소")
+                .detailedAddress("새로운 상세주소")
+                .build();
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(addressService.findByIdOrFail(addressId)).thenReturn(address);
+
+        // when
+        AddressModifyRespDto result = userService.modifyAddress(modifyReqDto, userId, addressId);
+
+        // then
+        assertNotNull(result);
+        verify(userRepository).findById(userId);
+        verify(addressService).findByIdOrFail(addressId);
+    }
+
+    @Test
+    @DisplayName("주소지 수정 실패 테스트: 존재하지 않는 사용자")
+    void modifyAddress_UserNotFound() {
+        Long userId = 1L;
+        Long addressId = 1L;
+        User user = newUser(userId);
+
+        AddressModifyReqDto modifyReqDto = AddressModifyReqDto.builder()
+                .roadAddress("새로운 도로명주소")
+                .detailedAddress("새로운 상세주소")
+                .build();
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> userService.modifyAddress(modifyReqDto, userId, addressId))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.USER_NOT_FOUND);
+        verify(userRepository).findById(userId);
+        verify(addressService, never()).findByIdOrFail(anyLong());
+    }
+
+    @Test
+    @DisplayName("주소지 수정 실패 테스트: 존재하지 않는 주소지")
+    void modifyAddress_AddressNotFound() {
+        Long userId = 1L;
+        Long addressId = 1L;
+        User user = newUser(userId);
+
+        AddressModifyReqDto modifyReqDto = AddressModifyReqDto.builder()
+                .roadAddress("새로운 도로명주소")
+                .detailedAddress("새로운 상세주소")
+                .build();
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(addressService.findByIdOrFail(addressId))
+                .thenThrow(new BusinessException(ErrorCode.ADDRESS_NOT_FOUND));
+
+        assertThatThrownBy(() -> userService.modifyAddress(modifyReqDto, userId, addressId))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ADDRESS_NOT_FOUND);
+        verify(userRepository).findById(userId);
+        verify(addressService).findByIdOrFail(addressId);
+    }
+
+    @Test
+    @DisplayName("주소지 삭제 성공 테스트")
+    void deleteAddressById_Success(){
+        Long userId = 1L;
+        Long addressId = 1L;
+        User user = newUser(userId);
+        Address address = mockAddress(user);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(addressService.findByIdOrFail(addressId)).thenReturn(address);
+        doNothing().when(addressRepository).delete(address);
+
+        AddressDeleteRespDto result = userService.deleteAddressById(addressId, userId);
+
+        assertNotNull(result);
+        verify(userRepository).findById(userId);
+        verify(addressService).findByIdOrFail(addressId);
+        verify(addressRepository).delete(address);
+    }
+
+    @Test
+    @DisplayName("주소지 삭제 실패 테스트: 존재하지 않는 사용자")
+    void deleteAddressById_UserNotFound() {
+        Long userId = 1111L;
+        Long addressId = 1L;
+
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> userService.deleteAddressById(addressId, userId))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.USER_NOT_FOUND);
+
+        verify(userRepository).findById(userId);
+        verify(addressService, never()).findByIdOrFail(anyLong());
+        verify(addressRepository, never()).delete(any(Address.class));
+    }
+
+    @Test
+    @DisplayName("주소지 삭제 실패 테스트: 존재하지 않는 주소")
+    void deleteAddressById_AddressNotFound() {
+        Long userId = 1L;
+        Long addressId = 999L;
+        User user = newUser(userId);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(addressService.findByIdOrFail(addressId))
+                .thenThrow(new BusinessException(ErrorCode.ADDRESS_NOT_FOUND));
+
+        // when & then
+        assertThatThrownBy(() -> userService.deleteAddressById(addressId, userId))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ADDRESS_NOT_FOUND);
+
+        verify(userRepository).findById(userId);
+        verify(addressService).findByIdOrFail(addressId);
+        verify(addressRepository, never()).delete(any(Address.class));
+    }
+
+    @Test
+    @DisplayName("주소지 삭제 실패 테스트: 다른 사용자의 주소")
+    void deleteAddressById_UnauthorizedUser() {
+        Long userId = 1L;
+        Long addressId = 1L;
+        Long otherUserId = 2L;
+
+        User user = newUser(userId);
+        User otherUser = newUser(otherUserId);
+        Address address = mockAddress(otherUser);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(addressService.findByIdOrFail(addressId)).thenReturn(address);
+
+        // when & then
+        assertThatThrownBy(() -> userService.deleteAddressById(addressId, userId))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.UNAUTHORIZED_ADDRESS_ACCESS);
+
+        verify(userRepository).findById(userId);
+        verify(addressService).findByIdOrFail(addressId);
+        verify(addressRepository, never()).delete(any(Address.class));
+    }
+
+    @Test
+<<<<<<< HEAD
+    @DisplayName(value = "전체 주소지 조회 성공 테스트")
+    void getAllAddress_Success(){
+        Long userId = 1L;
+        User user = newUser(userId);
+        List<Address> addressList = new ArrayList<>();
+        for(int i = 0;i<5;i++){
+            addressList.add(mockAddress(user));
+        }
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(addressRepository.findAllByUserOrderByCreatedAtDesc(user)).thenReturn(addressList);
+
+        //when
+        AddressListRespDto result = userService.getAllAddress(userId);
+
+        //then
+        assertNotNull(result);
+        assertThat(result.getAddressList().size()).isEqualTo(addressList.size());
+        verify(userRepository).findById(userId);
+        verify(addressRepository).findAllByUserOrderByCreatedAtDesc(user);
+    }
+
+    @Test
+    @DisplayName(value = "전체 주소지 조회 실패 테스트: 존재하지 않는 유저")
+    void getAllAddress_UserNotFound(){
+        Long userId = 1L;
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+        //when & then
+        assertThatThrownBy(() -> userService.getAllAddress(userId))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.USER_NOT_FOUND);
+        verify(userRepository, times(1)).findById(userId);
+        verify(addressRepository, never()).findAllByUserOrderByCreatedAtDesc(any(User.class));
+    }
+
+=======
+    @DisplayName("유저 정보 수정 성공 테스트")
+    void modifyUserInfo_Success() {
+        Long userId = 1L;
+        User user = newUser(userId);
+        UserInfoModifyReqDto requestDto = UserInfoModifyReqDto.builder()
+                .email("new@test.com")
+                .name("newName")
+                .nickname("newNickname")
+                .contact("010-2222-2222")
+                .build();
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(userRepository.existsByEmail(requestDto.getEmail())).thenReturn(false);
+        when(userRepository.existsByNickname(requestDto.getNickname())).thenReturn(false);
+
+        // when
+        UserInfoModifyRespDto response = userService.modifyUserInfo(requestDto, userId);
+
+        // then
+        assertNotNull(response);
+        verify(userRepository).findById(userId);
+        verify(userRepository).existsByEmail(requestDto.getEmail());
+        verify(userRepository).existsByNickname(requestDto.getNickname());
+    }
+
+    @Test
+    @DisplayName("유저 정보 수정 실패 테스트: 중복된 이메일")
+    void modifyUserInfo_DuplicateEmail() {
+        Long userId = 1L;
+        User user = newUser(userId);
+        UserInfoModifyReqDto requestDto = UserInfoModifyReqDto.builder()
+                .email("new@test.com")
+                .name("newName")
+                .nickname("newNickname")
+                .contact("010-2222-2222")
+                .build();
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(userRepository.existsByEmail(requestDto.getEmail())).thenReturn(true);
+
+        // when & then
+        BusinessException exception = assertThrows(BusinessException.class,
+                () -> userService.modifyUserInfo(requestDto, userId));
+        assertEquals(ErrorCode.EMAIL_ALREADY_EXISTS, exception.getErrorCode());
+        verify(userRepository).findById(userId);
+        verify(userRepository).existsByEmail(requestDto.getEmail());
+        verify(userRepository, never()).existsByNickname(any());
+    }
+
+    @Test
+    @DisplayName("유저 정보 수정 실패 테스트: 중복된 닉네임")
+    void modifyUserInfo_DuplicateNickname() {
+        Long userId = 1L;
+        User user = newUser(userId);
+        UserInfoModifyReqDto requestDto = UserInfoModifyReqDto.builder()
+                .email("new@test.com")
+                .name("newName")
+                .nickname("newNickname")
+                .contact("010-2222-2222")
+                .build();
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(userRepository.existsByEmail(requestDto.getEmail())).thenReturn(true);
+        when(userRepository.existsByNickname(requestDto.getNickname())).thenReturn(false);  // 조건문 로직상 false일 때 예외 발생
+
+        // when & then
+        BusinessException exception = assertThrows(BusinessException.class,
+                () -> userService.modifyUserInfo(requestDto, userId));
+        assertEquals(ErrorCode.NICKNAME_ALREADY_EXISTS, exception.getErrorCode());
+        verify(userRepository).findById(userId);
+        verify(userRepository).existsByEmail(requestDto.getEmail());
+        verify(userRepository).existsByNickname(requestDto.getNickname());
+    }
+
+
+
+>>>>>>> 03898e5ce6d7c689db5b8e3c04447cf9f23cd023
     private UserSignUpReqDto mockUserSignUpReqDto(){
         return UserSignUpReqDto.builder()
                 .contact("010-1234-5678")
