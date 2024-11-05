@@ -35,4 +35,11 @@ public class Owner extends BaseEntity {
         this.password = password;
         this.isDeleted = isDeleted;
     }
+
+    public void updateInfo(String name, String contact, String email, String password) {
+        if (name != null) this.name = name;
+        if (contact != null) this.contact = contact;
+        if (email != null) this.email = email;
+        if (password != null) this.password = password;
+    }
 }
