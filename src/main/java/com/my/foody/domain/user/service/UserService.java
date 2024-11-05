@@ -1,6 +1,5 @@
 package com.my.foody.domain.user.service;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.my.foody.domain.address.dto.req.AddressCreateReqDto;
 import com.my.foody.domain.address.dto.req.AddressModifyReqDto;
 import com.my.foody.domain.address.dto.resp.AddressCreateRespDto;
@@ -10,23 +9,19 @@ import com.my.foody.domain.address.repo.AddressRepository;
 import com.my.foody.domain.address.service.AddressService;
 import com.my.foody.domain.user.dto.req.UserLoginReqDto;
 import com.my.foody.domain.user.dto.req.UserSignUpReqDto;
-import com.my.foody.domain.user.dto.resp.AddressDeleteRespDto;
-import com.my.foody.domain.user.dto.resp.UserInfoRespDto;
-import com.my.foody.domain.user.dto.resp.UserLoginRespDto;
-import com.my.foody.domain.user.dto.resp.UserSignUpRespDto;
+import com.my.foody.domain.user.dto.resp.*;
 import com.my.foody.domain.user.entity.User;
 import com.my.foody.domain.user.repo.UserRepository;
 import com.my.foody.global.ex.BusinessException;
 import com.my.foody.global.ex.ErrorCode;
 import com.my.foody.global.jwt.JwtProvider;
 import com.my.foody.global.jwt.TokenSubject;
-import jakarta.transaction.TransactionScoped;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -99,5 +94,12 @@ public class UserService {
         address.validateUser(user);
         addressRepository.delete(address);
         return new AddressDeleteRespDto();
+    }
+
+
+    public AddressListRespDto getAllAddress(Long userId) {
+        User user = findByIdOrFail(userId);
+        List<Address> addressList = addressRepository.findAllByUser(user);
+        return new AddressListRespDto(addressList);
     }
 }
