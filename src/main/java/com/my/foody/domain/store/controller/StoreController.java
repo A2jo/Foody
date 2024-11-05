@@ -58,5 +58,13 @@ public class StoreController {
                                                                      @CurrentUser TokenSubject tokenSubject) {
         Long ownerId = tokenSubject.getId();
         return new ResponseEntity<>(ApiResult.success(storeService.modifyStore(storeId, modifyStoreReqDto, ownerId)), HttpStatus.OK);
+        List<GetStoreRespDto> stores = storeService.getAllStoresByOwnerId(ownerId);
+        return ResponseEntity.ok(ApiResult.success(stores));
+    }
+
+    @GetMapping("home/categories/{categoryId}/store")
+    public ResponseEntity<ApiResult<List<GetStoreRespDto>>> getStoreByCategory(@PathVariable(value = "categoryId") Long categoryId) {
+        List<GetStoreRespDto> stores = storeService.getStoreByCategory(categoryId);
+        return ResponseEntity.ok(ApiResult.success(stores));
     }
 }

@@ -170,4 +170,15 @@ public class StoreService {
         }
         return storeCategories.map(storeCategory -> new GetStoreRespDto(storeCategory.getStore()));
     }
+
+    public List<GetStoreRespDto> getStoreByCategory(Long categoryId) {
+        List<StoreCategory> storeCategories = storeCategoryRepository.findByCategoryId(categoryId);
+        // 유효성 검사 - 카테고리를 찾을 수 없는 경우
+        if (!categoryRepository.existsById(categoryId)) {
+            throw new BusinessException(ErrorCode.CATEGORY_NOT_FOUND);
+        }
+        return storeCategories.stream()
+                .map(storeCategory -> new GetStoreRespDto(storeCategory.getStore()))
+                .toList();
+    }
 }
