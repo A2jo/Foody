@@ -11,7 +11,6 @@ import com.my.foody.domain.order.dto.resp.OrderStatusUpdateRespDto;
 import com.my.foody.domain.order.entity.Order;
 import com.my.foody.domain.order.repo.OrderRepository;
 import com.my.foody.domain.store.entity.Store;
-import com.my.foody.domain.store.repo.StoreRepository;
 import com.my.foody.domain.user.entity.User;
 import com.my.foody.domain.user.repo.UserRepository;
 import com.my.foody.global.ex.BusinessException;
@@ -25,9 +24,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class OrderService {
     private final OrderRepository orderRepository;
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
     private final CartRepository cartRepository;
-    private final StoreRepository storeRepository;
     private final AddressRepository addressRepository;
 
 
