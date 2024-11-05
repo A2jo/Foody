@@ -418,6 +418,20 @@ class UserServiceTest extends DummyObject {
         verify(addressRepository).findAllByUser(user);
     }
 
+    @Test
+    @DisplayName(value = "전체 주소지 조회 실패 테스트: 존재하지 않는 유저")
+    void getAllAddress_UserNotFound(){
+        Long userId = 1L;
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+        //when & then
+        assertThatThrownBy(() -> userService.getAllAddress(userId))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.USER_NOT_FOUND);
+        verify(userRepository, times(1)).findById(userId);
+        verify(addressRepository, never()).findAllByUser(any(User.class));
+    }
+
     private UserSignUpReqDto mockUserSignUpReqDto(){
         return UserSignUpReqDto.builder()
                 .contact("010-1234-5678")
