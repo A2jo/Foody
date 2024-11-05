@@ -1,10 +1,10 @@
 package com.my.foody.domain.order.dto.req;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Getter
+@Builder
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class OrderCreateReqDto {
