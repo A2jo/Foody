@@ -3,6 +3,8 @@ package com.my.foody.domain.user.controller;
 import com.my.foody.domain.address.dto.req.AddressCreateReqDto;
 import com.my.foody.domain.address.dto.req.AddressModifyReqDto;
 import com.my.foody.domain.address.dto.resp.AddressCreateRespDto;
+import com.my.foody.domain.user.dto.req.UserDeleteReqDto;
+import com.my.foody.domain.user.dto.resp.UserDeleteRespDto;
 import com.my.foody.domain.user.dto.req.UserInfoModifyReqDto;
 import com.my.foody.domain.user.dto.req.UserLoginReqDto;
 import com.my.foody.domain.user.dto.req.UserSignUpReqDto;
@@ -76,6 +78,14 @@ public class UserController {
     public ResponseEntity<ApiResult<AddressDeleteRespDto>> deleteAddress(@PathVariable(value = "addressId") Long addressId,
                                                                          @CurrentUser TokenSubject tokenSubject){
         return new ResponseEntity<>(ApiResult.success(userService.deleteAddressById(addressId, tokenSubject.getId())), HttpStatus.OK);
+    }
+
+
+    @RequireAuth(userType = UserType.USER)
+    @DeleteMapping()
+    public ResponseEntity<ApiResult<UserDeleteRespDto>> deleteAddress(@RequestBody @Valid UserDeleteReqDto userDeleteReqDto,
+                                                                      @CurrentUser TokenSubject tokenSubject){
+        return new ResponseEntity<>(ApiResult.success(userService.deleteUserById(userDeleteReqDto, tokenSubject.getId())), HttpStatus.OK);
     }
 
 

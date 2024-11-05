@@ -6,15 +6,12 @@ import com.my.foody.domain.address.dto.resp.AddressCreateRespDto;
 import com.my.foody.domain.address.dto.resp.AddressModifyRespDto;
 import com.my.foody.domain.address.entity.Address;
 import com.my.foody.domain.address.repo.AddressRepository;
+import com.my.foody.domain.user.dto.req.UserDeleteReqDto;
 import com.my.foody.domain.user.dto.req.UserInfoModifyReqDto;
 import com.my.foody.domain.user.dto.req.UserLoginReqDto;
 import com.my.foody.domain.user.dto.req.UserSignUpReqDto;
-import com.my.foody.domain.user.dto.resp.UserInfoModifyRespDto;
+import com.my.foody.domain.user.dto.resp.*;
 import com.my.foody.domain.address.service.AddressService;
-import com.my.foody.domain.user.dto.resp.AddressDeleteRespDto;
-import com.my.foody.domain.user.dto.resp.UserInfoRespDto;
-import com.my.foody.domain.user.dto.resp.UserLoginRespDto;
-import com.my.foody.domain.user.dto.resp.UserSignUpRespDto;
 import com.my.foody.domain.user.entity.User;
 import com.my.foody.domain.user.repo.UserRepository;
 import com.my.foody.global.ex.BusinessException;
@@ -61,28 +58,28 @@ public class UserService {
 
 
     public UserInfoRespDto getUserInfo(Long userId) {
-        User user = findByIdOrFail(userId);
+        User user = findActivateUserByIdOrFail(userId);
         return new UserInfoRespDto(user);
     }
 
 
     public AddressCreateRespDto registerAddress(AddressCreateReqDto addressCreateReqDto, Long userId) {
-        User user = findByIdOrFail(userId);
+        User user = findActivateUserByIdOrFail(userId);
         Address address = addressCreateReqDto.toEntity(user);
         addressRepository.save(address);
         return new AddressCreateRespDto();
     }
 
 
-    public User findByIdOrFail(Long userId){
-        return userRepository.findById(userId)
+    public User findActivateUserByIdOrFail(Long userId){
+        return userRepository.findActivateUser(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
     }
 
 
     @Transactional
     public UserInfoModifyRespDto modifyUserInfo(UserInfoModifyReqDto userInfoModifyReqDto, Long userId) {
-        User user = findByIdOrFail(userId);
+        User user = findActivateUserByIdOrFail(userId);
         validateDuplicatedUserInfo(userInfoModifyReqDto);
         user.modifyBasicInfo(userInfoModifyReqDto.getName(), userInfoModifyReqDto.getNickname(),
                 userInfoModifyReqDto.getContact(), userInfoModifyReqDto.getEmail());
@@ -102,7 +99,7 @@ public class UserService {
     }
 
     public AddressModifyRespDto modifyAddress(AddressModifyReqDto addressModifyReqDto, Long userId, Long addressId) {
-        User user = findByIdOrFail(userId);
+        User user = findActivateUserByIdOrFail(userId);
         Address address = addressService.findByIdOrFail(addressId);
         address.validateUser(user);
         address.modifyAll(addressModifyReqDto.getRoadAddress(), addressModifyReqDto.getDetailedAddress());
@@ -112,10 +109,20 @@ public class UserService {
 
     @Transactional
     public AddressDeleteRespDto deleteAddressById(Long addressId, Long userId) {
-        User user = findByIdOrFail(userId);
+        User user = findActivateUserByIdOrFail(userId);
         Address address = addressService.findByIdOrFail(addressId);
         address.validateUser(user);
         addressRepository.delete(address);
         return new AddressDeleteRespDto();
+    }
+
+    @Transactional
+    public UserDeleteRespDto deleteUserById(UserDeleteReqDto userDeleteReqDto, Long userId) {
+        User user = findActivateUserByIdOrFail(userId);
+        if (user.getIsDeleted()) {
+            throw new BusinessException(ErrorCode.ALREADY_DEACTIVATED_USER);
+        }
+        user.validPassword(userDeleteReqDto.getCurrentPassword());
+        user.deactivate();
     }
 }
