@@ -396,6 +396,8 @@ class UserServiceTest extends DummyObject {
         verify(addressRepository, never()).delete(any(Address.class));
     }
 
+
+
     private UserSignUpReqDto mockUserSignUpReqDto(){
         return UserSignUpReqDto.builder()
                 .contact("010-1234-5678")

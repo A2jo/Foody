@@ -92,11 +92,11 @@ public class UserService {
 
     private void validateDuplicatedUserInfo(UserInfoModifyReqDto userInfoModifyReqDto) {
         //이메일 중복 검증
-        if (userInfoModifyReqDto.getEmail() != null && !userRepository.existsByEmail(userInfoModifyReqDto.getEmail())) {
+        if (userInfoModifyReqDto.getEmail() != null && userRepository.existsByEmail(userInfoModifyReqDto.getEmail())) {
             throw new BusinessException(ErrorCode.EMAIL_ALREADY_EXISTS);
         }
         //닉네임 중복 검증
-        if (userInfoModifyReqDto.getNickname() != null && !userRepository.existsByNickname(userInfoModifyReqDto.getNickname())) {
+        if (userInfoModifyReqDto.getNickname() != null && userRepository.existsByNickname(userInfoModifyReqDto.getNickname())) {
             throw new BusinessException(ErrorCode.NICKNAME_ALREADY_EXISTS);
         }
     }
