@@ -66,5 +66,13 @@ public class StoreController {
                                                                           @RequestParam(value = "limit", defaultValue = "10") int limit) {
         StoreListRespDto storeListRespDto = storeService.getStoreByCategory(categoryId, page, limit);
         return ResponseEntity.ok(ApiResult.success(storeListRespDto));
+        List<GetStoreRespDto> stores = storeService.getAllStoresByOwnerId(ownerId);
+        return ResponseEntity.ok(ApiResult.success(stores));
+    }
+
+    @GetMapping("home/categories/{categoryId}/store")
+    public ResponseEntity<ApiResult<List<GetStoreRespDto>>> getStoreByCategory(@PathVariable(value = "categoryId") Long categoryId) {
+        List<GetStoreRespDto> stores = storeService.getStoreByCategory(categoryId);
+        return ResponseEntity.ok(ApiResult.success(stores));
     }
 }

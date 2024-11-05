@@ -9,6 +9,8 @@ import lombok.NoArgsConstructor;
 public class GetStoreRespDto {
     private Long storeId;
     private String name;
+    private Long minOrderAmount;
+
     private String description;
     private Long minOrderAmount;
     private boolean isDeleted;
@@ -20,6 +22,7 @@ public class GetStoreRespDto {
         this.storeId = store.getId();
         this.name = store.getName();
         this.isDeleted = store.getIsDeleted();
+        this.minOrderAmount = store.getMinOrderAmount();
         this.minOrderAmount = store.getMinOrderAmount();
     }
 

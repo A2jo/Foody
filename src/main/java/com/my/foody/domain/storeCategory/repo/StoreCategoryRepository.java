@@ -17,4 +17,5 @@ public interface StoreCategoryRepository extends JpaRepository<StoreCategory, Lo
                   "FROM StoreCategory sc WHERE sc.category.id = :categoryId")
     Page<StoreCategoryProjection> findStoresByCategoryId(Long categoryId, Pageable pageable);
     List<StoreCategory> findByCategoryId(Long categoryId);
+    List<StoreCategory> findByCategoryId(Long categoryId);
 }
