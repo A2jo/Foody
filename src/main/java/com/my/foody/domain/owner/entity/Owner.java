@@ -42,4 +42,9 @@ public class Owner extends BaseEntity {
         if (email != null) this.email = email;
         if (password != null) this.password = password;
     }
+
+    // 회원 탈퇴 처리
+    public void markAsDeleted() {
+        this.isDeleted = true;
+    }
 }

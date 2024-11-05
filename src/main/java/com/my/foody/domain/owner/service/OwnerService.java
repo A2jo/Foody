@@ -1,5 +1,6 @@
 package com.my.foody.domain.owner.service;
 
+import com.my.foody.domain.owner.dto.req.OwnerDeleteReqDto;
 import com.my.foody.domain.owner.dto.req.OwnerJoinReqDto;
 import com.my.foody.domain.owner.dto.req.OwnerLoginReqDto;
 import com.my.foody.domain.owner.dto.req.OwnerMyPageUpdateReqDto;
@@ -23,8 +24,6 @@ public class OwnerService {
 
     private final OwnerRepository ownerRepository;
     private final JwtProvider jwtProvider;
-
-    private static final String LOGIN_SUCCESS_MESSAGE = "로그인 성공";
 
     public OwnerJoinRespDto signup(OwnerJoinReqDto reqDto) {
         validateEmailUniqueness(reqDto.getEmail());
@@ -100,5 +99,24 @@ public class OwnerService {
         if (ownerRepository.existsByEmail(email)) {
             throw new BusinessException(ErrorCode.EMAIL_ALREADY_EXISTS);
         }
+    }
+
+    // 회원 탈퇴 메서드 추가
+    @Transactional
+    public OwnerDeleteRespDto deleteOwner(Long ownerId, OwnerDeleteReqDto reqDto) {
+        // 1. ownerId로 Owner 조회
+        Owner owner = ownerRepository.findById(ownerId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.OWNER_NOT_FOUND));
+
+        // 2. 입력한 비밀번호가 일치하는지 검증
+        if (!PasswordEncoder.matches(reqDto.getPassword(), owner.getPassword())) {
+            throw new BusinessException(ErrorCode.INVALID_PASSWORD);
+        }
+
+        // 3. 탈퇴 처리: Owner의 삭제 상태를 true로 설정 (markAsDeleted() 메서드 사용)
+        owner.markAsDeleted();
+
+        // 4. 탈퇴 성공 메시지 반환
+        return OwnerDeleteRespDto.INSTANCE;
     }
 }
