@@ -10,6 +10,7 @@ import com.my.foody.domain.user.dto.resp.UserDeleteRespDto;
 import com.my.foody.domain.user.dto.req.UserInfoModifyReqDto;
 import com.my.foody.domain.user.dto.req.UserLoginReqDto;
 import com.my.foody.domain.user.dto.req.UserSignUpReqDto;
+import com.my.foody.domain.user.dto.resp.*;
 import com.my.foody.domain.user.dto.resp.UserInfoModifyRespDto;
 import com.my.foody.domain.address.dto.resp.AddressModifyRespDto;
 import com.my.foody.domain.user.dto.resp.AddressDeleteRespDto;
@@ -100,6 +101,11 @@ public class UserController {
         return new ResponseEntity<>(ApiResult.success(reviewService.getAllReviewByUser(tokenSubject.getId(), page, limit)), HttpStatus.OK);
     }
 
+
+    @GetMapping("/mypage/address")
+    public ResponseEntity<ApiResult<AddressListRespDto>> getAllAddress(@CurrentUser TokenSubject tokenSubject){
+        return new ResponseEntity<>(ApiResult.success(userService.getAllAddress(tokenSubject.getId())), HttpStatus.OK);
+    }
 
 
 

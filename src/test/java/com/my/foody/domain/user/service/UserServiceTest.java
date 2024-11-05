@@ -31,6 +31,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -400,6 +402,44 @@ class UserServiceTest extends DummyObject {
     }
 
     @Test
+<<<<<<< HEAD
+    @DisplayName(value = "전체 주소지 조회 성공 테스트")
+    void getAllAddress_Success(){
+        Long userId = 1L;
+        User user = newUser(userId);
+        List<Address> addressList = new ArrayList<>();
+        for(int i = 0;i<5;i++){
+            addressList.add(mockAddress(user));
+        }
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(addressRepository.findAllByUserOrderByCreatedAtDesc(user)).thenReturn(addressList);
+
+        //when
+        AddressListRespDto result = userService.getAllAddress(userId);
+
+        //then
+        assertNotNull(result);
+        assertThat(result.getAddressList().size()).isEqualTo(addressList.size());
+        verify(userRepository).findById(userId);
+        verify(addressRepository).findAllByUserOrderByCreatedAtDesc(user);
+    }
+
+    @Test
+    @DisplayName(value = "전체 주소지 조회 실패 테스트: 존재하지 않는 유저")
+    void getAllAddress_UserNotFound(){
+        Long userId = 1L;
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+        //when & then
+        assertThatThrownBy(() -> userService.getAllAddress(userId))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.USER_NOT_FOUND);
+        verify(userRepository, times(1)).findById(userId);
+        verify(addressRepository, never()).findAllByUserOrderByCreatedAtDesc(any(User.class));
+    }
+
+=======
     @DisplayName("유저 정보 수정 성공 테스트")
     void modifyUserInfo_Success() {
         Long userId = 1L;
@@ -539,6 +579,7 @@ class UserServiceTest extends DummyObject {
 
 
 
+>>>>>>> 03898e5ce6d7c689db5b8e3c04447cf9f23cd023
     private UserSignUpReqDto mockUserSignUpReqDto(){
         return UserSignUpReqDto.builder()
                 .contact("010-1234-5678")

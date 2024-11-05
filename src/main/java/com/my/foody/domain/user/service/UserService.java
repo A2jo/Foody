@@ -11,6 +11,7 @@ import com.my.foody.domain.user.dto.req.UserInfoModifyReqDto;
 import com.my.foody.domain.user.dto.req.UserLoginReqDto;
 import com.my.foody.domain.user.dto.req.UserSignUpReqDto;
 import com.my.foody.domain.user.dto.resp.*;
+import com.my.foody.domain.user.dto.resp.UserInfoModifyRespDto;
 import com.my.foody.domain.address.service.AddressService;
 import com.my.foody.domain.user.entity.User;
 import com.my.foody.domain.user.repo.UserRepository;
@@ -22,6 +23,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -125,5 +128,11 @@ public class UserService {
         user.validPassword(userDeleteReqDto.getCurrentPassword());
         user.deactivate();
         return new UserDeleteRespDto();
+    }
+
+    public AddressListRespDto getAllAddress(Long userId) {
+        User user = findActivateUserByIdOrFail(userId);
+        List<Address> addressList = addressRepository.findAllByUserOrderByCreatedAtDesc(user);
+        return new AddressListRespDto(addressList);
     }
 }
