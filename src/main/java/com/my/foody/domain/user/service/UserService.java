@@ -2,11 +2,15 @@ package com.my.foody.domain.user.service;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.my.foody.domain.address.dto.req.AddressCreateReqDto;
+import com.my.foody.domain.address.dto.req.AddressModifyReqDto;
 import com.my.foody.domain.address.dto.resp.AddressCreateRespDto;
+import com.my.foody.domain.address.dto.resp.AddressModifyRespDto;
 import com.my.foody.domain.address.entity.Address;
 import com.my.foody.domain.address.repo.AddressRepository;
+import com.my.foody.domain.address.service.AddressService;
 import com.my.foody.domain.user.dto.req.UserLoginReqDto;
 import com.my.foody.domain.user.dto.req.UserSignUpReqDto;
+import com.my.foody.domain.user.dto.resp.AddressDeleteRespDto;
 import com.my.foody.domain.user.dto.resp.UserInfoRespDto;
 import com.my.foody.domain.user.dto.resp.UserLoginRespDto;
 import com.my.foody.domain.user.dto.resp.UserSignUpRespDto;
@@ -16,6 +20,7 @@ import com.my.foody.global.ex.BusinessException;
 import com.my.foody.global.ex.ErrorCode;
 import com.my.foody.global.jwt.JwtProvider;
 import com.my.foody.global.jwt.TokenSubject;
+import jakarta.transaction.TransactionScoped;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserService {
     private final UserRepository userRepository;
     private final AddressRepository addressRepository;
+    private final AddressService addressService;
     private final JwtProvider jwtProvider;
 
     public UserSignUpRespDto signUp(UserSignUpReqDto userSignUpReqDto){
@@ -73,5 +79,25 @@ public class UserService {
     public User findByIdOrFail(Long userId){
         return userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+    }
+
+
+    @Transactional
+    public AddressModifyRespDto modifyAddress(AddressModifyReqDto addressModifyReqDto, Long userId, Long addressId) {
+        User user = findByIdOrFail(userId);
+        Address address = addressService.findByIdOrFail(addressId);
+        address.validateUser(user);
+        address.modifyAll(addressModifyReqDto.getRoadAddress(), addressModifyReqDto.getDetailedAddress());
+        return new AddressModifyRespDto();
+    }
+
+
+    @Transactional
+    public AddressDeleteRespDto deleteAddressById(Long addressId, Long userId) {
+        User user = findByIdOrFail(userId);
+        Address address = addressService.findByIdOrFail(addressId);
+        address.validateUser(user);
+        addressRepository.delete(address);
+        return new AddressDeleteRespDto();
     }
 }
