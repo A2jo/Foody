@@ -7,6 +7,7 @@ import com.my.foody.domain.store.entity.Store;
 import com.my.foody.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -38,4 +39,17 @@ public class Order extends BaseEntity {
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private OrderStatus orderStatus = OrderStatus.PENDING; //기본값 설정
+
+    @Builder
+    public Order(OrderStatus orderStatus, User user, Store store, Address address, Long totalAmount) {
+        this.orderStatus = orderStatus;
+        this.user = user;
+        this.store = store;
+        this.address = address;
+        this.totalAmount = totalAmount;
+    }
+
+    public void updateOrderStatus(OrderStatus orderStatus) {
+        this.orderStatus = orderStatus;
+    }
 }
