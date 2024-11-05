@@ -5,6 +5,7 @@ import com.my.foody.domain.category.entity.Category;
 import com.my.foody.domain.store.entity.Store;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -24,4 +25,10 @@ public class StoreCategory extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
     private Category category;
+
+    @Builder
+    public StoreCategory(Store store, Category category) {
+        this.store = store;
+        this.category = category;
+    }
 }
