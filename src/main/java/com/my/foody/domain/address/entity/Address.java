@@ -40,10 +40,11 @@ public class Address extends BaseEntity {
         this.isMain = isMain;
     }
 
-    public void modifyAll(String roadAddress, String detailedAddress){
+    public void modifyAll(String roadAddress, String detailedAddress, boolean isMain){
         validateAddress(roadAddress, detailedAddress);
         this.roadAddress = roadAddress;
         this.detailedAddress = detailedAddress;
+        this.isMain = isMain;
     }
 
     private void validateAddress(String roadAddress, String detailedAddress) {
