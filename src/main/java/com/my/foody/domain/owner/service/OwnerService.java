@@ -3,10 +3,7 @@ package com.my.foody.domain.owner.service;
 import com.my.foody.domain.owner.dto.req.OwnerJoinReqDto;
 import com.my.foody.domain.owner.dto.req.OwnerLoginReqDto;
 import com.my.foody.domain.owner.dto.req.OwnerMyPageUpdateReqDto;
-import com.my.foody.domain.owner.dto.resp.OwnerJoinRespDto;
-import com.my.foody.domain.owner.dto.resp.OwnerLoginRespDto;
-import com.my.foody.domain.owner.dto.resp.OwnerMyPageRespDto;
-import com.my.foody.domain.owner.dto.resp.OwnerMyPageUpdateRespDto;
+import com.my.foody.domain.owner.dto.resp.*;
 import com.my.foody.domain.owner.entity.Owner;
 import com.my.foody.domain.owner.repo.OwnerRepository;
 import com.my.foody.global.ex.BusinessException;
@@ -91,6 +88,11 @@ public class OwnerService {
 
         // 4. 변경된 정보를 OwnerMyPageUpdateRespDto로 반환
         return new OwnerMyPageUpdateRespDto(owner.getId(), owner.getName(), owner.getContact(), owner.getEmail());
+    }
+
+    // 로그아웃 메서드 추가
+    public OwnerLogoutRespDto logout() {
+        return new OwnerLogoutRespDto();  // 로그아웃 성공 메시지 반환
     }
 
     // 이메일 중복 확인
