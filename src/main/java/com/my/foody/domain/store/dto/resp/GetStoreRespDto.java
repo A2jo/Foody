@@ -8,10 +8,13 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class GetStoreRespDto {
     private String name;
+    private Long minOrderAmount;
+
     private boolean isDeleted;
 
     public GetStoreRespDto(Store store) {
         this.name = store.getName();
         this.isDeleted = store.getIsDeleted();
+        this.minOrderAmount = store.getMinOrderAmount();
     }
 }
