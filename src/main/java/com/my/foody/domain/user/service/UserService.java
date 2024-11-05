@@ -9,11 +9,9 @@ import com.my.foody.domain.address.entity.Address;
 import com.my.foody.domain.address.repo.AddressRepository;
 import com.my.foody.domain.address.service.AddressService;
 import com.my.foody.domain.user.dto.req.UserLoginReqDto;
+import com.my.foody.domain.user.dto.req.UserPasswordModifyReqDto;
 import com.my.foody.domain.user.dto.req.UserSignUpReqDto;
-import com.my.foody.domain.user.dto.resp.AddressDeleteRespDto;
-import com.my.foody.domain.user.dto.resp.UserInfoRespDto;
-import com.my.foody.domain.user.dto.resp.UserLoginRespDto;
-import com.my.foody.domain.user.dto.resp.UserSignUpRespDto;
+import com.my.foody.domain.user.dto.resp.*;
 import com.my.foody.domain.user.entity.User;
 import com.my.foody.domain.user.repo.UserRepository;
 import com.my.foody.global.ex.BusinessException;
@@ -99,5 +97,13 @@ public class UserService {
         address.validateUser(user);
         addressRepository.delete(address);
         return new AddressDeleteRespDto();
+    }
+
+    @Transactional
+    public UserPasswordModifyRespDto modifyUserPassword(UserPasswordModifyReqDto userPasswordModifyReqDto, Long userId) {
+        User user = findByIdOrFail(userId);
+        user.validPassword(userPasswordModifyReqDto.getCurrentPassword());
+        user.changePassword(userPasswordModifyReqDto.getNewPassword());
+        return new UserPasswordModifyRespDto();
     }
 }
