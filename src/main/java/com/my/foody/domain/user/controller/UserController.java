@@ -82,7 +82,7 @@ public class UserController {
 
 
     @RequireAuth(userType = UserType.USER)
-    @DeleteMapping()
+    @DeleteMapping
     public ResponseEntity<ApiResult<UserDeleteRespDto>> deleteAddress(@RequestBody @Valid UserDeleteReqDto userDeleteReqDto,
                                                                       @CurrentUser TokenSubject tokenSubject){
         return new ResponseEntity<>(ApiResult.success(userService.deleteUserById(userDeleteReqDto, tokenSubject.getId())), HttpStatus.OK);
