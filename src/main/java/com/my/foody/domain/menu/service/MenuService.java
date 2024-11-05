@@ -35,17 +35,11 @@ public class MenuService {
 
         //메뉴명 수정
         if (menuUpdateReqDto.getName() != null) {
-            if (menuUpdateReqDto.getName().isBlank()) {
-                throw new BusinessException(ErrorCode.INVALID_MENU_NAME);
-            }
             menu.updateName(menuUpdateReqDto.getName());
         }
 
         //가격 수정
         if (menuUpdateReqDto.getPrice() != null) {
-            if (menuUpdateReqDto.getPrice() < 1) {
-                throw new BusinessException(ErrorCode.INVALID_MENU_PRICE);
-            }
             menu.updatePrice(menuUpdateReqDto.getPrice());
         }
 
