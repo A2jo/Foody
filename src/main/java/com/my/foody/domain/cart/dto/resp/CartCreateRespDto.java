@@ -16,4 +16,8 @@ public class CartCreateRespDto {
     private Long quantity;
     private Long totalAmount;
     private Long minOrderAmount;
+
+    public Long getTotalOrderAmount() {
+        return totalAmount;
+    }
 }
