@@ -397,7 +397,6 @@ class UserServiceTest extends DummyObject {
     }
 
     @Test
-<<<<<<< HEAD
     @DisplayName(value = "전체 주소지 조회 성공 테스트")
     void getAllAddress_Success(){
         Long userId = 1L;
