@@ -1,8 +1,6 @@
 package com.my.foody.domain.menu.controller;
 
-import com.my.foody.domain.menu.dto.req.MenuCreateReqDto;
 import com.my.foody.domain.menu.dto.req.MenuUpdateReqDto;
-import com.my.foody.domain.menu.dto.resp.MenuCreateRespDto;
 import com.my.foody.domain.menu.dto.resp.MenuUpdateRespDto;
 import com.my.foody.domain.menu.service.MenuService;
 import com.my.foody.global.config.valid.CurrentUser;
@@ -14,17 +12,16 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 
-@Controller
+@RestController
 @RequiredArgsConstructor
 public class MenuController {
 
-    private MenuService menuService;
+    private final MenuService menuService;
 
     // 2. 메뉴수정
     @PutMapping("/api/owners/stores/{storeId}/menus/{menuId}")
