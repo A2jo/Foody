@@ -4,9 +4,11 @@ package com.my.foody.domain.owner.dto.req;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
+@AllArgsConstructor
 public class OwnerDeleteReqDto {
     @NotBlank(message = "비밀번호는 필수 입력 항목입니다.")
     @Size(min = 8, max = 60, message = "비밀번호는 8자 이상, 60자 이하로 설정해야 합니다.")
