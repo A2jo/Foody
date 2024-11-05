@@ -56,7 +56,9 @@ public class SocialAccountController {
             return new ResponseEntity<>(ApiResult.success(socialLoginRespDto), HttpStatus.OK);
         }
         //일반 로그인 모드
-        return new ResponseEntity<>(ApiResult.success(socialAccountService.processOAuth2Callback(provider, code)), HttpStatus.OK);
+        SocialLoginRespDto socialLoginRespDto = socialAccountService.processOAuth2Callback(provider, code);
+        response.setHeader(JwtVo.HEADER, socialLoginRespDto.getToken());
+        return new ResponseEntity<>(ApiResult.success(socialLoginRespDto), HttpStatus.OK);
     }
 
 }

@@ -35,6 +35,7 @@ public class KakaoUserInfo implements OAuth2UserInfo {
                 .email(getEmail())
                 .nickname(getName())
                 .name(getName())
+                .isDeleted(false)
                 .build();
     }
 }
