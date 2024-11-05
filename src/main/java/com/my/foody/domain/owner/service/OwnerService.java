@@ -12,12 +12,13 @@ import com.my.foody.global.ex.ErrorCode;
 import com.my.foody.global.jwt.JwtProvider;
 import com.my.foody.global.jwt.TokenSubject;
 import com.my.foody.global.jwt.UserType;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import com.my.foody.global.util.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 
 @Service
+@RequiredArgsConstructor
 public class OwnerService {
 
     private final OwnerRepository ownerRepository;
@@ -25,12 +26,6 @@ public class OwnerService {
 
 
     private static final String LOGIN_SUCCESS_MESSAGE = "로그인 성공";
-
-    @Autowired
-    public OwnerService(OwnerRepository ownerRepository, JwtProvider jwtProvider) {
-        this.ownerRepository = ownerRepository;
-        this.jwtProvider = jwtProvider;
-    }
 
     public OwnerJoinRespDto signup(OwnerJoinReqDto reqDto) {
         validateEmailUniqueness(reqDto.getEmail());
@@ -52,7 +47,7 @@ public class OwnerService {
     public OwnerLoginRespDto login(OwnerLoginReqDto reqDto) {
         // 1. 이메일로 Owner 조회
         Owner owner = ownerRepository.findByEmail(reqDto.getEmail())
-                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+                .orElseThrow(() -> new BusinessException(ErrorCode.EMAIL_NOT_FOUND));
 
         // 2. 비밀번호 검증
         if (!PasswordEncoder.matches(reqDto.getPassword(), owner.getPassword())) {
@@ -68,7 +63,7 @@ public class OwnerService {
     //마이페이지 조회
     public OwnerMyPageRespDto getMyPage(Long ownerId) {
         Owner owner = ownerRepository.findById(ownerId)
-                .orElseThrow(() -> new IllegalArgumentException("사장님 정보를 찾을 수 없습니다."));
+                .orElseThrow(() -> new BusinessException(ErrorCode.OWNER_NOT_FOUND));
         return new OwnerMyPageRespDto(owner.getId(), owner.getName(), owner.getContact(), owner.getEmail());
     }
 
