@@ -1,6 +1,7 @@
 package com.my.foody.domain.store.controller;
 
 import com.my.foody.domain.store.dto.req.StoreCreateReqDto;
+import com.my.foody.domain.store.dto.resp.GetStoreRespDto;
 import com.my.foody.domain.store.dto.resp.StoreCreateRespDto;
 import com.my.foody.domain.store.service.StoreService;
 import com.my.foody.global.config.valid.CurrentUser;
@@ -14,6 +15,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/owners")
 @RequiredArgsConstructor
@@ -23,14 +26,14 @@ public class StoreController {
 
     @RequireAuth(userType = UserType.OWNER)
     @PostMapping("/stores")
-    public ResponseEntity<ApiResult<StoreCreateRespDto>> createStore(@RequestBody @Valid StoreCreateReqDto storeCreatereqDto,@CurrentUser TokenSubject tokenSubject) {
+    public ResponseEntity<ApiResult<StoreCreateRespDto>> createStore(@RequestBody @Valid StoreCreateReqDto storeCreatereqDto, @CurrentUser TokenSubject tokenSubject) {
         Long ownerId = tokenSubject.getId();
         return new ResponseEntity<>(ApiResult.success(storeService.createStore(storeCreatereqDto, ownerId)), HttpStatus.CREATED);
     }
 
     @RequireAuth(userType = UserType.OWNER)
     @GetMapping("stores")
-    public ResponseEntity<ApiResult<GetStoreRespDto>> getAllStoreByOwnerId(TokenSubject tokenSubject) {
+    public ResponseEntity<ApiResult<List<GetStoreRespDto>>> getAllStoreByOwnerId(@CurrentUser TokenSubject tokenSubject) {
         Long ownerId = tokenSubject.getId();
         return new ResponseEntity<>(ApiResult.success(storeService.getAllStoreByOwnerId(ownerId)), HttpStatus.CREATED);
     }
