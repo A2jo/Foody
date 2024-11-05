@@ -27,11 +27,4 @@ public class StoreController {
         Long ownerId = tokenSubject.getId();
         return new ResponseEntity<>(ApiResult.success(storeService.createStore(storeCreatereqDto, ownerId)), HttpStatus.CREATED);
     }
-
-    @RequireAuth(userType = UserType.OWNER)
-    @GetMapping("stores")
-    public ResponseEntity<ApiResult<GetStoreRespDto>> getAllStoreByOwnerId(TokenSubject tokenSubject) {
-        Long ownerId = tokenSubject.getId();
-        return new ResponseEntity<>(ApiResult.success(storeService.getAllStoreByOwnerId(ownerId)), HttpStatus.CREATED);
-    }
 }
