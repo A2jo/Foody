@@ -9,6 +9,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.util.StringUtils;
 
 @Entity
 @Getter
@@ -46,5 +47,16 @@ public class User extends BaseEntity {
         if(!PasswordEncoder.matches(password, this.password)){
             throw new BusinessException(ErrorCode.INVALID_PASSWORD);
         }
+    }
+
+    public void modifyBasicInfo(String name, String nickname, String contact, String email){
+        this.name = updateIfValid(name, this.name);
+        this.nickname = updateIfValid(nickname, this.nickname);
+        this.contact = updateIfValid(contact, this.contact);
+        this.email = updateIfValid(email, this.email);
+    }
+
+    private String updateIfValid(String newValue, String currentValue) {
+        return StringUtils.hasText(newValue) ? newValue.trim() : currentValue;
     }
 }
