@@ -1,9 +1,12 @@
 package com.my.foody.domain.user.controller;
 
 import com.my.foody.domain.address.dto.req.AddressCreateReqDto;
+import com.my.foody.domain.address.dto.req.AddressModifyReqDto;
 import com.my.foody.domain.address.dto.resp.AddressCreateRespDto;
+import com.my.foody.domain.address.dto.resp.AddressModifyRespDto;
 import com.my.foody.domain.user.dto.req.UserLoginReqDto;
 import com.my.foody.domain.user.dto.req.UserSignUpReqDto;
+import com.my.foody.domain.user.dto.resp.AddressDeleteRespDto;
 import com.my.foody.domain.user.dto.resp.UserInfoRespDto;
 import com.my.foody.domain.user.dto.resp.UserLoginRespDto;
 import com.my.foody.domain.user.dto.resp.UserSignUpRespDto;
@@ -50,6 +53,21 @@ public class UserController {
     public ResponseEntity<ApiResult<AddressCreateRespDto>> registerAddress(@RequestBody @Valid AddressCreateReqDto addressCreateReqDto,
                                                                            @CurrentUser TokenSubject tokenSubject){
         return new ResponseEntity<>(ApiResult.success(userService.registerAddress(addressCreateReqDto, tokenSubject.getId())), HttpStatus.CREATED);
+    }
+
+    @RequireAuth(userType = UserType.USER)
+    @PutMapping("/mypage/address/{addressId}")
+    public ResponseEntity<ApiResult<AddressModifyRespDto>> modifyAddress(@PathVariable(value = "addressId") Long addressId,
+                                                                         @RequestBody @Valid AddressModifyReqDto addressModifyReqDto,
+                                                                         @CurrentUser TokenSubject tokenSubject){
+        return new ResponseEntity<>(ApiResult.success(userService.modifyAddress(addressModifyReqDto, tokenSubject.getId(), addressId)), HttpStatus.OK);
+    }
+
+    @RequireAuth(userType = UserType.USER)
+    @DeleteMapping("/mypage/address/{addressId}")
+    public ResponseEntity<ApiResult<AddressDeleteRespDto>> deleteAddress(@PathVariable(value = "addressId") Long addressId,
+                                                                         @CurrentUser TokenSubject tokenSubject){
+        return new ResponseEntity<>(ApiResult.success(userService.deleteAddressById(addressId, tokenSubject.getId())), HttpStatus.OK);
     }
 
 
