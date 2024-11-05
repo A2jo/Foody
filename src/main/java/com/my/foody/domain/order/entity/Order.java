@@ -49,7 +49,7 @@ public class Order extends BaseEntity {
         this.totalAmount = totalAmount;
     }
 
-    public void updateOrderStatus(String status) {
-        this.orderStatus = OrderStatus.valueOf(status);
+    public void updateOrderStatus(OrderStatus orderStatus) {
+        this.orderStatus = orderStatus;
     }
 }
