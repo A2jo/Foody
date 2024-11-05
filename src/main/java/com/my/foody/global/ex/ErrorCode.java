@@ -32,6 +32,11 @@ public enum ErrorCode {
 
     STORENAME_ALREADY_EXISTS(HttpStatus.CONFLICT.value(), "이미 사용 중인 가게이름입니다"),
     HAVE_FULL_STORE(HttpStatus.CONFLICT.value(), "생성 가능한 가게 수를 초과합니다."),
+    OWNER_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "OWNER를 찾을 수 없습니다."),
+    CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "존재하지 않는 카테고리입니다."),
+    MENU_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "존재하지 않는 메뉴입니다"),
+    INVALID_MENU_NAME(HttpStatus.BAD_REQUEST.value(), "메뉴 이름은 1자 이상 30자 이하여야 합니다"),
+    INVALID_MENU_PRICE(HttpStatus.BAD_REQUEST.value(), "메뉴 가격은 1원 이상이어야 합니다"),
 
     CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "존재하지 않는 카테고리입니다."),
 
@@ -49,15 +54,14 @@ public enum ErrorCode {
     CART_IS_EMPTY(HttpStatus.BAD_REQUEST.value(), "장바구니가 비어있습니다"),
     OAUTH_CALLBACK_FAILED(HttpStatus.INTERNAL_SERVER_ERROR.value(), "소셜 인증 서버와 통신 중 오류가 발생했습니다"),
     NO_UPDATE_DATA(HttpStatus.NO_CONTENT.value(), "수정된 내용이 존재하지 않습니다."),
-    MENU_STORE_MISMATCH(HttpStatus.BAD_REQUEST.value(), "해당 메뉴가 가게에 존재하지 않습니다");
+    MENU_STORE_MISMATCH(HttpStatus.BAD_REQUEST.value(), "해당 메뉴가 가게에 존재하지 않습니다"),
 
 
 
 
     ORDER_NOT_COMPLETED(HttpStatus.BAD_REQUEST.value(), "리뷰는 완료된 주문에 대해서만 작성할 수 있습니다"),
-    REVIEW_ALREADY_EXISTS(HttpStatus.BAD_REQUEST.value(), "해당 주문에 대한 리뷰가 존재합니다")
+    REVIEW_ALREADY_EXISTS(HttpStatus.BAD_REQUEST.value(), "해당 주문에 대한 리뷰가 존재합니다");
 
-    ;
 
     private final int status;
     private final String msg;
