@@ -4,7 +4,6 @@ import com.my.foody.domain.base.BaseEntity;
 import com.my.foody.domain.store.entity.Store;
 import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.jmx.export.annotation.ManagedNotifications;
 
 @Entity
 @Getter
@@ -32,4 +31,18 @@ public class Menu extends BaseEntity {
 
     @Column(nullable = false)
     private Boolean isDeleted;
+
+    @Builder
+    public Menu(Store store, String name, Long price, Boolean isSoldOut, Boolean isDeleted) {
+        this.store = store;
+        this.name = name;
+        this.price = price;
+        this.isSoldOut = false;
+        this.isDeleted = false;
+    }
+
+    //삭제
+    public void softDeleteMenu() {
+        this.isDeleted = true;
+    }
 }
