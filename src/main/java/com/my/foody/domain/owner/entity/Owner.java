@@ -25,4 +25,17 @@ public class Owner extends BaseEntity {
     private String password;
     @Column(nullable = false)
     private Boolean isDeleted;
+
+    // 정보 업데이트 메서드
+    public void updateInfo(String name, String contact, String email, String newPassword) {
+        this.name = name;
+        this.contact = contact;
+        this.email = email;
+        this.password = newPassword;
+    }
+
+    // 삭제 상태로 변경하는 메서드
+    public void markAsDeleted() {
+        this.isDeleted = true;
+    }
 }
