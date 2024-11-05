@@ -1,6 +1,7 @@
 package com.my.foody.domain.owner.controller;
 
 
+import com.my.foody.domain.owner.dto.req.OwnerDeleteReqDto;
 import com.my.foody.domain.owner.dto.req.OwnerJoinReqDto;
 import com.my.foody.domain.owner.dto.req.OwnerLoginReqDto;
 import com.my.foody.domain.owner.dto.req.OwnerMyPageUpdateReqDto;
@@ -53,4 +54,15 @@ public class OwnerController {
         OwnerLogoutRespDto responseMessage = ownerService.logout();
         return ResponseEntity.ok(ApiResult.success(responseMessage));
     }
+
+    // 회원 탈퇴 기능 추가
+    @DeleteMapping
+    public ResponseEntity<ApiResult<OwnerDeleteRespDto>> deleteOwner(
+            @AuthenticationPrincipal Long ownerId,
+            @RequestBody OwnerDeleteReqDto deleteReqDto) {
+
+        OwnerDeleteRespDto responseMessage = ownerService.deleteOwner(ownerId, deleteReqDto);
+        return ResponseEntity.ok(ApiResult.success(responseMessage));
+    }
+
 }
