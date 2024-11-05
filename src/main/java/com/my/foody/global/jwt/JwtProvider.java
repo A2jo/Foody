@@ -26,9 +26,11 @@ public class JwtProvider {
     private String secretKey;
 
     public String create(TokenSubject tokenSubject){
+        Date now = new Date();
         return JwtVo.TOKEN_PREFIX +JWT.create()
                 .withSubject("Foody-application")
                 .withExpiresAt(new Date(System.currentTimeMillis() + JwtVo.EXPIRATION_TIME))
+                .withIssuedAt(now)
                 .withClaim("id", tokenSubject.getId())
                 .withClaim("userType", tokenSubject.getUserType().name())
                 .sign(Algorithm.HMAC512(secretKey));
