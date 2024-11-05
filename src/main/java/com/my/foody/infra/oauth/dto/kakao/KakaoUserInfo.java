@@ -1,6 +1,7 @@
 package com.my.foody.infra.oauth.dto.kakao;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.my.foody.domain.user.entity.User;
 import com.my.foody.infra.oauth.common.OAuth2UserInfo;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -26,6 +27,15 @@ public class KakaoUserInfo implements OAuth2UserInfo {
     @Override
     public String getName() {
         return kakaoAccount.getProfile().getNickname();
+    }
+
+    @Override
+    public User toEntity() {
+        return User.builder()
+                .email(getEmail())
+                .nickname(getName())
+                .name(getName())
+                .build();
     }
 }
 

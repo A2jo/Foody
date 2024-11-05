@@ -4,9 +4,7 @@ import com.my.foody.domain.base.BaseEntity;
 import com.my.foody.domain.user.entity.Provider;
 import com.my.foody.domain.user.entity.User;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @Getter
@@ -17,6 +15,8 @@ import lombok.NoArgsConstructor;
                 columnNames = {"provider", "providerId"}
         )
 })
+@AllArgsConstructor
+@Builder
 public class SocialAccount extends BaseEntity {
 
     @Id
