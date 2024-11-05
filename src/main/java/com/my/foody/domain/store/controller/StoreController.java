@@ -18,14 +18,14 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/owners")
+@RequestMapping("/api")
 @RequiredArgsConstructor
 public class StoreController {
 
     private final StoreService storeService;
 
     @RequireAuth(userType = UserType.OWNER)
-    @PostMapping("/stores")
+    @PostMapping("/owners/stores")
     public ResponseEntity<ApiResult<StoreCreateRespDto>> createStore(@RequestBody @Valid StoreCreateReqDto storeCreatereqDto,
                                                                      @CurrentUser TokenSubject tokenSubject) {
         Long ownerId = tokenSubject.getId();
@@ -33,9 +33,16 @@ public class StoreController {
     }
 
     @RequireAuth(userType = UserType.OWNER)
-    @GetMapping("/stores")
+    @GetMapping("/owners/stores")
     public ResponseEntity<ApiResult<List<GetStoreRespDto>>> getAllStoresByOwnerId(@CurrentUser TokenSubject tokenSubject) {
         Long ownerId = tokenSubject.getId();
-        return new ResponseEntity<>(ApiResult.success(storeService.getAllStoresByOwnerId(ownerId)), HttpStatus.OK);
+        List<GetStoreRespDto> stores = storeService.getAllStoresByOwnerId(ownerId);
+        return ResponseEntity.ok(ApiResult.success(stores));
+    }
+
+    @GetMapping("home/categories/{categoryId}/store")
+    public ResponseEntity<ApiResult<List<GetStoreRespDto>>> getStoreByCategory(@PathVariable(value = "categoryId") Long categoryId) {
+        List<GetStoreRespDto> stores = storeService.getStoreByCategory(categoryId);
+        return ResponseEntity.ok(ApiResult.success(stores));
     }
 }
