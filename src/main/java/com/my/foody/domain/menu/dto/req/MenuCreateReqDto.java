@@ -16,4 +16,10 @@ public class MenuCreateReqDto {
     @NotNull(message = "메뉴 가격을 입력해야 합니다")
     @Min(value = 1, message = "메뉴 가격은 1원 이상이어야 합니다")
     private Long price;
+
+    public MenuCreateReqDto(String name, Long price) {
+        this.name = name;
+        this.price = price;
+    }
+
 }
