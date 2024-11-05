@@ -10,6 +10,7 @@ import com.my.foody.global.config.valid.RequireAuth;
 import com.my.foody.global.jwt.TokenSubject;
 import com.my.foody.global.jwt.UserType;
 import com.my.foody.global.util.api.ApiResult;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -51,19 +52,13 @@ public class OrderController {
     return new ResponseEntity<>(apiResult, HttpStatus.OK);
   }
 
-  @PostMapping("/api/home/stores/{storeId}/cart/{cartId}/orders")
   @RequireAuth(userType = UserType.USER)
-  public ResponseEntity<ApiResult<String>> createOrder(
-          @PathVariable Long storeId,
-          @PathVariable Long cartId,
-          @RequestBody OrderCreateReqDto requestDto,
-          @CurrentUser TokenSubject tokenSubject) {
-
-    requestDto.setUserId(tokenSubject.getId());
-
-    String resultMessage = orderService.createOrder(requestDto);
-    ApiResult<String> apiResult = ApiResult.success(resultMessage);
-
-    return new ResponseEntity<>(apiResult, HttpStatus.CREATED);
+  @PostMapping("/api/home/stores/{storeId}/cart/{cartId}/orders")
+  public ResponseEntity<ApiResult<String>> createOrder(@PathVariable Long storeId,
+                                                       @PathVariable Long cartId,
+                                                       @RequestBody @Valid OrderCreateReqDto orderCreateReqDto,
+                                                       @CurrentUser TokenSubject tokenSubject) {
+    orderService.createOrder(storeId, cartId, orderCreateReqDto, tokenSubject.getId());
+    return new ResponseEntity<>(ApiResult.success("주문이 완료되었습니다."), HttpStatus.CREATED);
   }
 }
