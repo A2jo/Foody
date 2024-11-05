@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @AllArgsConstructor
 @Builder
-public class CartCreateRespDto {
+public class CartItemRespDto {
     private String storeName;
     private String menuName;
     private Long menuPrice;

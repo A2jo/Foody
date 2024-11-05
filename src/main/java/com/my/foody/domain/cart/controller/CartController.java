@@ -1,6 +1,6 @@
 package com.my.foody.domain.cart.controller;
 
-import com.my.foody.domain.cart.dto.resp.CartCreateRespDto;
+import com.my.foody.domain.cart.dto.resp.CartItemRespDto;
 import com.my.foody.domain.cart.service.CartService;
 import com.my.foody.global.config.valid.CurrentUser;
 import com.my.foody.global.config.valid.RequireAuth;
@@ -24,13 +24,13 @@ public class CartController {
 
     @RequireAuth(userType = UserType.USER) // User 인증 확인
     @GetMapping
-    public ResponseEntity<ApiResult<Page<CartCreateRespDto>>> getCartItems(
+    public ResponseEntity<ApiResult<Page<CartItemRespDto>>> getCartItems(
             @RequestParam int page,
             @RequestParam int limit,
             @CurrentUser TokenSubject tokenSubject) {
 
         Long userId = tokenSubject.getId();
-        Page<CartCreateRespDto> cartItems = cartService.getCartItems(userId, page, limit);
+        Page<CartItemRespDto> cartItems = cartService.getCartItems(userId, page, limit);
 
         return ResponseEntity.ok(ApiResult.success(cartItems));
     }

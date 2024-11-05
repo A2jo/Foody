@@ -3,7 +3,7 @@ package com.my.foody.domain.cart.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
-import com.my.foody.domain.cart.dto.resp.CartCreateRespDto;
+import com.my.foody.domain.cart.dto.resp.CartItemRespDto;
 import com.my.foody.domain.cart.entity.Cart;
 import com.my.foody.domain.cart.repo.CartRepository;
 import java.util.Arrays;
@@ -66,11 +66,11 @@ public class CartServiceTest {
         when(cartRepository.findByUserId(userId, pageable)).thenReturn(cartItemsPage);
 
         // when
-        Page<CartCreateRespDto> result = cartService.getCartItems(userId, page, limit);
+        Page<CartItemRespDto> result = cartService.getCartItems(userId, page, limit);
 
         // then
         assertEquals(1, result.getTotalElements());
-        CartCreateRespDto cartDto = result.getContent().get(0);
+        CartItemRespDto cartDto = result.getContent().get(0);
 
         assertEquals("Test 음식점", cartDto.getStoreName());
         assertEquals("Sample 메뉴", cartDto.getMenuName());
