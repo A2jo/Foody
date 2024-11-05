@@ -12,14 +12,15 @@ import com.my.foody.domain.storeCategory.entity.StoreCategory;
 import com.my.foody.domain.storeCategory.repo.StoreCategoryRepository;
 import com.my.foody.global.ex.BusinessException;
 import com.my.foody.global.ex.ErrorCode;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class StoreService {
 
     private final StoreRepository storeRepository;
@@ -27,11 +28,25 @@ public class StoreService {
     private final CategoryRepository categoryRepository;
     private final StoreCategoryRepository storeCategoryRepository;
 
-    public StoreCreateRespDto createStore(@Valid StoreCreateReqDto storeCreatereqDto, Long ownerId) {
+    @Transactional
+    public StoreCreateRespDto createStore(StoreCreateReqDto storeCreateReqDto, Long ownerId) {
         // owner 조회
         Owner owner = ownerRepository.findById(ownerId).orElseThrow(() ->
                 new BusinessException(ErrorCode.OWNER_NOT_FOUND)
         );
+        // 유효성 검사
+        validateCreateStore(storeCreateReqDto, ownerId);
+        // 가게 생성
+        Store store = storeCreateReqDto.toEntity(owner);
+        storeRepository.save(store);
+        // 카테고리 저장
+        saveCategory(storeCreateReqDto, store);
+
+        return new StoreCreateRespDto(store);
+    }
+
+    // 유효성 검사
+    public void validateCreateStore(StoreCreateReqDto storeCreatereqDto, Long ownerId) {
         // 가게이름 중복 검사
         if (storeRepository.existsByName(storeCreatereqDto.getName())) {
             throw new BusinessException(ErrorCode.STORENAME_ALREADY_EXISTS);
@@ -40,19 +55,11 @@ public class StoreService {
         if (storeRepository.countByOwnerId(ownerId) >= 3) {
             throw new BusinessException(ErrorCode.HAVE_FULL_STORE);
         }
-        // 가게 생성
-        Store store = Store.builder()
-                .name(storeCreatereqDto.getName())
-                .owner(owner)
-                .description(storeCreatereqDto.getDescription())
-                .contact(storeCreatereqDto.getContact())
-                .minOrderAmount(storeCreatereqDto.getMinOrderAmount())
-                .openTime(storeCreatereqDto.getOpenTime())
-                .endTime(storeCreatereqDto.getEndTime())
-                .build();
-        storeRepository.save(store);
-        // 카테고리 저장
-        List<Long> categoryIds = storeCreatereqDto.getCategoryIds();
+    }
+
+    // 카테고리 저장
+    public void saveCategory(StoreCreateReqDto storeCreateReqDto, Store store) {
+        List<Long> categoryIds = storeCreateReqDto.getCategoryIds();
         for (Long categoryId : categoryIds) {
             Category category = categoryRepository.findById(categoryId).orElseThrow(() ->
                     new BusinessException(ErrorCode.CATEGORY_NOT_FOUND)
@@ -63,6 +70,13 @@ public class StoreService {
                     .build();
             storeCategoryRepository.save(storeCategory);
         }
-        return new StoreCreateRespDto(store);
     }
+
+
+//    public GetStoreRespDto getAllStoreByOwnerId(Long ownerId) {
+//        // 해당 ID의 가게 조회
+//        List<Store> storeList = storeRepository.findByOwnerId(Long ownerId);
+//
+//
+//    }
 }
