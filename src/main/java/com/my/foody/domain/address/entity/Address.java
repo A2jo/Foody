@@ -29,6 +29,8 @@ public class Address extends BaseEntity {
     @Column(length = 30, nullable = false)
     private String detailedAddress;
 
+    private Boolean isMain;
+
     @Builder
     public Address(Long id, User user, String roadAddress, String detailedAddress) {
         this.id = id;
