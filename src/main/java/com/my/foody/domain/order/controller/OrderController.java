@@ -4,7 +4,6 @@ import com.my.foody.domain.order.dto.req.OrderStatusUpdateReqDto;
 import com.my.foody.domain.order.dto.resp.OrderPreviewRespDto;
 import com.my.foody.domain.order.dto.resp.OrderStatusUpdateRespDto;
 import com.my.foody.domain.order.service.OrderService;
-import com.my.foody.domain.user.service.UserService;
 import com.my.foody.global.config.valid.CurrentUser;
 import com.my.foody.global.config.valid.RequireAuth;
 import com.my.foody.global.jwt.TokenSubject;
@@ -20,7 +19,6 @@ import org.springframework.web.bind.annotation.*;
 public class OrderController {
 
   private final OrderService orderService;
-  private final UserService userService;
 
   @PutMapping("api/owners/orders/{orderId}")
   @RequireAuth(userType = UserType.OWNER)
