@@ -6,6 +6,7 @@ import com.my.foody.domain.address.dto.resp.AddressCreateRespDto;
 import com.my.foody.domain.user.dto.req.UserInfoModifyReqDto;
 import com.my.foody.domain.user.dto.req.UserLoginReqDto;
 import com.my.foody.domain.user.dto.req.UserSignUpReqDto;
+import com.my.foody.domain.user.dto.resp.*;
 import com.my.foody.domain.user.dto.resp.UserInfoModifyRespDto;
 import com.my.foody.domain.address.dto.resp.AddressModifyRespDto;
 import com.my.foody.domain.user.dto.resp.AddressDeleteRespDto;
@@ -78,6 +79,12 @@ public class UserController {
         return new ResponseEntity<>(ApiResult.success(userService.deleteAddressById(addressId, tokenSubject.getId())), HttpStatus.OK);
     }
 
+
+    @RequireAuth(userType = UserType.USER)
+    @GetMapping("/mypage/address")
+    public ResponseEntity<ApiResult<AddressListRespDto>> getAllAddress(@CurrentUser TokenSubject tokenSubject){
+        return new ResponseEntity<>(ApiResult.success(userService.getAllAddress(tokenSubject.getId())), HttpStatus.OK);
+    }
 
 
 
