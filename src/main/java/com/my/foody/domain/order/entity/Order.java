@@ -5,6 +5,8 @@ import com.my.foody.domain.base.BaseEntity;
 import com.my.foody.domain.owner.entity.OrderStatus;
 import com.my.foody.domain.store.entity.Store;
 import com.my.foody.domain.user.entity.User;
+import com.my.foody.global.ex.BusinessException;
+import com.my.foody.global.ex.ErrorCode;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -51,5 +53,11 @@ public class Order extends BaseEntity {
 
     public void updateOrderStatus(OrderStatus orderStatus) {
         this.orderStatus = orderStatus;
+    }
+
+    public void isStoreOwner(Long ownerId) {
+        if (!this.store.getOwner().getId().equals(ownerId)) {
+            throw new BusinessException(ErrorCode.FORBIDDEN_ACCESS);
+        }
     }
 }
