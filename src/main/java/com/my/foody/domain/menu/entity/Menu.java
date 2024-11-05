@@ -3,13 +3,14 @@ package com.my.foody.domain.menu.entity;
 import com.my.foody.domain.base.BaseEntity;
 import com.my.foody.domain.store.entity.Store;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.jmx.export.annotation.ManagedNotifications;
 
 @Entity
 @Getter
+@Builder
+@Table(name = "menu")
+@AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Menu extends BaseEntity {
     @Id

@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
+@Table(name = "store_category")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class StoreCategory extends BaseEntity {
     @Id
