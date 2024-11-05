@@ -2,6 +2,7 @@ package com.my.foody.domain.store.dto.req;
 
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
@@ -35,7 +36,7 @@ public class ModifyStoreReqDto {
     @NotBlank(message = "가게의 카테고리를 입력해주세요")
     @Pattern(regexp = "^[0-9]+$", message = "카테고리에 맞는 숫자로 입력해주세요.")
     private List<Long> categoryIds;
-    @NotBlank(message = "가게의 영업상태를 설정해주세요")
-    private boolean isDeleted;
+    @NotNull(message = "가게의 영업상태를 설정해주세요")
+    private Boolean isDeleted;
 
 }
