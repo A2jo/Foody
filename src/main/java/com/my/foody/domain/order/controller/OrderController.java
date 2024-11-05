@@ -24,13 +24,12 @@ public class OrderController {
     public ResponseEntity<OrderStatusUpdateRespDto> changeOrderStatus(@PathVariable("orderId") Long orderId,
                                                                       @RequestBody OrderStatusUpdateReqDto requestDto,
                                                                       @CurrentUser TokenSubject tokenSubject) {
-        //ownerId
+        // ownerId
         Long ownerId = tokenSubject.getId();
 
-        // 주문 상태 업데이트
-        ResponseEntity<OrderStatusUpdateRespDto> responseEntity = orderService.updateOrderStatus(requestDto, orderId, tokenSubject.getId());
+        // 주문 상태 업데이트 및 응답 DTO 반환
+        OrderStatusUpdateRespDto responseDto = orderService.updateOrderStatus(requestDto, orderId, ownerId);
 
-        // ResponseEntity의 본문 반환
-        return responseEntity;
+        return ResponseEntity.ok(responseDto);
     }
 }
