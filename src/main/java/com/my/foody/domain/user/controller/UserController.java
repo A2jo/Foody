@@ -9,6 +9,7 @@ import com.my.foody.domain.user.dto.req.UserDeleteReqDto;
 import com.my.foody.domain.user.dto.resp.UserDeleteRespDto;
 import com.my.foody.domain.user.dto.req.UserInfoModifyReqDto;
 import com.my.foody.domain.user.dto.req.UserLoginReqDto;
+import com.my.foody.domain.user.dto.req.UserPasswordModifyReqDto;
 import com.my.foody.domain.user.dto.req.UserSignUpReqDto;
 import com.my.foody.domain.user.dto.resp.*;
 import com.my.foody.domain.user.dto.resp.UserInfoModifyRespDto;
@@ -85,6 +86,12 @@ public class UserController {
         return new ResponseEntity<>(ApiResult.success(userService.deleteAddressById(addressId, tokenSubject.getId())), HttpStatus.OK);
     }
 
+    @RequireAuth(userType = UserType.USER)
+    @PatchMapping("/mypage/pw")
+    public ResponseEntity<ApiResult<UserPasswordModifyRespDto>> modifyUserPassword(@RequestBody @Valid UserPasswordModifyReqDto userPasswordModifyReqDto,
+                                                                                   @CurrentUser TokenSubject tokenSubject){
+        return new ResponseEntity<>(ApiResult.success(userService.modifyUserPassword(userPasswordModifyReqDto, tokenSubject.getId())), HttpStatus.OK);
+    }
 
     @RequireAuth(userType = UserType.USER)
     @DeleteMapping

@@ -9,6 +9,7 @@ import com.my.foody.domain.address.repo.AddressRepository;
 import com.my.foody.domain.user.dto.req.UserDeleteReqDto;
 import com.my.foody.domain.user.dto.req.UserInfoModifyReqDto;
 import com.my.foody.domain.user.dto.req.UserLoginReqDto;
+import com.my.foody.domain.user.dto.req.UserPasswordModifyReqDto;
 import com.my.foody.domain.user.dto.req.UserSignUpReqDto;
 import com.my.foody.domain.user.dto.resp.*;
 import com.my.foody.domain.user.dto.resp.UserInfoModifyRespDto;
@@ -123,6 +124,13 @@ public class UserService {
     }
 
     @Transactional
+    public UserPasswordModifyRespDto modifyUserPassword(UserPasswordModifyReqDto userPasswordModifyReqDto, Long userId) {
+        User user = findActivateUserByIdOrFail(userId);
+        user.validPassword(userPasswordModifyReqDto.getCurrentPassword());
+        user.changePassword(userPasswordModifyReqDto.getNewPassword());
+        return new UserPasswordModifyRespDto();
+    }
+
     public UserDeleteRespDto deleteUserById(UserDeleteReqDto userDeleteReqDto, Long userId) {
         User user = findActivateUserByIdOrFail(userId);
         user.validPassword(userDeleteReqDto.getCurrentPassword());
