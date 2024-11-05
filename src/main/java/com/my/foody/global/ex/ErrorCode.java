@@ -32,7 +32,7 @@ public enum ErrorCode {
     HAVE_FULL_STORE(HttpStatus.CONFLICT.value(), "생성 가능한 가게 수를 초과합니다."),
     OWNER_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "OWNER를 찾을 수 없습니다."),
     CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "존재하지 않는 카테고리입니다."),
-    ;
+    MENU_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "존재하지 않는 메뉴입니다." );
 
 
     private final int status;
