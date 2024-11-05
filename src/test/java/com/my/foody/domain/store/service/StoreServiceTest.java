@@ -386,11 +386,11 @@ public class StoreServiceTest {
                 .minOrderAmount(10000L)
                 .openTime(LocalTime.of(9, 0))
                 .endTime(LocalTime.of(21, 0))
-                .isDeleted(false)
+                .isDeleted(true) // 폐업 상태
                 .build();
 
         ModifyStoreReqDto modifyStoreReqDto = new ModifyStoreReqDto();
-        modifyStoreReqDto.setName("New Store Name");
+        modifyStoreReqDto.setIsDeleted(false);
 
         when(storeRepository.findById(storeId)).thenReturn(Optional.of(store));
         when(storeRepository.countByOwnerIdAndIsDeletedFalse(ownerId)).thenReturn(3L); // 이미 영업 중인 가게가 3개인 경우
