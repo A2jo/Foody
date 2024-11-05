@@ -9,10 +9,7 @@ import com.my.foody.domain.address.repo.AddressRepository;
 import com.my.foody.domain.address.service.AddressService;
 import com.my.foody.domain.user.dto.req.UserLoginReqDto;
 import com.my.foody.domain.user.dto.req.UserSignUpReqDto;
-import com.my.foody.domain.user.dto.resp.AddressDeleteRespDto;
-import com.my.foody.domain.user.dto.resp.UserInfoRespDto;
-import com.my.foody.domain.user.dto.resp.UserLoginRespDto;
-import com.my.foody.domain.user.dto.resp.UserSignUpRespDto;
+import com.my.foody.domain.user.dto.resp.*;
 import com.my.foody.domain.user.entity.User;
 import com.my.foody.domain.user.repo.UserRepository;
 import com.my.foody.global.ex.BusinessException;
@@ -28,6 +25,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -394,6 +393,29 @@ class UserServiceTest extends DummyObject {
         verify(userRepository).findById(userId);
         verify(addressService).findByIdOrFail(addressId);
         verify(addressRepository, never()).delete(any(Address.class));
+    }
+
+    @Test
+    @DisplayName(value = "전체 주소지 조회 성공 테스트")
+    void getAllAddress_Success(){
+        Long userId = 1L;
+        User user = newUser(userId);
+        List<Address> addressList = new ArrayList<>();
+        for(int i = 0;i<5;i++){
+            addressList.add(mockAddress(user));
+        }
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(addressRepository.findAllByUser(user)).thenReturn(addressList);
+
+        //when
+        AddressListRespDto result = userService.getAllAddress(userId);
+
+        //then
+        assertNotNull(result);
+        assertThat(result.getAddressList().size()).isEqualTo(addressList.size());
+        verify(userRepository).findById(userId);
+        verify(addressRepository).findAllByUser(user);
     }
 
     private UserSignUpReqDto mockUserSignUpReqDto(){
