@@ -32,4 +32,24 @@ public class Menu extends BaseEntity {
 
     @Column(nullable = false)
     private Boolean isDeleted;
+
+    @Builder
+    public Menu(Store store, String name, Long price, Boolean isSoldOut, Boolean isDeleted) {
+        this.store = store;
+        this.name = name;
+        this.price = price;
+        this.isSoldOut = false;
+        this.isDeleted = false;
+    }
+    
+    //메뉴명 수정
+    public void updateName(String name) {
+        this.name = name;
+    }
+    
+    //가격 수정
+    public void updatePrice(Long price) {
+        this.price = price;
+    }
+
 }
