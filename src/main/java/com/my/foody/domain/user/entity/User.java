@@ -33,14 +33,14 @@ public class User extends BaseEntity {
     private Boolean isDeleted;
 
     @Builder
-    public User(Long id, String name, String nickname, String password, String email, String contact) {
+    public User(Long id, String name, String nickname, String password, String email, String contact, Boolean isDeleted) {
         this.id = id;
         this.name = name;
         this.nickname = nickname;
         this.password = password;
         this.email = email;
         this.contact = contact;
-        this.isDeleted = false;
+        this.isDeleted = isDeleted;
     }
 
     public void matchPassword(String password){
