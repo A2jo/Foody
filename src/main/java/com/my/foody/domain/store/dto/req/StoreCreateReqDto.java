@@ -48,6 +48,7 @@ public class StoreCreateReqDto {
                 .minOrderAmount(minOrderAmount)
                 .openTime(openTime)
                 .endTime(endTime)
+                .isDeleted(false)
                 .build();
     }
 }

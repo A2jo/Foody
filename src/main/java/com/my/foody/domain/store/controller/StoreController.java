@@ -33,7 +33,7 @@ public class StoreController {
     }
 
     @RequireAuth(userType = UserType.OWNER)
-    @GetMapping("stores")
+    @GetMapping("/stores")
     public ResponseEntity<ApiResult<List<GetStoreRespDto>>> getAllStoresByOwnerId(@CurrentUser TokenSubject tokenSubject) {
         Long ownerId = tokenSubject.getId();
         return new ResponseEntity<>(ApiResult.success(storeService.getAllStoresByOwnerId(ownerId)), HttpStatus.CREATED);

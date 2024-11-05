@@ -13,4 +13,6 @@ public interface StoreRepository extends JpaRepository<Store, Long> {
     Long countByOwnerId(Long ownerId);
 
     List<Store> findByOwnerId(Long ownerId);
+
+    Long countByOwnerIdAndIsDeletedFalse(Long ownerId);
 }

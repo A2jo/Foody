@@ -433,7 +433,6 @@ class UserServiceTest extends DummyObject {
         verify(addressRepository, never()).findAllByUserOrderByCreatedAtDesc(any(User.class));
     }
 
-=======
     @DisplayName("유저 정보 수정 성공 테스트")
     void modifyUserInfo_Success() {
         Long userId = 1L;
@@ -508,7 +507,6 @@ class UserServiceTest extends DummyObject {
 
 
 
->>>>>>> 03898e5ce6d7c689db5b8e3c04447cf9f23cd023
     private UserSignUpReqDto mockUserSignUpReqDto(){
         return UserSignUpReqDto.builder()
                 .contact("010-1234-5678")

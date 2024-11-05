@@ -48,14 +48,8 @@ public class StoreService {
 
     public List<GetStoreRespDto> getAllStoresByOwnerId(Long ownerId) {
         // 해당 ID의 가게 조회 (영업중인 가게만 조회)
-        List<Store> storeList = storeRepository.findByOwnerId(ownerId)
-                .stream()
-                .filter(store -> !store.getIsDeleted())
-                .toList();
-        // 해당 ID의 가게가 없는 경우
-        if (storeList.isEmpty()) {
-            throw new BusinessException(ErrorCode.STORE_NOT_FOUND);
-        }
+        List<Store> storeList = storeRepository.findByOwnerId(ownerId);
+
         return storeList.stream()
                 .map(store -> new GetStoreRespDto(store))
                 .toList();
@@ -82,8 +76,8 @@ public class StoreService {
         if (storeRepository.existsByName(storeCreatereqDto.getName())) {
             throw new BusinessException(ErrorCode.STORENAME_ALREADY_EXISTS);
         }
-        // 사장님 가게 3개 이상 생성 불가
-        if (storeRepository.countByOwnerId(ownerId) >= 3) {
+        // 사장님 영업중인 가게 3개 이상인 경우 생성 불가
+        if (storeRepository.countByOwnerIdAndIsDeletedFalse(ownerId) >= 3) {
             throw new BusinessException(ErrorCode.HAVE_FULL_STORE);
         }
     }

@@ -14,6 +14,7 @@ import com.my.foody.domain.storeCategory.entity.StoreCategory;
 import com.my.foody.domain.storeCategory.repo.StoreCategoryRepository;
 import com.my.foody.global.ex.BusinessException;
 import com.my.foody.global.ex.ErrorCode;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,6 +22,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.nio.file.AccessDeniedException;
 import java.time.LocalTime;
 import java.util.Collections;
 import java.util.List;
@@ -59,13 +61,15 @@ public class StoreServiceTest {
 
         when(ownerRepository.findById(ownerId)).thenReturn(Optional.of(owner));
         when(storeRepository.existsByName(storeCreateReqDto.getName())).thenReturn(false);
-        when(storeRepository.countByOwnerId(ownerId)).thenReturn(2L);
+        when(storeRepository.countByOwnerIdAndIsDeletedFalse(ownerId)).thenReturn(2L);
         when(categoryRepository.findById(1L)).thenReturn(Optional.of(category1));
         when(categoryRepository.findById(2L)).thenReturn(Optional.of(category2));
 
         StoreCreateRespDto storeCreateRespDto = storeService.createStore(storeCreateReqDto, ownerId);
 
         assertNotNull(storeCreateRespDto);
+        assertEquals("가게가 생성되었습니다.", storeCreateRespDto.getMessage());
+
         verify(storeRepository).save(any(Store.class));
         verify(storeCategoryRepository, times(2)).save(any(StoreCategory.class));
     }
@@ -120,7 +124,7 @@ public class StoreServiceTest {
         Owner owner = mock(Owner.class);
         when(ownerRepository.findById(ownerId)).thenReturn(Optional.of(owner));
         when(storeRepository.existsByName(storeCreateReqDto.getName())).thenReturn(false);
-        when(storeRepository.countByOwnerId(ownerId)).thenReturn(3L);
+        when(storeRepository.countByOwnerIdAndIsDeletedFalse(ownerId)).thenReturn(3L);
         BusinessException exception = assertThrows(BusinessException.class, () ->
                 storeService.createStore(storeCreateReqDto, ownerId)
         );
@@ -172,29 +176,21 @@ public class StoreServiceTest {
         List<GetStoreRespDto> result = storeService.getAllStoresByOwnerId(ownerId);
 
         assertNotNull(result);
-        assertEquals(2, result.size());
+        assertEquals(3, result.size());
 
         assertEquals("Store 1", result.get(0).getName());
         assertFalse(result.get(0).isDeleted());
-        System.out.println("이름 : " + result.get(0).getName() + "\n" +  "영업 상태 : " + result.get(0).isDeleted());
+        System.out.println("이름 : " + result.get(0).getName() + "\n" + "영업 상태 : " + result.get(0).isDeleted());
 
-        assertEquals("Store 3", result.get(1).getName());
-        assertFalse(result.get(1).isDeleted());
-        System.out.println("이름 : " + result.get(1).getName() + "\n" +  "영업 상태 : " + result.get(1).isDeleted());
+        assertEquals("Store 2", result.get(1).getName());
+        assertTrue(result.get(1).isDeleted());
+        System.out.println("이름 : " + result.get(1).getName() + "\n" + "영업 상태 : " + result.get(1).isDeleted());
 
-        assertFalse(result.stream().anyMatch(store -> store.getName().equals("Store 2")));
+        assertEquals("Store 3", result.get(2).getName());
+        assertFalse(result.get(2).isDeleted());
+        System.out.println("이름 : " + result.get(2).getName() + "\n" + "영업 상태 : " + result.get(2).isDeleted());
+
+        assertTrue(result.stream().anyMatch(store -> store.getName().equals("Store 2")));
     }
 
-    @DisplayName("가게 조회 실패 테스트 - 해당 ownerId에 생성된 store가 없는 경우")
-    @Test
-    public void testGetAllStore_Fail_NotFoundStore() {
-        Long ownerId = 999L;
-        when(storeRepository.findByOwnerId(ownerId)).thenReturn(Collections.emptyList());
-        BusinessException exception = assertThrows(BusinessException.class, () ->
-                storeService.getAllStoresByOwnerId(ownerId)
-        );
-        assertEquals(ErrorCode.STORE_NOT_FOUND, exception.getErrorCode());
-        System.out.println(exception.getMessage());
-
-    }
 }
