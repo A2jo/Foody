@@ -36,3 +36,5 @@ out/
 ### VS Code ###
 .vscode/
 application-demo.yaml
+
+DevInit.java
