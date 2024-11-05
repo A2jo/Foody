@@ -47,7 +47,7 @@ public class StoreService {
     }
 
     public List<GetStoreRespDto> getAllStoresByOwnerId(Long ownerId) {
-        // 해당 ID의 가게 조회 (영업중인 가게만 조회)
+        // 해당 ID의 가게 조회
         List<Store> storeList = storeRepository.findByOwnerId(ownerId);
 
         return storeList.stream()
