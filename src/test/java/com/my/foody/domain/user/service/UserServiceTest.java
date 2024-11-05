@@ -406,7 +406,7 @@ class UserServiceTest extends DummyObject {
         }
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(addressRepository.findAllByUser(user)).thenReturn(addressList);
+        when(addressRepository.findAllByUserOrderByCreatedAtDesc(user)).thenReturn(addressList);
 
         //when
         AddressListRespDto result = userService.getAllAddress(userId);
@@ -415,7 +415,7 @@ class UserServiceTest extends DummyObject {
         assertNotNull(result);
         assertThat(result.getAddressList().size()).isEqualTo(addressList.size());
         verify(userRepository).findById(userId);
-        verify(addressRepository).findAllByUser(user);
+        verify(addressRepository).findAllByUserOrderByCreatedAtDesc(user);
     }
 
     @Test
@@ -429,7 +429,7 @@ class UserServiceTest extends DummyObject {
                 .isInstanceOf(BusinessException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.USER_NOT_FOUND);
         verify(userRepository, times(1)).findById(userId);
-        verify(addressRepository, never()).findAllByUser(any(User.class));
+        verify(addressRepository, never()).findAllByUserOrderByCreatedAtDesc(any(User.class));
     }
 
     private UserSignUpReqDto mockUserSignUpReqDto(){
