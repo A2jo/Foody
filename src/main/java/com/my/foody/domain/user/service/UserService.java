@@ -51,6 +51,9 @@ public class UserService {
     public UserLoginRespDto login(UserLoginReqDto userLoginReqDto){
         User user = userRepository.findByEmail(userLoginReqDto.getEmail())
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+        if(user.getIsDeleted()){
+            throw new BusinessException(ErrorCode.ALREADY_DEACTIVATED_USER);
+        }
         user.matchPassword(userLoginReqDto.getPassword());
         String token = jwtProvider.create(TokenSubject.of(user));
         return new UserLoginRespDto(token);
