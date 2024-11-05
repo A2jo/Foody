@@ -124,5 +124,6 @@ public class UserService {
         }
         user.validPassword(userDeleteReqDto.getCurrentPassword());
         user.deactivate();
+        return new UserDeleteRespDto();
     }
 }
