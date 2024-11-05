@@ -4,10 +4,7 @@ package com.my.foody.domain.owner.controller;
 import com.my.foody.domain.owner.dto.req.OwnerJoinReqDto;
 import com.my.foody.domain.owner.dto.req.OwnerLoginReqDto;
 import com.my.foody.domain.owner.dto.req.OwnerMyPageUpdateReqDto;
-import com.my.foody.domain.owner.dto.resp.OwnerJoinRespDto;
-import com.my.foody.domain.owner.dto.resp.OwnerLoginRespDto;
-import com.my.foody.domain.owner.dto.resp.OwnerMyPageRespDto;
-import com.my.foody.domain.owner.dto.resp.OwnerMyPageUpdateRespDto;
+import com.my.foody.domain.owner.dto.resp.*;
 import com.my.foody.domain.owner.service.OwnerService;
 import com.my.foody.global.util.api.ApiResult;
 import lombok.RequiredArgsConstructor;
@@ -48,5 +45,12 @@ public class OwnerController {
         // 서비스에서 업데이트 처리 후 응답 DTO 반환
         OwnerMyPageUpdateRespDto response = ownerService.updateMyPage(ownerId, updateReqDto);
         return ResponseEntity.ok(ApiResult.success(response));
+    }
+
+    // 로그아웃 추가
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResult<OwnerLogoutRespDto>> logout() {
+        OwnerLogoutRespDto responseMessage = ownerService.logout();
+        return ResponseEntity.ok(ApiResult.success(responseMessage));
     }
 }
