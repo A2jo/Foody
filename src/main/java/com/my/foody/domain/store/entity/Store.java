@@ -46,6 +46,8 @@ public class Store extends BaseEntity {
     @Builder
     public Store(Long id, String name, Owner owner, String description, String contact, Long minOrderAmount, LocalTime openTime, LocalTime endTime, boolean isDeleted) {
         this.id = id;
+    public Store(Long id,String name, Owner owner, String description, String contact, Long minOrderAmount, LocalTime openTime, LocalTime endTime, boolean isDeleted) {
+        this.id = id;
         this.name = name;
         this.owner = owner;
         this.description = description;
