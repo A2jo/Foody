@@ -5,8 +5,10 @@ import com.my.foody.domain.category.entity.Category;
 import com.my.foody.domain.category.repo.CategoryRepository;
 import com.my.foody.domain.owner.entity.Owner;
 import com.my.foody.domain.owner.repo.OwnerRepository;
+import com.my.foody.domain.store.dto.req.ModifyStoreReqDto;
 import com.my.foody.domain.store.dto.req.StoreCreateReqDto;
 import com.my.foody.domain.store.dto.resp.GetStoreRespDto;
+import com.my.foody.domain.store.dto.resp.ModifyStoreRespDto;
 import com.my.foody.domain.store.dto.resp.StoreCreateRespDto;
 import com.my.foody.domain.store.entity.Store;
 import com.my.foody.domain.store.repo.StoreRepository;
@@ -24,6 +26,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.nio.file.AccessDeniedException;
 import java.time.LocalTime;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -47,6 +50,7 @@ public class StoreServiceTest {
     @Mock
     private StoreCategoryRepository storeCategoryRepository;
 
+    // -[가게 생성 테스트]---------------------------------------------------
     @DisplayName("가게 생성 성공")
     @Test
     public void testCreateStore_Success() {
@@ -132,7 +136,7 @@ public class StoreServiceTest {
         System.out.println(exception.getMessage());
     }
 
-    // ----------------------------------------------------
+    // -[가게 조회 테스트]---------------------------------------------------
 
     @DisplayName("가게 조회 성공 테스트")
     @Test
@@ -193,4 +197,208 @@ public class StoreServiceTest {
         assertTrue(result.stream().anyMatch(store -> store.getName().equals("Store 2")));
     }
 
+    // -[가게 수정 테스트]----------------------------------------------------
+
+    @DisplayName("가게 수정 성공 테스트 - 정상 수정")
+    @Test
+    public void testModifyStore_Success() {
+        Long storeId = 1L;
+        Long ownerId = 1L;
+
+        Owner owner = mock(Owner.class);
+        when(owner.getId()).thenReturn(ownerId);
+
+        Store store = Store.builder()
+                .id(storeId)
+                .name("Old Store Name")
+                .owner(owner)
+                .description("Old Description")
+                .contact("010-1111-2222")
+                .minOrderAmount(10000L)
+                .openTime(LocalTime.of(9, 0))
+                .endTime(LocalTime.of(21, 0))
+                .isDeleted(false)
+                .build();
+
+        ModifyStoreReqDto modifyStoreReqDto = new ModifyStoreReqDto();
+        modifyStoreReqDto.setName("New Store Name");
+        modifyStoreReqDto.setDescription("New Description");
+        modifyStoreReqDto.setContact("010-9999-8888");
+        modifyStoreReqDto.setMinOrderAmount(15000L);
+        modifyStoreReqDto.setOpenTime(LocalTime.of(10, 0));
+        modifyStoreReqDto.setEndTime(LocalTime.of(22, 0));
+        modifyStoreReqDto.setIsDeleted(false);
+        modifyStoreReqDto.setCategoryIds(List.of(1L, 2L));
+
+        when(storeRepository.findById(storeId)).thenReturn(Optional.of(store));
+        when(storeRepository.existsByName(modifyStoreReqDto.getName())).thenReturn(false);
+        doNothing().when(storeCategoryRepository).deleteByStoreId(storeId);
+
+        Category category1 = mock(Category.class);
+        Category category2 = mock(Category.class);
+        when(categoryRepository.findById(1L)).thenReturn(Optional.of(category1));
+        when(categoryRepository.findById(2L)).thenReturn(Optional.of(category2));
+
+        ModifyStoreRespDto response = storeService.modifyStore(storeId, modifyStoreReqDto, ownerId);
+
+        assertNotNull(response);
+        assertEquals("가게 정보가 수정되었습니다..", response.getMessage());
+
+        assertEquals("New Store Name", store.getName());
+        assertEquals("New Description", store.getDescription());
+        assertEquals("010-9999-8888", store.getContact());
+        assertEquals(15000L, store.getMinOrderAmount());
+        assertEquals(LocalTime.of(10, 0), store.getOpenTime());
+        assertEquals(LocalTime.of(22, 0), store.getEndTime());
+        assertFalse(store.getIsDeleted());
+
+        verify(storeRepository).findById(storeId);
+        verify(storeCategoryRepository).deleteByStoreId(storeId);
+        verify(storeCategoryRepository, times(2)).save(any(StoreCategory.class));
+    }
+
+    @DisplayName("가게 수정 성공 테스트 - 가게 폐업")
+    @Test
+    public void testCloseStore_Success() {
+        Long storeId = 1L;
+        Long ownerId = 1L;
+
+        Owner owner = mock(Owner.class);
+        when(owner.getId()).thenReturn(ownerId);
+
+        Store store = Store.builder()
+                .id(storeId)
+                .name("Old Store Name")
+                .owner(owner)
+                .description("Old Description")
+                .contact("010-1111-2222")
+                .minOrderAmount(10000L)
+                .openTime(LocalTime.of(9, 0))
+                .endTime(LocalTime.of(21, 0))
+                .isDeleted(false)
+                .build();
+
+        ModifyStoreReqDto modifyStoreReqDto = new ModifyStoreReqDto();
+        modifyStoreReqDto.setIsDeleted(true); // 폐업 처리
+
+        when(storeRepository.findById(storeId)).thenReturn(Optional.of(store));
+
+        ModifyStoreRespDto response = storeService.modifyStore(storeId, modifyStoreReqDto, ownerId);
+
+        assertNotNull(response);
+        assertEquals("가게 정보가 수정되었습니다..", response.getMessage());
+
+        assertEquals("Old Store Name", store.getName());
+        assertEquals("Old Description", store.getDescription());
+        assertEquals("010-1111-2222", store.getContact());
+        assertEquals(10000L, store.getMinOrderAmount());
+        assertEquals(LocalTime.of(9, 0), store.getOpenTime());
+        assertEquals(LocalTime.of(21, 0), store.getEndTime());
+        assertTrue(store.getIsDeleted()); // 폐업 상태 확인
+
+        verify(storeRepository).findById(storeId);
+        verify(storeCategoryRepository, times(0)).save(any(StoreCategory.class));
+    }
+
+    @DisplayName(("실패 테스트 - 존재하지 않는 카테고리 ID"))
+    @Test
+    public void testModifyStore_Fail_NotFoundCategory() {
+        Long storeId = 1L;
+        Long ownerId = 1L;
+
+        Owner owner = mock(Owner.class);
+        when(owner.getId()).thenReturn(ownerId);
+
+        Store store = Store.builder()
+                .id(storeId)
+                .name("Old Store Name")
+                .owner(owner)
+                .description("Old Description")
+                .contact("010-1111-2222")
+                .minOrderAmount(10000L)
+                .openTime(LocalTime.of(9, 0))
+                .endTime(LocalTime.of(21, 0))
+                .isDeleted(false)
+                .build();
+
+        ModifyStoreReqDto modifyStoreReqDto = new ModifyStoreReqDto();
+        modifyStoreReqDto.setCategoryIds(List.of(999L)); // 존재하지 않는 카테고리 ID
+
+        when(storeRepository.findById(storeId)).thenReturn(Optional.of(store));
+        when(categoryRepository.findById(999L)).thenReturn(Optional.empty()); // 없는 카테고리
+
+        BusinessException exception = assertThrows(BusinessException.class, () ->
+                storeService.modifyStore(storeId, modifyStoreReqDto, ownerId)
+        );
+
+        assertEquals(ErrorCode.CATEGORY_NOT_FOUND, exception.getErrorCode());
+    }
+
+    @DisplayName(("실패 테스트 - 동일한 이름"))
+    @Test
+    public void testModifyStore_Fail_DuplicateName() {
+        Long storeId = 1L;
+        Long ownerId = 1L;
+
+        Owner owner = mock(Owner.class);
+        when(owner.getId()).thenReturn(ownerId);
+
+        Store store = Store.builder()
+                .id(storeId)
+                .name("Old Store Name")
+                .owner(owner)
+                .description("Old Description")
+                .contact("010-1111-2222")
+                .minOrderAmount(10000L)
+                .openTime(LocalTime.of(9, 0))
+                .endTime(LocalTime.of(21, 0))
+                .isDeleted(false)
+                .build();
+
+        ModifyStoreReqDto modifyStoreReqDto = new ModifyStoreReqDto();
+        modifyStoreReqDto.setName("Duplicate Store Name");
+
+        when(storeRepository.findById(storeId)).thenReturn(Optional.of(store));
+        when(storeRepository.existsByName("Duplicate Store Name")).thenReturn(true); // 이미 사용 중인 가게 이름
+
+        BusinessException exception = assertThrows(BusinessException.class, () ->
+                storeService.modifyStore(storeId, modifyStoreReqDto, ownerId)
+        );
+
+        assertEquals(ErrorCode.STORENAME_ALREADY_EXISTS, exception.getErrorCode());
+    }
+
+    @DisplayName(("실패 테스트 - 최대 생성 수 제한"))
+    @Test
+    public void testModifyStore_Fail_MaxStoreLimit() {
+        Long storeId = 1L;
+        Long ownerId = 1L;
+
+        Owner owner = mock(Owner.class);
+        when(owner.getId()).thenReturn(ownerId);
+
+        Store store = Store.builder()
+                .id(storeId)
+                .name("Old Store Name")
+                .owner(owner)
+                .description("Old Description")
+                .contact("010-1111-2222")
+                .minOrderAmount(10000L)
+                .openTime(LocalTime.of(9, 0))
+                .endTime(LocalTime.of(21, 0))
+                .isDeleted(false)
+                .build();
+
+        ModifyStoreReqDto modifyStoreReqDto = new ModifyStoreReqDto();
+        modifyStoreReqDto.setName("New Store Name");
+
+        when(storeRepository.findById(storeId)).thenReturn(Optional.of(store));
+        when(storeRepository.countByOwnerIdAndIsDeletedFalse(ownerId)).thenReturn(3L); // 이미 영업 중인 가게가 3개인 경우
+
+        BusinessException exception = assertThrows(BusinessException.class, () ->
+                storeService.modifyStore(storeId, modifyStoreReqDto, ownerId)
+        );
+
+        assertEquals(ErrorCode.HAVE_FULL_STORE, exception.getErrorCode());
+    }
 }
