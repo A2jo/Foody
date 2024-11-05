@@ -12,4 +12,5 @@ public interface MenuRepository extends JpaRepository<Menu, Long> {
 
     @Query("select m from Menu m where m.id = :menuId and m.isDeleted = false")
     Optional<Menu> findActivateMenu(Long menuId);
+    Optional<Menu> findByIdAndIsDeletedFalse(Long menuId);
 }
