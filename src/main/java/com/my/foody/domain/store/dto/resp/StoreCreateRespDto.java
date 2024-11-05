@@ -1,9 +1,12 @@
 package com.my.foody.domain.store.dto.resp;
 
 import com.my.foody.domain.store.entity.Store;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalTime;
-
+@Getter
+@NoArgsConstructor
 public class StoreCreateRespDto {
     private String name;
     private String Description;
