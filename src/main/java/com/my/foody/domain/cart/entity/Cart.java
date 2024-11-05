@@ -5,13 +5,13 @@ import com.my.foody.domain.menu.entity.Menu;
 import com.my.foody.domain.store.entity.Store;
 import com.my.foody.domain.user.entity.User;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @Getter
+@Builder
 @Table(name = "cart")
+@AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Cart extends BaseEntity {
     @Id
