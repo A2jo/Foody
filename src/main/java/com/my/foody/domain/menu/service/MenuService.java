@@ -30,7 +30,9 @@ public class MenuService {
         isStoreOwner(store, ownerId);
 
         //삭제 할 메뉴 조회
-        Menu menu = menuRepository.findById(menuId).orElseThrow(() -> new BusinessException(ErrorCode.MENU_NOT_FOUND));
+        //menuId로 찾으면서 해당 메뉴의 isDeleted 필드가 false인 경우 조회
+        Menu menu = menuRepository.findByIdAndIsDeletedFalse(menuId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MENU_NOT_FOUND));
 
         // 여기서 isDeleted = true 바꾸는 로직
         menu.softDeleteMenu();
