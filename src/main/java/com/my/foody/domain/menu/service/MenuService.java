@@ -16,8 +16,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class MenuService {
 
-    private MenuRepository menuRepository;
-    private StoreRepository storeRepository;
+    private final MenuRepository menuRepository;
+    private final StoreRepository storeRepository;
 
 
     @Transactional
