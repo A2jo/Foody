@@ -119,9 +119,6 @@ public class UserService {
     @Transactional
     public UserDeleteRespDto deleteUserById(UserDeleteReqDto userDeleteReqDto, Long userId) {
         User user = findActivateUserByIdOrFail(userId);
-        if (user.getIsDeleted()) {
-            throw new BusinessException(ErrorCode.ALREADY_DEACTIVATED_USER);
-        }
         user.validPassword(userDeleteReqDto.getCurrentPassword());
         user.deactivate();
         return new UserDeleteRespDto();
