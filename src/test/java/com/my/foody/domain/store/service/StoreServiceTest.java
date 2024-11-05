@@ -6,6 +6,7 @@ import com.my.foody.domain.category.repo.CategoryRepository;
 import com.my.foody.domain.owner.entity.Owner;
 import com.my.foody.domain.owner.repo.OwnerRepository;
 import com.my.foody.domain.store.dto.req.StoreCreateReqDto;
+import com.my.foody.domain.store.dto.resp.GetStoreRespDto;
 import com.my.foody.domain.store.dto.resp.StoreCreateRespDto;
 import com.my.foody.domain.store.entity.Store;
 import com.my.foody.domain.store.repo.StoreRepository;
@@ -21,6 +22,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -42,8 +44,6 @@ public class StoreServiceTest {
     private CategoryRepository categoryRepository;
     @Mock
     private StoreCategoryRepository storeCategoryRepository;
-    @Mock
-    private Owner owner;
 
     @DisplayName("가게 생성 성공")
     @Test
@@ -126,5 +126,75 @@ public class StoreServiceTest {
         );
         assertEquals(ErrorCode.HAVE_FULL_STORE, exception.getErrorCode());
         System.out.println(exception.getMessage());
+    }
+
+    // ----------------------------------------------------
+
+    @DisplayName("가게 조회 성공 테스트")
+    @Test
+    public void testGetAllStore_Success() {
+        Long ownerId = 1L;
+        Owner owner = mock(Owner.class);
+
+        Store store1 = Store.builder()
+                .name("Store 1")
+                .owner(owner)
+                .description("First Store")
+                .contact("010-1111-2222")
+                .minOrderAmount(10000L)
+                .openTime(LocalTime.of(9, 0))
+                .endTime(LocalTime.of(22, 0))
+                .isDeleted(false)  // 영업 중
+                .build();
+        Store store2 = Store.builder()
+                .name("Store 2")
+                .owner(owner)
+                .description("Second Store")
+                .contact("010-3333-4444")
+                .minOrderAmount(10000L)
+                .openTime(LocalTime.of(10, 0))
+                .endTime(LocalTime.of(23, 0))
+                .isDeleted(true)  // 폐업
+                .build();
+        Store store3 = Store.builder()
+                .name("Store 3")
+                .owner(owner)
+                .description("Third Store")
+                .contact("010-5555-6666")
+                .minOrderAmount(5000L)
+                .openTime(LocalTime.of(10, 0))
+                .endTime(LocalTime.of(23, 0))
+                .isDeleted(false)  // 영업 중
+                .build();
+
+        when(storeRepository.findByOwnerId(ownerId)).thenReturn(List.of(store1, store2, store3));
+
+        List<GetStoreRespDto> result = storeService.getAllStoresByOwnerId(ownerId);
+
+        assertNotNull(result);
+        assertEquals(2, result.size());
+
+        assertEquals("Store 1", result.get(0).getName());
+        assertFalse(result.get(0).isDeleted());
+        System.out.println("이름 : " + result.get(0).getName() + "\n" +  "영업 상태 : " + result.get(0).isDeleted());
+
+        assertEquals("Store 3", result.get(1).getName());
+        assertFalse(result.get(1).isDeleted());
+        System.out.println("이름 : " + result.get(1).getName() + "\n" +  "영업 상태 : " + result.get(1).isDeleted());
+
+        assertFalse(result.stream().anyMatch(store -> store.getName().equals("Store 2")));
+    }
+
+    @DisplayName("가게 조회 실패 테스트 - 해당 ownerId에 생성된 store가 없는 경우")
+    @Test
+    public void testGetAllStore_Fail_NotFoundStore() {
+        Long ownerId = 999L;
+        when(storeRepository.findByOwnerId(ownerId)).thenReturn(Collections.emptyList());
+        BusinessException exception = assertThrows(BusinessException.class, () ->
+                storeService.getAllStoresByOwnerId(ownerId)
+        );
+        assertEquals(ErrorCode.STORE_NOT_FOUND, exception.getErrorCode());
+        System.out.println(exception.getMessage());
+
     }
 }
