@@ -72,7 +72,9 @@ public class UserService {
 
     public AddressCreateRespDto registerAddress(AddressCreateReqDto addressCreateReqDto, Long userId) {
         User user = findActivateUserByIdOrFail(userId);
-        Address address = addressCreateReqDto.toEntity(user);
+        //유저의 주소지가 하나도 없을 시 최초 등록한 주소지를 main 주소지로 설정
+        boolean isMainAddress = !addressRepository.existsByUser(user);
+        Address address = addressCreateReqDto.toEntity(user, isMainAddress);
         addressRepository.save(address);
         return new AddressCreateRespDto();
     }

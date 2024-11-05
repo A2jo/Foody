@@ -32,11 +32,12 @@ public class Address extends BaseEntity {
     private Boolean isMain;
 
     @Builder
-    public Address(Long id, User user, String roadAddress, String detailedAddress) {
+    public Address(Long id, User user, String roadAddress, String detailedAddress, boolean isMain) {
         this.id = id;
         this.user = user;
         this.roadAddress = roadAddress;
         this.detailedAddress = detailedAddress;
+        this.isMain = isMain;
     }
 
     public void modifyAll(String roadAddress, String detailedAddress){
