@@ -76,7 +76,7 @@ public class CartServiceTest {
         Page<Cart> cartItemsPage = new PageImpl<>(Arrays.asList(cartItem));
 
         //userService의 findById 스텁 추가
-        when(userService.findByIdOrFail(userId)).thenReturn(user);
+        when(userService.findActivateUserByIdOrFail(userId)).thenReturn(user);
         when(cartRepository.findByUserId(userId, pageable)).thenReturn(cartItemsPage);
 
         // when
