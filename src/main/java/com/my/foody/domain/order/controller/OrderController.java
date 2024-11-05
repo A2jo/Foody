@@ -7,6 +7,8 @@ import com.my.foody.global.config.valid.CurrentUser;
 import com.my.foody.global.config.valid.RequireAuth;
 import com.my.foody.global.jwt.TokenSubject;
 import com.my.foody.global.jwt.UserType;
+import com.my.foody.global.util.api.ApiResult;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,15 +23,15 @@ public class OrderController {
 
     @PutMapping("api/owners/orders/{orderId}")
     @RequireAuth(userType = UserType.OWNER)
-    public ResponseEntity<OrderStatusUpdateRespDto> changeOrderStatus(@PathVariable("orderId") Long orderId,
-                                                                      @RequestBody OrderStatusUpdateReqDto requestDto,
-                                                                      @CurrentUser TokenSubject tokenSubject) {
+    public ResponseEntity<ApiResult<OrderStatusUpdateRespDto>> changeOrderStatus(@PathVariable("orderId") Long orderId,
+                                                                                 @Valid @RequestBody OrderStatusUpdateReqDto requestDto,
+                                                                                 @CurrentUser TokenSubject tokenSubject) {
         // ownerId
         Long ownerId = tokenSubject.getId();
 
         // 주문 상태 업데이트 및 응답 DTO 반환
         OrderStatusUpdateRespDto responseDto = orderService.updateOrderStatus(requestDto, orderId, ownerId);
 
-        return ResponseEntity.ok(responseDto);
+        return ResponseEntity.ok(ApiResult.success(responseDto));
     }
 }

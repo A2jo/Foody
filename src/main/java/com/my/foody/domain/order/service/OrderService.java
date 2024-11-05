@@ -21,9 +21,7 @@ public class OrderService {
         Order order = orderRepository.findById(orderId).orElseThrow(() -> new BusinessException(ErrorCode.ORDER_NOT_FOUND));
 
         // 가게 주인 맞는지 확인
-        if (!order.getStore().getOwner().getId().equals(ownerId)) {
-            throw new BusinessException(ErrorCode.FORBIDDEN_ACCESS);
-        }
+        isStoreOwner(order, ownerId);
 
         // 주문 상태 업데이트
         order.updateOrderStatus(requestDto.getOrderStatus());
@@ -34,4 +32,12 @@ public class OrderService {
         // 응답 DTO 생성
         return new OrderStatusUpdateRespDto(savedOrder.getOrderStatus().name());
     }
+
+    // 가게주인 확인 메소드
+    private void isStoreOwner(Order order, Long ownerId) {
+        if (!order.getStore().getOwner().getId().equals(ownerId)) {
+            throw new BusinessException(ErrorCode.FORBIDDEN_ACCESS);
+        }
+    }
+
 }
