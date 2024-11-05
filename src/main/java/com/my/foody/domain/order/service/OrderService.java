@@ -50,10 +50,10 @@ public class OrderService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
-        Address address = addressRepository.findByUserId(userId)
+        Address address = addressRepository.findByUserIdAndIsMain(userId, true)
                 .orElseThrow(() -> new BusinessException(ErrorCode.ADDRESS_NOT_FOUND));
 
-        Cart cart = cartRepository.findByIdAndUserIdAndStoreId(cartId, userId, storeId)
+        Cart cart = cartRepository.findWithStoreAndMenuByIdAndUserIdAndStoreId(cartId, userId, storeId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.CART_ITEM_NOT_FOUND));
 
         Store store = cart.getStore();
