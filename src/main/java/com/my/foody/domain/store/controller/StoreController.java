@@ -36,6 +36,6 @@ public class StoreController {
     @GetMapping("/stores")
     public ResponseEntity<ApiResult<List<GetStoreRespDto>>> getAllStoresByOwnerId(@CurrentUser TokenSubject tokenSubject) {
         Long ownerId = tokenSubject.getId();
-        return new ResponseEntity<>(ApiResult.success(storeService.getAllStoresByOwnerId(ownerId)), HttpStatus.CREATED);
+        return new ResponseEntity<>(ApiResult.success(storeService.getAllStoresByOwnerId(ownerId)), HttpStatus.OK);
     }
 }
