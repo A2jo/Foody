@@ -17,9 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -48,14 +46,19 @@ public class StoreService {
         return new StoreCreateRespDto(store);
     }
 
-    public List<GetStoreRespDto> getAllStoreByOwnerId(Long ownerId) {
-        // 해당 ID의 가게 조회
-        List<Store> storeList = storeRepository.findByOwnerId(ownerId);
+    public List<GetStoreRespDto> getAllStoresByOwnerId(Long ownerId) {
+        // 해당 ID의 가게 조회 (영업중인 가게만 조회)
+        List<Store> storeList = storeRepository.findByOwnerId(ownerId)
+                .stream()
+                .filter(store -> !store.getIsDeleted())
+                .toList();
         // 해당 ID의 가게가 없는 경우
         if (storeList.isEmpty()) {
             throw new BusinessException(ErrorCode.STORE_NOT_FOUND);
         }
-        return storeList.stream().map(store -> new GetStoreRespDto(store)).collect(Collectors.toList());
+        return storeList.stream()
+                .map(store -> new GetStoreRespDto(store))
+                .toList();
     }
 
     // 카테고리 저장

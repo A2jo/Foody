@@ -26,15 +26,16 @@ public class StoreController {
 
     @RequireAuth(userType = UserType.OWNER)
     @PostMapping("/stores")
-    public ResponseEntity<ApiResult<StoreCreateRespDto>> createStore(@RequestBody @Valid StoreCreateReqDto storeCreatereqDto, @CurrentUser TokenSubject tokenSubject) {
+    public ResponseEntity<ApiResult<StoreCreateRespDto>> createStore(@RequestBody @Valid StoreCreateReqDto storeCreatereqDto,
+                                                                     @CurrentUser TokenSubject tokenSubject) {
         Long ownerId = tokenSubject.getId();
         return new ResponseEntity<>(ApiResult.success(storeService.createStore(storeCreatereqDto, ownerId)), HttpStatus.CREATED);
     }
 
     @RequireAuth(userType = UserType.OWNER)
     @GetMapping("stores")
-    public ResponseEntity<ApiResult<List<GetStoreRespDto>>> getAllStoreByOwnerId(@CurrentUser TokenSubject tokenSubject) {
+    public ResponseEntity<ApiResult<List<GetStoreRespDto>>> getAllStoresByOwnerId(@CurrentUser TokenSubject tokenSubject) {
         Long ownerId = tokenSubject.getId();
-        return new ResponseEntity<>(ApiResult.success(storeService.getAllStoreByOwnerId(ownerId)), HttpStatus.CREATED);
+        return new ResponseEntity<>(ApiResult.success(storeService.getAllStoresByOwnerId(ownerId)), HttpStatus.CREATED);
     }
 }

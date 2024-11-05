@@ -34,8 +34,6 @@ public class StoreCreateReqDto {
     @NotBlank(message = "가게 마감시간을 입력해주세요")
     @Pattern(regexp = "^([01]?[0-9]|2[0-3]):([0-5][0-9])$", message = "마감시간은 시간으로 입력해주세요. ex) 23:00")
     private LocalTime endTime;
-    @NotBlank
-    private boolean isDeleted;
     @NotBlank(message = "가게의 카테고리를 입력해주세요")
     @Pattern(regexp = "^[0-9]+$", message = "카테고리에 맞는 숫자로 입력해주세요.")
     private List<Long> categoryIds;
