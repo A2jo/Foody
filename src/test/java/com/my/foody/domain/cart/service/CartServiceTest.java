@@ -10,6 +10,8 @@ import java.util.Arrays;
 
 import com.my.foody.domain.menu.entity.Menu;
 import com.my.foody.domain.store.entity.Store;
+import com.my.foody.domain.user.entity.User;
+import com.my.foody.domain.user.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,14 +30,23 @@ public class CartServiceTest {
     @Mock
     private CartRepository cartRepository;
 
+    @Mock
+    private UserService userService;
+
     @InjectMocks
     private CartService cartService;
 
     private Cart cartItem;
+    private User user;
 
 
     @BeforeEach
     public void setUp() {
+
+        user = User.builder()
+                .id(1L)
+                .name("Test user")
+                .build();
 
         Store store = Store.builder()
                 .name("Test 음식점")
@@ -63,6 +74,9 @@ public class CartServiceTest {
         Pageable pageable = PageRequest.of(page, limit, Sort.by("id").descending());
 
         Page<Cart> cartItemsPage = new PageImpl<>(Arrays.asList(cartItem));
+
+        //userService의 findById 스텁 추가
+        when(userService.findByIdOrFail(userId)).thenReturn(user);
         when(cartRepository.findByUserId(userId, pageable)).thenReturn(cartItemsPage);
 
         // when
