@@ -38,7 +38,6 @@ public class Store extends BaseEntity {
     @Column(nullable = false)
     private LocalTime endTime;
 
-    // isDeleted 초기값 false (가게 생성 시 따로 입력하지 않아도 초기값 false로 저장)
     @Column(nullable = false)
     private Boolean isDeleted; //삭제되면 true, 운영 중이면 false
 
