@@ -5,6 +5,8 @@ import com.my.foody.domain.address.repo.AddressRepository;
 import com.my.foody.domain.cart.entity.Cart;
 import com.my.foody.domain.cart.repo.CartRepository;
 import com.my.foody.domain.menu.entity.Menu;
+import com.my.foody.domain.menu.repo.MenuRepository;
+import com.my.foody.domain.order.dto.req.OrderCreateReqDto;
 import com.my.foody.domain.order.dto.req.OrderStatusUpdateReqDto;
 import com.my.foody.domain.order.dto.resp.OrderPreviewRespDto;
 import com.my.foody.domain.order.dto.resp.OrderStatusUpdateRespDto;
@@ -27,6 +29,7 @@ public class OrderService {
     private final UserRepository userRepository;
     private final CartRepository cartRepository;
     private final AddressRepository addressRepository;
+    private final MenuRepository menuRepository;
 
 
     public OrderStatusUpdateRespDto updateOrderStatus(OrderStatusUpdateReqDto requestDto, Long orderId, Long ownerId) {
@@ -46,7 +49,7 @@ public class OrderService {
     }
 
     public OrderPreviewRespDto getOrderPreview(Long userId, Long storeId, Long cartId) {
-        // Fetch the user
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
@@ -72,5 +75,28 @@ public class OrderService {
                 .quantity(cart.getQuantity())
                 .totalAmount(totalAmount)
                 .build();
+    }
+
+    public String createOrder(OrderCreateReqDto requestDto) {
+
+        User user = userRepository.findById(requestDto.getUserId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        Address address = addressRepository.findById(requestDto.getAddressId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.ADDRESS_NOT_FOUND));
+
+        Menu menu = menuRepository.findById(requestDto.getMenuId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.MENU_NOT_FOUND));
+
+        Order order = Order.builder()
+                .user(user)
+                .address(address)
+                .store(menu.getStore())
+                .totalAmount(requestDto.getTotalAmount())
+                .build();
+
+        orderRepository.save(order);
+
+        return "주문이 완료되었습니다.";
     }
 }
