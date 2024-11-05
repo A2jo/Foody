@@ -1,5 +1,6 @@
 package com.my.foody.domain.order.controller;
 
+import com.my.foody.domain.order.dto.req.OrderCreateReqDto;
 import com.my.foody.domain.order.dto.req.OrderStatusUpdateReqDto;
 import com.my.foody.domain.order.dto.resp.OrderPreviewRespDto;
 import com.my.foody.domain.order.dto.resp.OrderStatusUpdateRespDto;
@@ -48,5 +49,21 @@ public class OrderController {
     ApiResult<OrderPreviewRespDto> apiResult = ApiResult.success(orderPreview);
 
     return new ResponseEntity<>(apiResult, HttpStatus.OK);
+  }
+
+  @PostMapping("/api/home/stores/{storeId}/cart/{cartId}/orders")
+  @RequireAuth(userType = UserType.USER)
+  public ResponseEntity<ApiResult<String>> createOrder(
+          @PathVariable Long storeId,
+          @PathVariable Long cartId,
+          @RequestBody OrderCreateReqDto requestDto,
+          @CurrentUser TokenSubject tokenSubject) {
+
+    requestDto.setUserId(tokenSubject.getId());
+
+    String resultMessage = orderService.createOrder(requestDto);
+    ApiResult<String> apiResult = ApiResult.success(resultMessage);
+
+    return new ResponseEntity<>(apiResult, HttpStatus.CREATED);
   }
 }
