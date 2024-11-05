@@ -1,10 +1,13 @@
 package com.my.foody.domain.order.dto.req;
 
-import jakarta.validation.constraints.NotBlank;
+import com.my.foody.domain.owner.entity.OrderStatus;
+import jakarta.validation.constraints.NotNull;
+import lombok.Builder;
 import lombok.Getter;
 
+@Builder
 @Getter
 public class OrderStatusUpdateReqDto {
-    @NotBlank(message = "주문상태를 입력해 주세요")
-    private String orderStatus;
+    @NotNull(message = "주문상태를 입력해 주세요")
+    private OrderStatus orderStatus;
 }
