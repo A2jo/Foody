@@ -42,7 +42,8 @@ public class Store extends BaseEntity {
     private Boolean isDeleted; //삭제되면 true, 운영 중이면 false
 
     @Builder
-    public Store(String name, Owner owner, String description, String contact, Long minOrderAmount, LocalTime openTime, LocalTime endTime, boolean isDeleted) {
+    public Store(Long id, String name, Owner owner, String description, String contact, Long minOrderAmount, LocalTime openTime, LocalTime endTime, boolean isDeleted) {
+        this.id = id;
         this.name = name;
         this.owner = owner;
         this.description = description;
