@@ -26,18 +26,18 @@ public class CartController {
 
 
     //TODO  이거 수정해야함!!!!
-    @RequireAuth(userType = UserType.USER) // User 인증 확인
-    @GetMapping("/cart")
-    public ResponseEntity<ApiResult<Page<CartItemRespDto>>> getCartItems(
-            @RequestParam int page,
-            @RequestParam int limit,
-            @CurrentUser TokenSubject tokenSubject) {
-
-        Long userId = tokenSubject.getId();
-        Page<CartItemRespDto> cartItems = cartService.getCartItems(userId, page, limit);
-
-        return ResponseEntity.ok(ApiResult.success(cartItems));
-    }
+//    @RequireAuth(userType = UserType.USER) // User 인증 확인
+//    @GetMapping("/cart")
+//    public ResponseEntity<ApiResult<Page<CartItemRespDto>>> getCartItems(
+//            @RequestParam int page,
+//            @RequestParam int limit,
+//            @CurrentUser TokenSubject tokenSubject) {
+//
+//        Long userId = tokenSubject.getId();
+//        Page<CartItemRespDto> cartItems = cartService.getCartItems(userId, page, limit);
+//
+//        return ResponseEntity.ok(ApiResult.success(cartItems));
+//    }
 
     @RequireAuth(userType = UserType.USER)
     @PostMapping("/home/stores/{storeId}/menus/{menuId}")

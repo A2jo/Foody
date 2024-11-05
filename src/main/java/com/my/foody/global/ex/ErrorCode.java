@@ -30,6 +30,8 @@ public enum ErrorCode {
     STORENAME_ALREADY_EXISTS(HttpStatus.CONFLICT.value(), "이미 사용 중인 가게이름입니다"),
     HAVE_FULL_STORE(HttpStatus.CONFLICT.value(), "생성 가능한 가게 수를 초과합니다."),
     CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "존재하지 않는 카테고리입니다."),
+    MENU_NOT_FOUND(HttpStatus.BAD_REQUEST.value(), "존재하지 않는 메뉴입니다"),
+
     EMAIL_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "존재하지 않는 이메일입니다");
 
     private final int status;
