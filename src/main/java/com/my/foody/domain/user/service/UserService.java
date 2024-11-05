@@ -155,7 +155,7 @@ public class UserService {
         User user = findActivateUserByIdOrFail(userId);
 
         //이미 연동된 소셜 계정인지 확인
-        if(!socialAccountRepository.existsByProviderAndProviderId(provider, userInfo.getProviderId())){
+        if(socialAccountRepository.existsByProviderAndProviderId(provider, userInfo.getProviderId())){
             throw new BusinessException(ErrorCode.ALREADY_LINKED_OAUTH);
         }
 

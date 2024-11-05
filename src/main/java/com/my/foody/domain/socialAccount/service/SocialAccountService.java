@@ -19,6 +19,7 @@ import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -38,6 +39,10 @@ public class SocialAccountService {
 
     private static final String RESPONSE_TYPE = "code";
     public String getAuthorizationUrl(String provider, String linkageToken) {
+        //임시 토큰 유효성 검사
+        if(linkageToken != null){
+            linkageService.validateLinkageToken(linkageToken);
+        }
         OAuth2Provider oAuth2Provider = oAuth2Properties.getProvider(provider);
         UriComponentsBuilder builder = UriComponentsBuilder
                 .fromUriString(oAuth2Provider.getAuthorizationUri())
@@ -116,14 +121,14 @@ public class SocialAccountService {
         userRepository.save(user);
 
         //SocialAccount 생성 및 연동
-        SocialAccount socialAccount = createSocialAccount(user, provider, userInfo);
+        SocialAccount socialAccount = createSocialAccount(user, provider, userInfo, true);
         socialAccountRepository.save(socialAccount);
 
         String token = jwtProvider.create(TokenSubject.of(user));
         return new SocialLoginRespDto(user, socialAccount, token);
     }
 
-    public SocialAccount createSocialAccount(User user, Provider provider, OAuth2UserInfo userInfo){
+    public SocialAccount createSocialAccount(User user, Provider provider, OAuth2UserInfo userInfo, boolean isPrimary){
         return SocialAccount.builder()
                 .user(user)
                 .providerId(userInfo.getProviderId())
@@ -131,6 +136,7 @@ public class SocialAccountService {
                 .email(userInfo.getEmail())
                 .nickname(userInfo.getName())
                 .name(userInfo.getName())
+                .isPrimary(isPrimary)
                 .build();
     }
 }

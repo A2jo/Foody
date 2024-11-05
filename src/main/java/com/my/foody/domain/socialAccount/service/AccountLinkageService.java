@@ -20,6 +20,15 @@ public class AccountLinkageService {
     private static final long TOKEN_VALID_TIME = 5; //5분으로 설정
     private final SocialAccountRepository socialAccountRepository;
 
+    public void validateLinkageToken(String linkageToken){
+        String redisKey = TEMPORAL_TOKEN_PREFIX + linkageToken;
+        String userId = redisTemplate.opsForValue().get(redisKey);
+
+        if (userId == null) {
+            throw new BusinessException(ErrorCode.EXPIRED_LINKAGE_TOKEN);
+        }
+    }
+
     public LinkageTokenRespDto createLinkageToken(Long userId, String provider){
 
         //이미 해당 provider로 연동된 계정이 있는지 확인
@@ -46,7 +55,7 @@ public class AccountLinkageService {
         String userId = redisTemplate.opsForValue().get(redisKey);
 
         if(userId == null){
-            throw new BusinessException(ErrorCode.EXPIRED_TEMPORARY_TOKEN);
+            throw new BusinessException(ErrorCode.EXPIRED_LINKAGE_TOKEN);
         }
         redisTemplate.delete(redisKey);
         return Long.parseLong(userId);

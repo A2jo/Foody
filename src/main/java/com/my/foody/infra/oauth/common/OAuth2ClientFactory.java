@@ -1,7 +1,13 @@
 package com.my.foody.infra.oauth.common;
 
+import com.my.foody.global.ex.BusinessException;
+import com.my.foody.global.ex.ErrorCode;
 import com.my.foody.infra.oauth.dto.TokenRespDto;
+import com.my.foody.infra.oauth.dto.google.GoogleTokenRespDto;
 import com.my.foody.infra.oauth.dto.kakao.KakaoTokenRespDto;
+import com.my.foody.infra.oauth.google.GoogleApiClient;
+import com.my.foody.infra.oauth.google.GoogleAuthClient;
+import com.my.foody.infra.oauth.google.GoogleOAuth2Client;
 import com.my.foody.infra.oauth.kakao.KakaoApiClient;
 import com.my.foody.infra.oauth.kakao.KakaoAuthClient;
 import com.my.foody.infra.oauth.kakao.KakaoOAuth2Client;
@@ -12,6 +18,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class OAuth2ClientFactory {
 
+    private final GoogleAuthClient googleAuthClient;
+    private final GoogleApiClient googleApiClient;
+
     private final KakaoAuthClient kakaoAuthClient;
     private final KakaoApiClient kakaoApiClient;
     private final OAuth2Properties oAuth2Properties;
@@ -20,7 +29,10 @@ public class OAuth2ClientFactory {
         if(provider.equalsIgnoreCase("kakao")){
             return getKakaoClient();
         }
-        throw new IllegalStateException("지원하지 않는 OAuth2 provider 입니다: " + provider);
+        else if(provider.equalsIgnoreCase("google")){
+            return getGoogleClient();
+        }
+        throw new BusinessException(ErrorCode.UNSUPPORTED_OAUTH_PROVIDER);
     }
 
     public OAuth2Client<KakaoTokenRespDto> getKakaoClient(){
@@ -28,6 +40,14 @@ public class OAuth2ClientFactory {
                 kakaoAuthClient,
                 kakaoApiClient,
                 oAuth2Properties.getProvider("kakao")
+        );
+    }
+
+    public OAuth2Client<GoogleTokenRespDto> getGoogleClient() {
+        return new GoogleOAuth2Client(
+                googleAuthClient,
+                googleApiClient,
+                oAuth2Properties.getProvider("google")
         );
     }
 
