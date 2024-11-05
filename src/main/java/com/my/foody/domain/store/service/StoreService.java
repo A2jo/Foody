@@ -71,12 +71,4 @@ public class StoreService {
             storeCategoryRepository.save(storeCategory);
         }
     }
-
-
-//    public GetStoreRespDto getAllStoreByOwnerId(Long ownerId) {
-//        // 해당 ID의 가게 조회
-//        List<Store> storeList = storeRepository.findByOwnerId(Long ownerId);
-//
-//
-//    }
 }
