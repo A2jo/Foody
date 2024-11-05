@@ -63,21 +63,40 @@ public class StoreService {
                 new BusinessException(ErrorCode.STORE_NOT_FOUND)
         );
         //유효성 검사
-        validatePatchStore(store, modifyStoreReqDto, ownerId);
+        validateModifyStore(store, modifyStoreReqDto, ownerId);
 
-        // 가게 정보 수정
-        store.setName(modifyStoreReqDto.getName());
-        store.setDescription(modifyStoreReqDto.getDescription());
-        store.setContact(modifyStoreReqDto.getContact());
-        store.setMinOrderAmount(modifyStoreReqDto.getMinOrderAmount());
-        store.setOpenTime(modifyStoreReqDto.getOpenTime());
-        store.setEndTime(modifyStoreReqDto.getEndTime());
-        store.setIsDeleted(modifyStoreReqDto.isDeleted());
+        // 가게 정보 수정: ModifyStoreReqDto의 값이 null이 아닌 경우만 업데이트
+        if (modifyStoreReqDto.getName() != null) {
+            store.setName(modifyStoreReqDto.getName());
+        }
+        if (modifyStoreReqDto.getDescription() != null) {
+            store.setDescription(modifyStoreReqDto.getDescription());
+        }
+        if (modifyStoreReqDto.getContact() != null) {
+            store.setContact(modifyStoreReqDto.getContact());
+        }
+        if (modifyStoreReqDto.getMinOrderAmount() != null) {
+            store.setMinOrderAmount(modifyStoreReqDto.getMinOrderAmount());
+        }
+        if (modifyStoreReqDto.getOpenTime() != null) {
+            store.setOpenTime(modifyStoreReqDto.getOpenTime());
+        }
+        if (modifyStoreReqDto.getEndTime() != null) {
+            store.setEndTime(modifyStoreReqDto.getEndTime());
+        }
+        if (modifyStoreReqDto.getIsDeleted() != null) {
+            store.setIsDeleted(modifyStoreReqDto.getIsDeleted());
+        }
 
-        // 가게 카테고리 수정
-        storeCategoryRepository.deleteByStoreId(storeId);
-        modifyCategory(modifyStoreReqDto, store);
-
+        // 가게가 폐업 상태가 아닌 경우에만 카테고리 수정
+        if (modifyStoreReqDto.getIsDeleted() == null || !modifyStoreReqDto.getIsDeleted()) {
+            if (modifyStoreReqDto.getCategoryIds() != null) {
+                storeCategoryRepository.deleteByStoreId(storeId);
+                if (!modifyStoreReqDto.getCategoryIds().isEmpty()) {
+                    modifyCategory(modifyStoreReqDto, store);
+                }
+            }
+        }
         return new ModifyStoreRespDto(store);
     }
 
@@ -123,13 +142,13 @@ public class StoreService {
         }
     }
     // 가게 수정 시 유효성 검사
-    public void validatePatchStore(Store store, ModifyStoreReqDto modifyStoreReqDto, Long ownerId) {
+    public void validateModifyStore(Store store, ModifyStoreReqDto modifyStoreReqDto, Long ownerId) {
         // 요청한 사용자가 가게의 실제 사장님인지 확인
         if (!store.getOwner().getId().equals(ownerId)) {
             throw new BusinessException(ErrorCode.FORBIDDEN_ACCESS);
         }
-        // 가게이름 중복 검사
-        if (storeRepository.existsByName(modifyStoreReqDto.getName())) {
+        // 가게 이름 중복 검사 (name이 null이 아닌 경우에만 검사)
+        if (modifyStoreReqDto.getName() != null && storeRepository.existsByName(modifyStoreReqDto.getName())) {
             throw new BusinessException(ErrorCode.STORENAME_ALREADY_EXISTS);
         }
         // 사장님 영업중인 가게 3개 이상인 경우 생성 불가
