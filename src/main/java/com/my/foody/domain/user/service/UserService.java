@@ -99,7 +99,7 @@ public class UserService {
 
     public AddressListRespDto getAllAddress(Long userId) {
         User user = findByIdOrFail(userId);
-        List<Address> addressList = addressRepository.findAllByUser(user);
+        List<Address> addressList = addressRepository.findAllByUserOrderByCreatedAtDesc(user);
         return new AddressListRespDto(addressList);
     }
 }
