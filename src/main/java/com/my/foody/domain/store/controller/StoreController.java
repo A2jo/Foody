@@ -44,6 +44,14 @@ public class StoreController {
         return ResponseEntity.ok(ApiResult.success(stores));
     }
 
+    @GetMapping("home/categories/{categoryId}/store")
+    public ResponseEntity<ApiResult<List<GetStoreRespDto>>> getStoreByCategory(@PathVariable(value = "categoryId") Long categoryId) {
+        List<GetStoreRespDto> stores = storeService.getStoreByCategory(categoryId);
+        return ResponseEntity.ok(ApiResult.success(stores));
+        List<GetStoreRespDto> stores = storeService.getAllStoresByOwnerId(ownerId);
+        return ResponseEntity.ok(ApiResult.success(stores));
+    }
+
     @RequireAuth(userType = UserType.OWNER)
     @PatchMapping("/stores/{storeId}")
     public ResponseEntity<ApiResult<ModifyStoreRespDto>> modifyStore(@PathVariable(value = "storeId") Long storeId ,
