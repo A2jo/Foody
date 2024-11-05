@@ -67,6 +67,8 @@ public enum ErrorCode {
     INVALID_MENU_PRICE(HttpStatus.BAD_REQUEST.value(), "메뉴 가격은 1원 이상이어야 합니다");
 
 
+
+
     private final int status;
     private final String msg;
 
