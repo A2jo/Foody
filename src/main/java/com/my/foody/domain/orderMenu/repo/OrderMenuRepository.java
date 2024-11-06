@@ -20,9 +20,9 @@ public interface OrderMenuRepository extends JpaRepository<OrderMenu, Long> {
     @Query("""
             select distinct 
                 s.name as storeName,
-                o.status as orderStatus,
-                o.roadAddress as roadAddress,
-                o.detailedAddress as detailedAddress,
+                o.orderStatus as orderStatus,
+                a.roadAddress as roadAddress,
+                a.detailedAddress as detailedAddress,
                 o.totalAmount as totalAmount,
                 o.id as orderId,
                 o.createdAt as createdAt,
@@ -33,6 +33,7 @@ public interface OrderMenuRepository extends JpaRepository<OrderMenu, Long> {
             from OrderMenu om
             join om.order o
             join o.store s
+            join o.address a
             where s.owner = :owner
        """)
     Page<OrderProjectionDto> findByOwnerWithOrderWithStoreWithMenu(@Param("owner") Owner owner, Pageable pageable);
