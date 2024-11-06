@@ -5,6 +5,9 @@ import com.my.foody.domain.category.entity.Category;
 import com.my.foody.domain.category.repo.CategoryRepository;
 import com.my.foody.domain.owner.entity.Owner;
 import com.my.foody.domain.owner.repo.OwnerRepository;
+import com.my.foody.domain.review.dto.resp.ReviewListRespDto;
+import com.my.foody.domain.review.repo.ReviewRepository;
+import com.my.foody.domain.review.repo.dto.ReviewProjectionRespDto;
 import com.my.foody.domain.store.dto.req.ModifyStoreReqDto;
 import com.my.foody.domain.store.dto.req.StoreCreateReqDto;
 import com.my.foody.domain.store.dto.resp.GetStoreRespDto;
@@ -28,6 +31,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import com.my.foody.domain.review.dto.resp.ReviewListRespDto.PageInfo;
+
 
 import java.time.LocalTime;
 import java.util.List;
@@ -51,6 +56,8 @@ public class StoreServiceTest {
     private CategoryRepository categoryRepository;
     @Mock
     private StoreCategoryRepository storeCategoryRepository;
+    @Mock
+    private ReviewRepository reviewRepository;
 
     // -[가게 생성 테스트]---------------------------------------------------
     @DisplayName("가게 생성 성공")
@@ -545,5 +552,154 @@ public class StoreServiceTest {
         verify(categoryRepository, times(1)).existsById(categoryId);
         verify(storeCategoryRepository, never()).findStoresByCategoryId(anyLong(), any(Pageable.class));
 
+    }
+
+    // -[가게 리뷰 조회]---------------------------------------------------
+
+    @DisplayName("가게 리뷰 조회 성공 테스트 - 전체 리뷰 반환")
+    @Test
+    public void testGetStoreReviews_Success_Review() {
+        Long categoryId = 1L;
+        Long storeId = 1L;
+        int page = 0;
+        int limit = 10;
+
+        ReviewProjectionRespDto review1 = mock(ReviewProjectionRespDto.class);
+        when(review1.getReviewId()).thenReturn(1L);
+        when(review1.getRating()).thenReturn(5);
+        when(review1.getComment()).thenReturn("Great service!");
+
+        ReviewProjectionRespDto review2 = mock(ReviewProjectionRespDto.class);
+        when(review2.getReviewId()).thenReturn(2L);
+        when(review2.getRating()).thenReturn(4);
+        when(review2.getComment()).thenReturn("Good food!");
+
+        List<ReviewProjectionRespDto> reviewList = List.of(review1, review2);
+        Page<ReviewProjectionRespDto> reviewPage = new PageImpl<>(reviewList, PageRequest.of(page, limit), reviewList.size());
+
+        when(categoryRepository.existsById(categoryId)).thenReturn(true);
+        when(storeCategoryRepository.findByCategoryIdAndStoreId(categoryId, storeId)).thenReturn(Optional.of(mock(StoreCategory.class)));
+        when(storeRepository.findById(storeId)).thenReturn(Optional.of(Store.builder().isDeleted(false).build()));
+
+        when(reviewRepository.findReviewsByStoreId(storeId, PageRequest.of(page, limit))).thenReturn(reviewPage);
+
+        ReviewListRespDto result = storeService.getStoreReviews(categoryId, storeId, page, limit);
+
+        assertNotNull(result);
+        assertEquals(2, result.getReviewList().size());
+        assertEquals(5, result.getReviewList().get(0).getRating());
+        assertEquals("Great service!", result.getReviewList().get(0).getComment());
+        assertEquals(4, result.getReviewList().get(1).getRating());
+        assertEquals("Good food!", result.getReviewList().get(1).getComment());
+
+        PageInfo pageInfo = result.getPageInfo();
+        assertEquals(page, pageInfo.getPageNumber());
+        assertEquals(limit, pageInfo.getPageSize());
+        assertEquals(reviewList.size(), pageInfo.getTotalElements());
+        assertEquals(1, pageInfo.getTotalPages());
+        assertTrue(pageInfo.isFirst());
+        assertTrue(pageInfo.isLast());
+    }
+
+    @DisplayName("가게 리뷰 조회 성공 테스트 - 빈 페이지 반환")
+    @Test
+    public void testGetStoreReviews_Success_EmptyPage() {
+        Long storeId = 1L;
+        Long categoryId = 1L;
+        int page = 0;
+        int limit = 10;
+
+        when(categoryRepository.existsById(categoryId)).thenReturn(true);
+        when(storeCategoryRepository.findByCategoryIdAndStoreId(categoryId, storeId)).thenReturn(Optional.of(mock(StoreCategory.class)));
+        when(storeRepository.findById(storeId)).thenReturn(Optional.of(Store.builder().id(storeId).isDeleted(false).build()));
+
+        Page<ReviewProjectionRespDto> emptyPage = Page.empty(PageRequest.of(page, limit));
+        when(reviewRepository.findReviewsByStoreId(storeId, PageRequest.of(page, limit))).thenReturn(emptyPage);
+
+        ReviewListRespDto result = storeService.getStoreReviews(categoryId, storeId, page, limit);
+
+        assertNotNull(result);
+        assertTrue(result.getReviewList().isEmpty(), "리뷰 목록이 비어 있어야 합니다");
+        assertEquals(0, result.getPageInfo().getTotalElements(), "전체 항목 수는 0이어야 합니다");
+        assertEquals(0, result.getPageInfo().getTotalPages(), "전체 페이지 수는 0이어야 합니다");
+        assertEquals(page, result.getPageInfo().getPageNumber(), "현재 페이지 번호가 요청한 것과 같아야 합니다");
+
+        verify(categoryRepository, times(1)).existsById(categoryId);
+        verify(storeCategoryRepository, times(1)).findByCategoryIdAndStoreId(categoryId, storeId);
+        verify(storeRepository, times(1)).findById(storeId);
+        verify(reviewRepository, times(1)).findReviewsByStoreId(storeId, PageRequest.of(page, limit));
+    }
+
+    @DisplayName("가게 리뷰 조회 실패 테스트 - 선택한 카테고리가 존재하지 않는 경우")
+    @Test
+    public void testGetStoreReviews_Fail_NotFoundCategory() {
+        Long storeId = 1L;
+        Long categoryId = 999L; // 존재하지 않는 카테고리 ID
+        int page = 0;
+        int limit = 10;
+
+        when(categoryRepository.existsById(categoryId)).thenReturn(false);
+
+        BusinessException exception = assertThrows(BusinessException.class, () ->
+                storeService.getStoreReviews(categoryId, storeId, page, limit)
+        );
+
+        assertEquals(ErrorCode.CATEGORY_NOT_FOUND, exception.getErrorCode());
+        System.out.println(exception.getMessage());
+
+        verify(categoryRepository, times(1)).existsById(categoryId);
+        verify(storeCategoryRepository, never()).findByCategoryIdAndStoreId(anyLong(), anyLong());
+        verify(storeRepository, never()).findById(anyLong());
+        verify(reviewRepository, never()).findReviewsByStoreId(anyLong(), any(Pageable.class));
+    }
+
+    @DisplayName("가게 리뷰 조회 실패 테스트 - 선택한 카테고리에 선택한 가게가 없는 경우")
+    @Test
+    public void testGetStoreReviews_Fail_NotFoundStoreInCategory() {
+        Long storeId = 1L;
+        Long categoryId = 1L;
+        int page = 0;
+        int limit = 10;
+
+        when(categoryRepository.existsById(categoryId)).thenReturn(true);
+        when(storeCategoryRepository.findByCategoryIdAndStoreId(categoryId, storeId)).thenReturn(Optional.empty());
+
+        BusinessException exception = assertThrows(BusinessException.class, () ->
+                storeService.getStoreReviews(categoryId, storeId, page, limit)
+        );
+
+        assertEquals(ErrorCode.STORE_NOT_FOUND_IN_CATEGORY, exception.getErrorCode());
+        System.out.println(exception.getMessage());
+
+        verify(categoryRepository, times(1)).existsById(categoryId);
+        verify(storeCategoryRepository, times(1)).findByCategoryIdAndStoreId(categoryId, storeId);
+        verify(storeRepository, never()).findById(anyLong());
+        verify(reviewRepository, never()).findReviewsByStoreId(anyLong(), any(Pageable.class));
+    }
+
+    @DisplayName("가게 리뷰 조회 실패 테스트 - 폐업한 가게를 선택한 경우")
+    @Test
+    public void testGetStoreReviews_Fail_StoreClosed() {
+        Long categoryId = 1L;
+        Long storeId = 1L;
+        int page = 0;
+        int limit = 10;
+
+        when(categoryRepository.existsById(categoryId)).thenReturn(true);
+
+        when(storeCategoryRepository.findByCategoryIdAndStoreId(categoryId, storeId)).thenReturn(Optional.of(mock(StoreCategory.class)));
+
+        Store store = Store.builder()
+                .id(storeId)
+                .isDeleted(true)  // 폐업 상태
+                .build();
+        when(storeRepository.findById(storeId)).thenReturn(Optional.of(store));
+
+        BusinessException exception = assertThrows(BusinessException.class, () ->
+                storeService.getStoreReviews(categoryId, storeId, page, limit)
+        );
+
+        assertEquals(ErrorCode.STORE_CLOSED, exception.getErrorCode());
+        System.out.println(exception.getMessage());
     }
 }
