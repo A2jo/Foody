@@ -5,6 +5,8 @@ import com.my.foody.domain.address.repo.AddressRepository;
 import com.my.foody.domain.address.service.AddressService;
 import com.my.foody.domain.cart.entity.Cart;
 import com.my.foody.domain.cart.repo.CartRepository;
+import com.my.foody.domain.cartMenu.CartMenu;
+import com.my.foody.domain.cartMenu.CartMenuRepository;
 import com.my.foody.domain.menu.entity.Menu;
 import com.my.foody.domain.menu.repo.MenuRepository;
 import com.my.foody.domain.menu.service.MenuService;
@@ -14,6 +16,8 @@ import com.my.foody.domain.order.dto.resp.OrderPreviewRespDto;
 import com.my.foody.domain.order.dto.resp.OrderStatusUpdateRespDto;
 import com.my.foody.domain.order.entity.Order;
 import com.my.foody.domain.order.repo.OrderRepository;
+import com.my.foody.domain.orderMenu.entity.OrderMenu;
+import com.my.foody.domain.orderMenu.repo.OrderMenuRepository;
 import com.my.foody.domain.store.entity.Store;
 import com.my.foody.domain.store.service.StoreService;
 import com.my.foody.domain.user.entity.User;
@@ -26,6 +30,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -35,13 +40,13 @@ public class OrderService {
     private final UserRepository userRepository;
     private final CartRepository cartRepository;
     private final AddressRepository addressRepository;
-    private final MenuRepository menuRepository;
+    private final CartMenuRepository cartMenuRepository;
+    private final OrderMenuRepository orderMenuRepository;
 
     private  final UserService userService;
     private final AddressService addressService;
     private final StoreService storeService;
     private final MenuService menuService;
-
 
 
     public OrderStatusUpdateRespDto updateOrderStatus(OrderStatusUpdateReqDto requestDto, Long orderId, Long ownerId) {
@@ -92,25 +97,22 @@ public class OrderService {
     }
 
     public void createOrder(Long storeId, Long cartId, OrderCreateReqDto orderCreateReqDto, Long userId) {
-        // User, 가계, 메뉴 검증
+
         User user = userService.findActivateUserByIdOrFail(userId);
         Store store = storeService.findActivateStoreByIdOrFail(storeId);
-        Menu menu = menuService.findActiveMenuByIdOrFail(orderCreateReqDto.getMenuItemId());
-        Address address = addressService.findByIdOrFail(orderCreateReqDto.getUserAddressId());
+        addressService.findByIdOrFail(orderCreateReqDto.getUserAddressId());
 
-        // 장바구니의 확인
+
         Cart cart = cartRepository.findById(cartId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.CART_ITEM_NOT_FOUND));
         if (!cart.getStore().getId().equals(storeId)) {
             throw new BusinessException(ErrorCode.STORE_NOT_FOUND);
         }
 
-        // 주문의 최소금액 확인
         if (orderCreateReqDto.getPaymentAmount() < store.getMinOrderAmount()) {
             throw new BusinessException(ErrorCode.UNDER_MINIMUM_ORDER_AMOUNT);
         }
 
-        //가계의 영업시간 확인
         LocalTime now = LocalTime.now();
         if (now.isBefore(store.getOpenTime()) || now.isAfter(store.getEndTime())) {
             throw new BusinessException(ErrorCode.STORE_CLOSED);
@@ -119,10 +121,21 @@ public class OrderService {
         Order order = Order.builder()
                 .user(user)
                 .store(store)
-                .address(address)
+                .address(addressService.findByIdOrFail(orderCreateReqDto.getUserAddressId()))
                 .totalAmount(orderCreateReqDto.getPaymentAmount())
                 .build();
-
         orderRepository.save(order);
+
+        List<CartMenu> cartMenus = cartMenuRepository.findByCart(cart);
+        for (CartMenu cartMenu : cartMenus) {
+            OrderMenu orderMenu = OrderMenu.builder()
+                    .order(order)
+                    .menuId(cartMenu.getMenu().getId())
+                    .quantity(cartMenu.getQuantity())
+                    .price(cartMenu.getMenu().getPrice())
+                    .build();
+            orderMenuRepository.save(orderMenu);
+        }
     }
+
 }
