@@ -52,6 +52,16 @@ public class OrderController {
     return new ResponseEntity<>(ApiResult.success(orderService.getOrderPreview(tokenSubject.getId(), storeId, cartId)), HttpStatus.OK);
   }
 
+  @RequireAuth(userType = UserType.USER)
+  @PostMapping("/api/home/cart/{cartId}/orders")
+  public ResponseEntity<ApiResult<String>> createOrder(
+                                                       @PathVariable Long cartId,
+                                                       @RequestBody @Valid OrderCreateReqDto orderCreateReqDto,
+                                                       @CurrentUser TokenSubject tokenSubject) {
+    orderService.createOrder(cartId, orderCreateReqDto, tokenSubject.getId());
+    return new ResponseEntity<>(ApiResult.success("주문이 완료되었습니다."), HttpStatus.CREATED);
+  }
+
   @RequireAuth(userType = UserType.OWNER)
   @GetMapping("/api/owners/orders")
   public ResponseEntity<ApiResult<OrderListRespDto>> getAllOrder(@RequestParam(value = "page", required = false) @Min(value = 0) int page,

@@ -17,6 +17,7 @@ import com.my.foody.domain.order.dto.resp.OrderPreviewRespDto;
 import com.my.foody.domain.order.dto.resp.OrderStatusUpdateRespDto;
 import com.my.foody.domain.order.entity.Order;
 import com.my.foody.domain.order.repo.OrderRepository;
+import com.my.foody.domain.order.service.timepro.TimeProvider;
 import com.my.foody.domain.orderMenu.entity.OrderMenu;
 import com.my.foody.domain.orderMenu.repo.OrderMenuRepository;
 import com.my.foody.domain.orderMenu.repo.dto.OrderMenuProjectionDto;
@@ -24,14 +25,15 @@ import com.my.foody.domain.orderMenu.repo.dto.OrderProjectionDto;
 import com.my.foody.domain.owner.entity.Owner;
 import com.my.foody.domain.owner.service.OwnerService;
 import com.my.foody.domain.store.entity.Store;
-import com.my.foody.domain.store.repo.StoreRepository;
 import com.my.foody.domain.store.service.StoreService;
 import com.my.foody.domain.user.entity.User;
 import com.my.foody.domain.user.service.UserService;
 import com.my.foody.global.ex.BusinessException;
 import com.my.foody.global.ex.ErrorCode;
 import java.time.LocalTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -50,13 +52,13 @@ public class OrderService {
     private final UserService userService;
     private final StoreService storeService;
     private final CartMenuRepository cartMenuRepository;
-    private final AddressRepository addressRepository;
     private final OrderMenuRepository orderMenuRepository;
-    
+    private final AddressRepository addressRepository;
+
     private final MenuService menuService;
     private final OwnerService ownerService;
-    private final StoreRepository storeRepository;
-
+    private  final TimeProvider timeProvider;
+   
     @Transactional
     public OrderStatusUpdateRespDto updateOrderStatus(OrderStatusUpdateReqDto requestDto, Long orderId, Long ownerId) {
         Order order = orderRepository.findById(orderId).orElseThrow(() -> new BusinessException(ErrorCode.ORDER_NOT_FOUND));
@@ -76,6 +78,7 @@ public class OrderService {
 
 
     public OrderPreviewRespDto getOrderPreview(Long userId, Long storeId, Long cartId) {
+
         User user = userService.findActivateUserByIdOrFail(userId);
         Store store = storeService.findActivateStoreByIdOrFail(storeId);
         Cart cart = cartRepository.findByIdAndUser(cartId, user)
@@ -109,46 +112,57 @@ public class OrderService {
                 .sum();
     }
 
-    public void createOrder(Long storeId, Long cartId, OrderCreateReqDto orderCreateReqDto, Long userId) {
+    @Transactional
+    public void createOrder(Long cartId, OrderCreateReqDto orderCreateReqDto, Long userId) {
 
         User user = userService.findActivateUserByIdOrFail(userId);
-        Store store = storeService.findActivateStoreByIdOrFail(storeId);
-        addressService.findByIdOrFail(orderCreateReqDto.getUserAddressId());
-
 
         Cart cart = cartRepository.findById(cartId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.CART_ITEM_NOT_FOUND));
-        if (!cart.getStore().getId().equals(storeId)) {
-            throw new BusinessException(ErrorCode.STORE_NOT_FOUND);
+        Store store = storeService.findActivateStoreByIdOrFail(cart.getStore().getId());
+
+        Address mainAddress = addressRepository.findByUserIdAndIsMain(userId, true)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MAIN_ADDRESS_NOT_FOUND));
+
+        if (!mainAddress.getId().equals(orderCreateReqDto.getUserAddressId())) {
+            throw new BusinessException(ErrorCode.NOT_MAIN_ADDRESS);
         }
+
 
         if (orderCreateReqDto.getTotalAmount() < store.getMinOrderAmount()) {
             throw new BusinessException(ErrorCode.UNDER_MINIMUM_ORDER_AMOUNT);
         }
 
-        LocalTime now = LocalTime.now();
+        LocalTime now = timeProvider.now();
+
         if (now.isBefore(store.getOpenTime()) || now.isAfter(store.getEndTime())) {
             throw new BusinessException(ErrorCode.STORE_CLOSED);
         }
 
-        //주문의 총금액 계산
         Long totalAmount = 0L;
         List<CartMenu> cartMenus = cartMenuRepository.findByCart(cart);
+
+        Map<Long, Menu> menuCache = new HashMap<>();
         for (CartMenu cartMenu : cartMenus) {
-            Menu menu = menuService.findActiveMenuByIdOrFail(cartMenu.getMenu().getId());
+            Menu menu = menuCache.computeIfAbsent(cartMenu.getMenu().getId(), menuService::findActiveMenuByIdOrFail);
+
+            if (menu.getIsSoldOut()) {
+                throw new BusinessException(ErrorCode.MENU_IS_SOLD_OUT);
+            }
+
             totalAmount += cartMenu.getQuantity() * menu.getPrice();
         }
 
         Order order = Order.builder()
                 .user(user)
                 .store(store)
-                .address(addressService.findByIdOrFail(orderCreateReqDto.getUserAddressId()))
+                .address(mainAddress)
                 .totalAmount(totalAmount)
                 .build();
         orderRepository.save(order);
 
         for (CartMenu cartMenu : cartMenus) {
-            Menu menu = menuService.findActiveMenuByIdOrFail(cartMenu.getMenu().getId());
+            Menu menu = menuCache.get(cartMenu.getMenu().getId());
             OrderMenu orderMenu = OrderMenu.builder()
                     .order(order)
                     .menuId(menu.getId())
@@ -158,7 +172,6 @@ public class OrderService {
             orderMenuRepository.save(orderMenu);
         }
     }
-
 
     public OrderListRespDto getAllOrder(Long ownerId, int page, int limit) {
         Owner owner = ownerService.findActivateOwnerByIdOrFail(ownerId);

@@ -6,6 +6,7 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 @Getter
+@Setter
 @AllArgsConstructor
 public class OrderCreateReqDto {
 
