@@ -24,6 +24,7 @@ import com.my.foody.domain.order.dto.resp.OrderStatusUpdateRespDto;
 import com.my.foody.domain.order.entity.Order;
 import com.my.foody.domain.order.repo.OrderRepository;
 import com.my.foody.domain.order.repo.dto.OrderProjectionRespDto;
+import com.my.foody.domain.order.service.timepro.TimeProvider;
 import com.my.foody.domain.orderMenu.entity.OrderMenu;
 import com.my.foody.domain.orderMenu.repo.OrderMenuRepository;
 import com.my.foody.domain.owner.entity.OrderStatus;
@@ -43,13 +44,17 @@ import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+
+import org.aspectj.lang.annotation.Before;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.*;
 import java.util.Collections;
 import java.util.List;
@@ -73,6 +78,7 @@ public class OrderServiceTest extends DummyObject {
 
     @InjectMocks
     private MenuService menuService;
+
 
     @Mock
     private OrderRepository orderRepository;
@@ -108,6 +114,8 @@ public class OrderServiceTest extends DummyObject {
     @Mock
     private OwnerService ownerService;
 
+    @Mock
+    private TimeProvider timeProvider;
 
     private Order order;
     private Owner owner;
@@ -116,6 +124,7 @@ public class OrderServiceTest extends DummyObject {
     private Address address;
     private Cart cart;
     private Menu menu;
+
 
     @BeforeEach
     public void setUp() {
@@ -132,6 +141,31 @@ public class OrderServiceTest extends DummyObject {
 
         cart = Cart.builder()
                 .store(store)
+                .build();
+
+
+        user = User.builder()
+                .id(1L)
+                .email("abc@example.com")
+                .password("password")
+                .build();
+
+        store = Store.builder()
+                .id(1L)
+                .minOrderAmount(1000L)
+                .openTime(LocalTime.of(8, 0))
+                .endTime(LocalTime.of(20, 0))
+                .build();
+        cart = Cart.builder()
+                .id(1L)
+                .store(store)
+                .build();
+
+        address = Address.builder()
+                .id(1L)
+                .roadAddress("abcd")
+                .detailedAddress("abc123")
+                .user(user)
                 .build();
     }
 
@@ -333,154 +367,111 @@ public class OrderServiceTest extends DummyObject {
     @Test
     @DisplayName("주문 생성 성공 테스트")
     void createOrder_Success() {
-        // given
-        Long storeId = store.getId();
-        Long cartId = cart.getId();
-        Long userId = user.getId();
+        OrderCreateReqDto orderCreateReqDto = new OrderCreateReqDto();
+        orderCreateReqDto.setUserAddressId(address.getId());
+        orderCreateReqDto.setTotalAmount(2000L);
 
-        OrderCreateReqDto orderCreateReqDto = OrderCreateReqDto.builder()
-                .userAddressId(address.getId())
-                .totalAmount(200L)
-                .build();
+        when(userService.findActivateUserByIdOrFail(user.getId())).thenReturn(user);
+        when(cartRepository.findById(cart.getId())).thenReturn(Optional.of(cart));
+        when(storeService.findActivateStoreByIdOrFail(store.getId())).thenReturn(store);
+        when(addressService.findByIdOrFail(orderCreateReqDto.getUserAddressId())).thenReturn(address);
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(storeRepository.findById(storeId)).thenReturn(Optional.of(store));
-        when(cartRepository.findById(cartId)).thenReturn(Optional.of(cart));
-        when(addressRepository.findById(orderCreateReqDto.getUserAddressId())).thenReturn(Optional.of(address));
+        orderService.createOrder(cart.getId(), orderCreateReqDto, user.getId());
 
-        CartMenu cartMenu = CartMenu.builder()
-                .menu(menu)
-                .quantity(2L)
-                .build();
-        when(cartMenuRepository.findByCart(cart)).thenReturn(List.of(cartMenu));
-
-
-        when(menuService.findActiveMenuByIdOrFail(menu.getId())).thenReturn(menu);
-
-        when(orderRepository.save(any(Order.class))).thenReturn(order);
-        when(orderMenuRepository.save(any(OrderMenu.class))).thenReturn(OrderMenu.builder().build());
-
-        // when
-        orderService.createOrder(storeId, cartId, orderCreateReqDto, userId);
-
-        // then
-        verify(userRepository).findById(userId);
-        verify(storeRepository).findById(storeId);
-        verify(cartRepository).findById(cartId);
-        verify(addressRepository).findById(orderCreateReqDto.getUserAddressId());
-        verify(cartMenuRepository).findByCart(cart);
-        verify(menuService).findActiveMenuByIdOrFail(menu.getId());
-        verify(orderRepository).save(any(Order.class));
-        verify(orderMenuRepository, times(cartMenu.getQuantity().intValue())).save(any(OrderMenu.class)); // Verifying that OrderMenu was saved correctly
-
-        assertNotNull(order);
-        assertEquals(user, order.getUser());
-        assertEquals(store, order.getStore());
-        assertEquals(address, order.getAddress());
-        assertEquals(200L, order.getTotalAmount());
+        verify(orderRepository, times(1)).save(any(Order.class));
     }
 
     @Test
-    @DisplayName("주문 실패 테스트 - 사용자 미발견")
+    @DisplayName("주문 생성 실패 테스트 - 사용자 미발견")
     void createOrder_UserNotFound() {
-        Long userId = 1L;
-        Long storeId = store.getId();
-        Long cartId = cart.getId();
-        OrderCreateReqDto orderCreateReqDto = new OrderCreateReqDto(100L, 1L, 150L, 1L); // example values
+        OrderCreateReqDto orderCreateReqDto = new OrderCreateReqDto();
+    when(userService.findActivateUserByIdOrFail(user.getId())).thenThrow(new BusinessException(ErrorCode.USER_NOT_FOUND));
 
-        // Mocking userRepository to return empty when trying to find the user
-        when(userRepository.findById(userId)).thenReturn(Optional.empty());
-
-        // Exception verification
-        assertThrows(BusinessException.class, () -> {
-            orderService.createOrder(storeId, cartId, orderCreateReqDto, userId);
-        }, "예상된 USER_NOT_FOUND의 예외 처리");
-
-        verify(userRepository).findById(userId);
+        assertThrows(BusinessException.class, () ->
+                orderService.createOrder(cart.getId(), orderCreateReqDto, user.getId())
+        );
     }
 
     @Test
-    @DisplayName("주문 실패 테스트 - 가게 미발견")
+    @DisplayName("주문 생성 실패 테스트 - 카트 미발견")
+    void createOrder_CartNotFound() {
+        OrderCreateReqDto orderCreateReqDto = new OrderCreateReqDto();
+        when(userService.findActivateUserByIdOrFail(user.getId())).thenReturn(user);
+        when(cartRepository.findById(cart.getId())).thenReturn(Optional.empty());
+
+        assertThrows(BusinessException.class, () ->
+                orderService.createOrder(cart.getId(), orderCreateReqDto, user.getId())
+        );
+    }
+
+    @Test
+    @DisplayName("주문 생성 실패 테스트 - 가게 미발견")
     void createOrder_StoreNotFound() {
-        Long userId = 1L;
-        Long storeId = store.getId();
-        Long cartId = cart.getId();
-        OrderCreateReqDto orderCreateReqDto = new OrderCreateReqDto(100L, 1L, 150L, 1L);
+        OrderCreateReqDto orderCreateReqDto = new OrderCreateReqDto();
+        when(userService.findActivateUserByIdOrFail(user.getId())).thenReturn(user);
+        when(cartRepository.findById(cart.getId())).thenReturn(Optional.of(cart));
+        when(storeService.findActivateStoreByIdOrFail(store.getId())).thenThrow(new BusinessException(ErrorCode.STORE_NOT_FOUND));
 
-        // Mocking storeRepository to return empty when trying to find the store
-        when(storeRepository.findById(storeId)).thenReturn(Optional.empty());
-
-        // Exception verification
-        assertThrows(BusinessException.class, () -> {
-            orderService.createOrder(storeId, cartId, orderCreateReqDto, userId);
-        }, "예상된 STORE_NOT_FOUND의 예외 처리");
-
-        verify(storeRepository).findById(storeId);
+        assertThrows(BusinessException.class, () ->
+                orderService.createOrder(cart.getId(), orderCreateReqDto, user.getId())
+        );
     }
 
     @Test
-    @DisplayName("주문 실패 테스트 - 카트 항목 미발견")
-    void createOrder_CartItemNotFound() {
-        Long userId = 1L;
-        Long storeId = store.getId();
-        Long cartId = cart.getId();
-        OrderCreateReqDto orderCreateReqDto = new OrderCreateReqDto(100L, 1L, 150L, 1L);
+    @DisplayName("주문 생성 실패 테스트 - 주소 미발견")
+    void createOrder_AddressNotFound() {
+        OrderCreateReqDto orderCreateReqDto = new OrderCreateReqDto();
+        orderCreateReqDto.setUserAddressId(99L);  // Nonexistent address ID
+        when(userService.findActivateUserByIdOrFail(user.getId())).thenReturn(user);
+        when(cartRepository.findById(cart.getId())).thenReturn(Optional.of(cart));
+        when(storeService.findActivateStoreByIdOrFail(store.getId())).thenReturn(store);
+    when(addressService.findByIdOrFail(orderCreateReqDto.getUserAddressId()))
+        .thenThrow(new BusinessException(ErrorCode.ADDRESS_NOT_FOUND));
 
-        // Mocking cartRepository to return empty when trying to find the cart
-        when(cartRepository.findById(cartId)).thenReturn(Optional.empty());
-
-        // Exception verification
-        assertThrows(BusinessException.class, () -> {
-            orderService.createOrder(storeId, cartId, orderCreateReqDto, userId);
-        }, "예상된 CART_ITEM_NOT_FOUND의 예외 처리");
-
-        verify(cartRepository).findById(cartId);
+        assertThrows(BusinessException.class, () ->
+                orderService.createOrder(cart.getId(), orderCreateReqDto, user.getId())
+        );
     }
 
     @Test
-    @DisplayName("주문 실패 테스트 - 최소 주문 금액 미달")
-    void createOrder_UnderMinimumOrderAmount() {
-        Long userId = 1L;
-        Long storeId = store.getId();
-        Long cartId = cart.getId();
-        OrderCreateReqDto orderCreateReqDto = new OrderCreateReqDto(50L, 1L, 150L, 1L); // example value, lower than store's minimum
+    @DisplayName("주문 생성 실패 테스트 - 부족한 주문 금액")
+    void createOrder_OrderAmountBelowMinimum() {
+        OrderCreateReqDto orderCreateReqDto = new OrderCreateReqDto();
+        orderCreateReqDto.setUserAddressId(address.getId());
+        orderCreateReqDto.setTotalAmount(500L);  // Below store minimum
 
-        // Mock the behavior where the store has a minimum order amount of 100L
-        when(storeRepository.findById(storeId)).thenReturn(Optional.of(store));
+        when(userService.findActivateUserByIdOrFail(user.getId())).thenReturn(user);
+        when(cartRepository.findById(cart.getId())).thenReturn(Optional.of(cart));
+        when(storeService.findActivateStoreByIdOrFail(store.getId())).thenReturn(store);
+        when(addressService.findByIdOrFail(orderCreateReqDto.getUserAddressId())).thenReturn(address);
 
-        // Exception verification
-        assertThrows(BusinessException.class, () -> {
-            orderService.createOrder(storeId, cartId, orderCreateReqDto, userId);
-        }, "예상된 UNDER_MINIMUM_ORDER_AMOUNT의 예외 처리");
-
-        verify(storeRepository).findById(storeId);
+        assertThrows(BusinessException.class, () ->
+                orderService.createOrder(cart.getId(), orderCreateReqDto, user.getId())
+        );
     }
 
     @Test
-    @DisplayName("주문 실패 테스트 - 가게 운영시간 외")
+    @DisplayName("주문 생성 실패 테스트 - 가계의 영업 시간 아님")
     void createOrder_StoreClosed() {
-        Long userId = 1L;
-        Long storeId = store.getId();
-        Long cartId = cart.getId();
-        OrderCreateReqDto orderCreateReqDto = new OrderCreateReqDto(100L, 1L, 150L, 1L); // example value
+        OrderCreateReqDto orderCreateReqDto = new OrderCreateReqDto();
+        orderCreateReqDto.setUserAddressId(address.getId());
+        orderCreateReqDto.setTotalAmount(2000L);
 
-        // Mock store's open and close times, setting current time outside this range
-        when(storeRepository.findById(storeId)).thenReturn(Optional.of(store));
-        when(cartRepository.findById(cartId)).thenReturn(Optional.of(cart));
+        store.setOpenTime(LocalTime.of(10, 0));
+        store.setEndTime(LocalTime.of(18, 0));
 
-        // Assume current time is outside the store's operating hours (store is closed)
-        LocalTime currentTime = LocalTime.of(23, 59); // For example, 11:59 PM
-        store.setOpenTime(LocalTime.of(9, 0));  // Open at 9 AM
-        store.setEndTime(LocalTime.of(22, 0));  // Close at 10 PM
+        when(timeProvider.now()).thenReturn(LocalTime.of(19, 0));
 
-        // Exception verification
-        assertThrows(BusinessException.class, () -> {
-            orderService.createOrder(storeId, cartId, orderCreateReqDto, userId);
-        }, "예상된 STORE_CLOSED의 예외 처리");
+        when(userService.findActivateUserByIdOrFail(user.getId())).thenReturn(user);
+        when(cartRepository.findById(cart.getId())).thenReturn(Optional.of(cart));
+        when(storeService.findActivateStoreByIdOrFail(store.getId())).thenReturn(store);
+        when(addressService.findByIdOrFail(orderCreateReqDto.getUserAddressId())).thenReturn(address);
 
-        verify(storeRepository).findById(storeId);
-        verify(cartRepository).findById(cartId);
+        assertThrows(BusinessException.class, () ->
+                orderService.createOrder(cart.getId(), orderCreateReqDto, user.getId())
+        );
     }
+
 
     @DisplayName("주문 목록 조회 성공 테스트")
     void getAllOrder_Success() {
