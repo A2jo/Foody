@@ -17,6 +17,12 @@ public class Category extends BaseEntity {
     @Column(length = 10, nullable = false, unique = true)
     private String name;
 
+    @Builder
+    public Category(Long id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+
     // 이름을 매개변수로 받는 생성자 추가
     public Category(String name) {
         this.name = name;

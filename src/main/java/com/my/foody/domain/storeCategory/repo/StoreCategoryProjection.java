@@ -4,4 +4,5 @@ public interface StoreCategoryProjection {
     Long getStoreId();
     String getStoreName();
     Long getMinOrderAmount();
+    Long getCategoryId();
 }
