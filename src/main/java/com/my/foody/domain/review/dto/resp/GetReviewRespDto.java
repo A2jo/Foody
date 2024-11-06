@@ -11,4 +11,5 @@ public class GetReviewRespDto {
     private Long id;
     private String comments;
     private Integer rating;
+    private String nickname;
 }

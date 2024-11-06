@@ -1,11 +1,5 @@
 package com.my.foody.domain.order.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-
 import com.my.foody.domain.address.entity.Address;
 import com.my.foody.domain.address.repo.AddressRepository;
 import com.my.foody.domain.address.service.AddressService;
@@ -24,46 +18,35 @@ import com.my.foody.domain.order.dto.resp.OrderPreviewRespDto;
 import com.my.foody.domain.order.dto.resp.OrderStatusUpdateRespDto;
 import com.my.foody.domain.order.entity.Order;
 import com.my.foody.domain.order.repo.OrderRepository;
-import com.my.foody.domain.order.repo.dto.OrderProjectionRespDto;
 import com.my.foody.domain.order.service.timepro.TimeProvider;
-import com.my.foody.domain.orderMenu.entity.OrderMenu;
+import com.my.foody.domain.orderMenu.repo.OrderMenuRepository;
 import com.my.foody.domain.orderMenu.repo.dto.OrderMenuProjectionDto;
 import com.my.foody.domain.orderMenu.repo.dto.OrderProjectionDto;
-import com.my.foody.domain.orderMenu.repo.OrderMenuRepository;
 import com.my.foody.domain.owner.entity.OrderStatus;
 import com.my.foody.domain.owner.entity.Owner;
 import com.my.foody.domain.owner.service.OwnerService;
 import com.my.foody.domain.store.entity.Store;
-import com.my.foody.domain.store.service.StoreService;
 import com.my.foody.domain.store.repo.StoreRepository;
+import com.my.foody.domain.store.service.StoreService;
 import com.my.foody.domain.user.entity.User;
 import com.my.foody.domain.user.repo.UserRepository;
 import com.my.foody.domain.user.service.UserService;
 import com.my.foody.global.ex.BusinessException;
 import com.my.foody.global.ex.ErrorCode;
 import com.my.foody.global.util.DummyObject;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-
-import org.aspectj.lang.annotation.Before;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.*;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 

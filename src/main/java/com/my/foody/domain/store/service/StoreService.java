@@ -4,8 +4,13 @@ import com.my.foody.domain.category.entity.Category;
 import com.my.foody.domain.category.repo.CategoryRepository;
 import com.my.foody.domain.owner.entity.Owner;
 import com.my.foody.domain.owner.repo.OwnerRepository;
+import com.my.foody.domain.review.dto.resp.DetailedReviewListRespDto;
+import com.my.foody.domain.review.dto.resp.GetReviewRespDto;
 import com.my.foody.domain.review.dto.resp.ReviewListRespDto;
+import com.my.foody.domain.review.dto.resp.ReviewListRespDto.PageInfo;
+import com.my.foody.domain.review.entity.Review;
 import com.my.foody.domain.review.repo.ReviewRepository;
+import com.my.foody.domain.review.repo.dto.DetailedReviewProjectionRespDto;
 import com.my.foody.domain.review.repo.dto.ReviewProjectionRespDto;
 import com.my.foody.domain.store.dto.req.ModifyStoreReqDto;
 import com.my.foody.domain.store.dto.req.StoreCreateReqDto;
@@ -28,6 +33,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -211,14 +217,14 @@ public class StoreService {
         return storeCategory;
     }
 
-    public ReviewListRespDto getStoreReviews(Long categoryId, Long storeId, int page, int limit) {
-        // 유효성 검사 수행
+    public DetailedReviewListRespDto getStoreReviews(Long categoryId, Long storeId, int page, int limit) {
+        // 1. 유효성 검사 수행
         validateGetStoreReviews(categoryId, storeId);
 
         Pageable pageable = PageRequest.of(page, limit);
-        Page<ReviewProjectionRespDto> reviewProjections = reviewRepository.findReviewsByStoreId(storeId, pageable);
+        Page<DetailedReviewProjectionRespDto> reviewProjections = reviewRepository.findDetailedReviewsByStoreId(storeId, pageable);
 
-        return new ReviewListRespDto(reviewProjections);
+        return new DetailedReviewListRespDto(reviewProjections);
     }
 
     // 카테고리 및 가게 존재 유효성 검사
@@ -235,7 +241,7 @@ public class StoreService {
         Store store = storeRepository.findById(storeId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.STORE_NOT_FOUND));
         if (store.getIsDeleted()) {
-            throw new BusinessException(ErrorCode.STORE_CLOSED);
+            throw new BusinessException(ErrorCode.STORE_DELETED);
         }
     }
 }

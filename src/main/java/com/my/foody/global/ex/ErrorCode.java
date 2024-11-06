@@ -23,7 +23,7 @@ public enum ErrorCode {
     ADDRESS_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "존재하지 않는 주소지입니다"),
     UNAUTHORIZED_ADDRESS_ACCESS(HttpStatus.UNAUTHORIZED.value(), "해당 주소지에 접근 권한이 없습니다"),
     INVALID_ADDRESS_FORMAT(HttpStatus.BAD_REQUEST.value(), "유효하지 않은 주소 형식입니다"),
-    STORE_CLOSED(HttpStatus.NOT_FOUND.value(), "폐업처리된 가게입니다."),
+    STORE_DELETED(HttpStatus.NOT_FOUND.value(), "폐업처리된 가게입니다."),
 
     CART_ITEM_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "존재하지 않는 장바구니입니다."),
 
