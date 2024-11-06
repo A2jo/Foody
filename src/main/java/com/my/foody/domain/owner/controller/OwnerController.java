@@ -10,6 +10,7 @@ import com.my.foody.domain.owner.service.OwnerService;
 import com.my.foody.global.config.valid.CurrentUser;
 import com.my.foody.global.jwt.TokenSubject;
 import com.my.foody.global.util.api.ApiResult;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -22,13 +23,13 @@ public class OwnerController {
     private final OwnerService ownerService;
 
     @PostMapping("/signup")
-    public ResponseEntity<ApiResult<OwnerJoinRespDto>> signup(@RequestBody OwnerJoinReqDto ownerJoinReqDto) {
+    public ResponseEntity<ApiResult<OwnerJoinRespDto>> signup(@RequestBody @Valid OwnerJoinReqDto ownerJoinReqDto) {
         OwnerJoinRespDto responseMessage = ownerService.signup(ownerJoinReqDto);
         return ResponseEntity.ok(ApiResult.success(responseMessage));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResult<OwnerLoginRespDto>> login(@RequestBody OwnerLoginReqDto ownerLoginReqDto) {
+    public ResponseEntity<ApiResult<OwnerLoginRespDto>> login(@RequestBody @Valid OwnerLoginReqDto ownerLoginReqDto) {
         OwnerLoginRespDto responseMessage = ownerService.login(ownerLoginReqDto);
         return ResponseEntity.ok(ApiResult.success(responseMessage));
     }
@@ -43,10 +44,10 @@ public class OwnerController {
     // 마이페이지 수정
     @PatchMapping("/mypage")
     public ResponseEntity<ApiResult<OwnerMyPageUpdateRespDto>> updateMyPage(
-            @AuthenticationPrincipal Long ownerId,
-            @RequestBody OwnerMyPageUpdateReqDto updateReqDto) {
+            @CurrentUser TokenSubject tokenSubject,
+            @RequestBody @Valid OwnerMyPageUpdateReqDto updateReqDto) {
 
-        // 서비스에서 업데이트 처리 후 응답 DTO 반환
+        Long ownerId = tokenSubject.getId();
         OwnerMyPageUpdateRespDto response = ownerService.updateMyPage(ownerId, updateReqDto);
         return ResponseEntity.ok(ApiResult.success(response));
     }
@@ -61,9 +62,10 @@ public class OwnerController {
     // 회원 탈퇴 기능 추가
     @DeleteMapping
     public ResponseEntity<ApiResult<OwnerDeleteRespDto>> deleteOwner(
-            @AuthenticationPrincipal Long ownerId,
-            @RequestBody OwnerDeleteReqDto deleteReqDto) {
+            @CurrentUser TokenSubject tokenSubject,
+            @RequestBody @Valid OwnerDeleteReqDto deleteReqDto) {
 
+        Long ownerId = tokenSubject.getId();
         OwnerDeleteRespDto responseMessage = ownerService.deleteOwner(ownerId, deleteReqDto);
         return ResponseEntity.ok(ApiResult.success(responseMessage));
     }
