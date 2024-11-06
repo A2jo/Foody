@@ -8,6 +8,9 @@ import com.my.foody.domain.cart.repo.CartRepository;
 import com.my.foody.domain.cartMenu.CartMenu;
 import com.my.foody.domain.cartMenu.CartMenuRepository;
 import com.my.foody.domain.menu.entity.Menu;
+import com.my.foody.domain.menu.repo.MenuRepository;
+import com.my.foody.domain.menu.service.MenuService;
+import com.my.foody.domain.order.dto.req.OrderCreateReqDto;
 import com.my.foody.domain.order.dto.req.OrderStatusUpdateReqDto;
 import com.my.foody.domain.order.dto.resp.OrderInfoRespDto;
 import com.my.foody.domain.order.dto.resp.OrderListRespDto;
@@ -15,13 +18,15 @@ import com.my.foody.domain.order.dto.resp.OrderPreviewRespDto;
 import com.my.foody.domain.order.dto.resp.OrderStatusUpdateRespDto;
 import com.my.foody.domain.order.entity.Order;
 import com.my.foody.domain.order.repo.OrderRepository;
+import com.my.foody.domain.order.service.timepro.TimeProvider;
+import com.my.foody.domain.orderMenu.repo.OrderMenuRepository;
 import com.my.foody.domain.orderMenu.repo.dto.OrderMenuProjectionDto;
 import com.my.foody.domain.orderMenu.repo.dto.OrderProjectionDto;
-import com.my.foody.domain.orderMenu.repo.OrderMenuRepository;
 import com.my.foody.domain.owner.entity.OrderStatus;
 import com.my.foody.domain.owner.entity.Owner;
 import com.my.foody.domain.owner.service.OwnerService;
 import com.my.foody.domain.store.entity.Store;
+import com.my.foody.domain.store.repo.StoreRepository;
 import com.my.foody.domain.store.service.StoreService;
 import com.my.foody.domain.user.entity.User;
 import com.my.foody.domain.user.repo.UserRepository;
@@ -37,11 +42,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.*;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -56,6 +61,10 @@ public class OrderServiceTest extends DummyObject {
 
     @InjectMocks
     private OrderService orderService;
+
+    @InjectMocks
+    private MenuService menuService;
+
 
     @Mock
     private OrderRepository orderRepository;
@@ -80,12 +89,19 @@ public class OrderServiceTest extends DummyObject {
 
     @Mock
     private CartMenuRepository cartMenuRepository;
+    private StoreRepository storeRepository;
+
+    @Mock
+    private OrderMenuRepository orderMenuRepository;
+
+    @Mock
+    private MenuRepository menuRepository;
 
     @Mock
     private OwnerService ownerService;
 
     @Mock
-    private OrderMenuRepository orderMenuRepository;
+    private TimeProvider timeProvider;
 
     private Order order;
     private Owner owner;
@@ -94,6 +110,7 @@ public class OrderServiceTest extends DummyObject {
     private Address address;
     private Cart cart;
     private Menu menu;
+
 
     @BeforeEach
     public void setUp() {
@@ -110,6 +127,32 @@ public class OrderServiceTest extends DummyObject {
 
         cart = Cart.builder()
                 .store(store)
+                .build();
+
+
+        user = User.builder()
+                .id(1L)
+                .email("abc@example.com")
+                .password("password")
+                .build();
+
+        store = Store.builder()
+                .id(1L)
+                .minOrderAmount(1000L)
+                .openTime(LocalTime.of(8, 0))
+                .endTime(LocalTime.of(20, 0))
+                .build();
+        cart = Cart.builder()
+                .id(1L)
+                .store(store)
+                .build();
+
+        address = Address.builder()
+                .id(1L)
+                .roadAddress("abcd")
+                .detailedAddress("abc123")
+                .user(user)
+                .isMain(true)
                 .build();
     }
 
@@ -213,6 +256,7 @@ public class OrderServiceTest extends DummyObject {
         verify(cartMenuRepository).findByCartWithMenu(cart);
     }
 
+
     @Test
     @DisplayName("주문 미리보기 실패 테스트: 존재하지 않는 사용자")
     void getOrderPreview_UserNotFound() {
@@ -305,6 +349,141 @@ public class OrderServiceTest extends DummyObject {
         verify(cartRepository).findByIdAndUser(cartId, user);
         verify(addressService).findMainAddress(userId);
         verify(cartMenuRepository).findByCartWithMenu(cart);
+    }
+
+    @Test
+    @DisplayName("주문 생성 성공 테스트")
+    void createOrder_Success() {
+        OrderCreateReqDto orderCreateReqDto = new OrderCreateReqDto();
+        orderCreateReqDto.setUserAddressId(address.getId());
+        orderCreateReqDto.setTotalAmount(2000L);
+
+        when(userService.findActivateUserByIdOrFail(user.getId())).thenReturn(user);
+        when(cartRepository.findById(cart.getId())).thenReturn(Optional.of(cart));
+        when(storeService.findActivateStoreByIdOrFail(store.getId())).thenReturn(store);
+        when(addressRepository.findByUserIdAndIsMain(user.getId(), true)).thenReturn(Optional.of(address));
+        when(timeProvider.now()).thenReturn(LocalTime.of(12, 0));
+
+        orderService.createOrder(cart.getId(), orderCreateReqDto, user.getId());
+
+        verify(orderRepository, times(1)).save(any(Order.class));
+    }
+
+    @Test
+    @DisplayName("주문 생성 실패 테스트 - 사용자 미발견")
+    void createOrder_UserNotFound() {
+        OrderCreateReqDto orderCreateReqDto = new OrderCreateReqDto();
+    when(userService.findActivateUserByIdOrFail(user.getId())).thenThrow(new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        assertThrows(BusinessException.class, () ->
+                orderService.createOrder(cart.getId(), orderCreateReqDto, user.getId())
+        );
+    }
+
+    @Test
+    @DisplayName("주문 생성 실패 테스트 - 카트 미발견")
+    void createOrder_CartNotFound() {
+        OrderCreateReqDto orderCreateReqDto = new OrderCreateReqDto();
+        when(userService.findActivateUserByIdOrFail(user.getId())).thenReturn(user);
+        when(cartRepository.findById(cart.getId())).thenReturn(Optional.empty());
+
+        assertThrows(BusinessException.class, () ->
+                orderService.createOrder(cart.getId(), orderCreateReqDto, user.getId())
+        );
+    }
+
+    @Test
+    @DisplayName("주문 생성 실패 테스트 - 가게 미발견")
+    void createOrder_StoreNotFound() {
+        OrderCreateReqDto orderCreateReqDto = new OrderCreateReqDto();
+        when(userService.findActivateUserByIdOrFail(user.getId())).thenReturn(user);
+        when(cartRepository.findById(cart.getId())).thenReturn(Optional.of(cart));
+        when(storeService.findActivateStoreByIdOrFail(store.getId())).thenThrow(new BusinessException(ErrorCode.STORE_NOT_FOUND));
+
+        assertThrows(BusinessException.class, () ->
+                orderService.createOrder(cart.getId(), orderCreateReqDto, user.getId())
+        );
+    }
+
+    @Test
+    @DisplayName("주문 생성 실패 테스트 - 주소 미발견")
+    void createOrder_AddressNotFound() {
+        OrderCreateReqDto orderCreateReqDto = new OrderCreateReqDto();
+        orderCreateReqDto.setUserAddressId(99L);  // Nonexistent address ID
+        when(userService.findActivateUserByIdOrFail(user.getId())).thenReturn(user);
+        when(cartRepository.findById(cart.getId())).thenReturn(Optional.of(cart));
+        when(storeService.findActivateStoreByIdOrFail(store.getId())).thenReturn(store);
+        when(addressRepository.findByUserIdAndIsMain(user.getId(), true))
+                .thenReturn(Optional.empty());
+
+        assertThrows(BusinessException.class, () ->
+                orderService.createOrder(cart.getId(), orderCreateReqDto, user.getId())
+        );
+    }
+
+    @Test
+    @DisplayName("주문 생성 실패 테스트 - 주소가 기본 주소가 아님")
+    void createOrder_NotMainAddress() {
+        OrderCreateReqDto orderCreateReqDto = new OrderCreateReqDto();
+        orderCreateReqDto.setUserAddressId(address.getId());
+        orderCreateReqDto.setTotalAmount(2000L);
+
+        // Set up an address that is not the main address
+        Address nonMainAddress = Address.builder()
+                .id(2L)
+                .roadAddress("xyz")
+                .detailedAddress("xyz123")
+                .user(user)
+                .isMain(false)
+                .build();
+
+        when(userService.findActivateUserByIdOrFail(user.getId())).thenReturn(user);
+        when(cartRepository.findById(cart.getId())).thenReturn(Optional.of(cart));
+        when(storeService.findActivateStoreByIdOrFail(store.getId())).thenReturn(store);
+        when(addressRepository.findByUserIdAndIsMain(user.getId(), true)).thenReturn(Optional.of(nonMainAddress));
+
+        assertThrows(BusinessException.class, () ->
+                orderService.createOrder(cart.getId(), orderCreateReqDto, user.getId())
+        );
+    }
+
+    @Test
+    @DisplayName("주문 생성 실패 테스트 - 부족한 주문 금액")
+    void createOrder_OrderAmountBelowMinimum() {
+        OrderCreateReqDto orderCreateReqDto = new OrderCreateReqDto();
+        orderCreateReqDto.setUserAddressId(address.getId());
+        orderCreateReqDto.setTotalAmount(500L);  // Below store minimum
+
+        when(userService.findActivateUserByIdOrFail(user.getId())).thenReturn(user);
+        when(cartRepository.findById(cart.getId())).thenReturn(Optional.of(cart));
+        when(storeService.findActivateStoreByIdOrFail(store.getId())).thenReturn(store);
+        when(addressRepository.findByUserIdAndIsMain(user.getId(), true)).thenReturn(Optional.of(address));
+
+        assertThrows(BusinessException.class, () ->
+                orderService.createOrder(cart.getId(), orderCreateReqDto, user.getId())
+        );
+    }
+
+    @Test
+    @DisplayName("주문 생성 실패 테스트 - 가계의 영업 시간 아님")
+    void createOrder_StoreClosed() {
+        OrderCreateReqDto orderCreateReqDto = new OrderCreateReqDto();
+        orderCreateReqDto.setUserAddressId(address.getId());
+        orderCreateReqDto.setTotalAmount(2000L);
+
+        store.setOpenTime(LocalTime.of(10, 0));
+        store.setEndTime(LocalTime.of(18, 0));
+
+        when(timeProvider.now()).thenReturn(LocalTime.of(19, 0));
+
+        when(userService.findActivateUserByIdOrFail(user.getId())).thenReturn(user);
+        when(cartRepository.findById(cart.getId())).thenReturn(Optional.of(cart));
+        when(storeService.findActivateStoreByIdOrFail(store.getId())).thenReturn(store);
+        when(addressRepository.findByUserIdAndIsMain(user.getId(), true)).thenReturn(Optional.of(address));
+
+        assertThrows(BusinessException.class, () ->
+                orderService.createOrder(cart.getId(), orderCreateReqDto, user.getId())
+        );
     }
 
 

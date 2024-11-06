@@ -9,6 +9,7 @@ import com.my.foody.domain.menu.repo.MenuProjection;
 import com.my.foody.domain.menu.repo.MenuRepository;
 import com.my.foody.domain.owner.entity.Owner;
 import com.my.foody.domain.owner.repo.OwnerRepository;
+import com.my.foody.domain.review.repo.ReviewRepository;
 import com.my.foody.domain.store.dto.req.ModifyStoreReqDto;
 import com.my.foody.domain.store.dto.req.StoreCreateReqDto;
 import com.my.foody.domain.store.dto.resp.GetStoreRespDto;
@@ -41,8 +42,10 @@ public class StoreService {
     private final OwnerRepository ownerRepository;
     private final CategoryRepository categoryRepository;
     private final StoreCategoryRepository storeCategoryRepository;
+    private final ReviewRepository reviewRepository;
     private final MenuRepository menuRepository;
 
+    // 사장님 가게 생성
     @Transactional
     public StoreCreateRespDto createStore(StoreCreateReqDto storeCreateReqDto, Long ownerId) {
         // owner 조회
@@ -60,6 +63,7 @@ public class StoreService {
         return new StoreCreateRespDto(store);
     }
 
+    // 사장님 가게 목록 조회
     public List<GetStoreRespDto> getAllStoresByOwnerId(Long ownerId) {
         // 해당 ID의 가게 조회
         List<Store> storeList = storeRepository.findByOwnerId(ownerId);
@@ -69,6 +73,7 @@ public class StoreService {
                 .toList();
     }
 
+    // 사장님 가게 수정
     @Transactional
     public ModifyStoreRespDto modifyStore(Long storeId, ModifyStoreReqDto modifyStoreReqDto, Long ownerId) {
 
@@ -82,7 +87,6 @@ public class StoreService {
         }
         //유효성 검사
         validateModifyStore(store, modifyStoreReqDto, ownerId);
-
 
         store.updateAll(modifyStoreReqDto);
 
@@ -166,6 +170,7 @@ public class StoreService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.STORE_NOT_FOUND));
     }
 
+    // 카테고리별 가게목록 조회
     public StoreListRespDto getStoreByCategory(Long categoryId, int page, int limit) {
         // 유효성 검사 - 카테고리를 찾을 수 없는 경우
         if (!categoryRepository.existsById(categoryId)) {
@@ -179,6 +184,34 @@ public class StoreService {
                 new GetStoreRespDto(projection.getStoreId(), projection.getStoreName(), projection.getMinOrderAmount()));
 
         return new StoreListRespDto(storeDtos);
+    }
+
+    // 가게 상세목록 조회
+    public GetStoreRespDto getStoreInfo(Long categoryId, Long storeId) {
+
+        StoreCategory storeCategory = validateGetStoreInfo(categoryId, storeId);
+
+        // 리뷰 개수 조회
+        long reviewCount = reviewRepository.countByStoreId(storeId);
+
+        // 가게 정보 DTO 변환 및 반환
+        return new GetStoreRespDto(storeCategory.getStore(), reviewCount);
+    }
+
+    // 가게 상세보기 유효성 검사
+    public StoreCategory validateGetStoreInfo(Long categoryId, Long storeId) {
+        // 카테고리가 존재하는지 확인
+        if (!categoryRepository.existsById(categoryId)) {
+            throw new BusinessException(ErrorCode.CATEGORY_NOT_FOUND);
+        }
+        // 해당 카테고리에 해당 스토어가 있는지 확인
+        StoreCategory storeCategory = storeCategoryRepository.findByCategoryIdAndStoreId(categoryId, storeId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.STORE_NOT_FOUND_IN_CATEGORY));
+        // 해강 가게가 영업중인지 확인
+        if (storeCategory.getStore().getIsDeleted()) {
+            throw new BusinessException(ErrorCode.STORE_NOT_FOUND);
+        }
+        return storeCategory;
     }
 
     public MenuListRespDto getStoreMenus(Long storeId, Long categoryId, int page, int limit) {

@@ -1,6 +1,7 @@
 package com.my.foody.domain.review.entity;
 
 import com.my.foody.domain.base.BaseEntity;
+import com.my.foody.domain.order.entity.Order;
 import com.my.foody.domain.store.entity.Store;
 import com.my.foody.domain.user.entity.User;
 import jakarta.persistence.*;
@@ -27,6 +28,10 @@ public class Review extends BaseEntity {
     @JoinColumn(name = "store_id")
     private Store store;
 
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_id")
+    private Order order;
+
     @Column(nullable = false)
     private Integer rating;
 
@@ -34,10 +39,11 @@ public class Review extends BaseEntity {
     private String comment;
 
     @Builder
-    public Review(Long id, User user, Store store, Integer rating, String comment) {
+    public Review(Long id, User user, Store store,Order order, Integer rating, String comment) {
         this.id = id;
         this.user = user;
         this.store = store;
+        this.order = order;
         this.rating = rating;
         this.comment = comment;
     }
