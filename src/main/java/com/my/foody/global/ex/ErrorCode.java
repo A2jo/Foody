@@ -24,6 +24,7 @@ public enum ErrorCode {
     UNAUTHORIZED_ADDRESS_ACCESS(HttpStatus.UNAUTHORIZED.value(), "해당 주소지에 접근 권한이 없습니다"),
     INVALID_ADDRESS_FORMAT(HttpStatus.BAD_REQUEST.value(), "유효하지 않은 주소 형식입니다"),
 
+
     CART_ITEM_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "존재하지 않는 장바구니입니다."),
 
     ALREADY_DEACTIVATED_USER(HttpStatus.BAD_REQUEST.value(), "탈퇴한 유저입니다"),
@@ -31,7 +32,9 @@ public enum ErrorCode {
     STORENAME_ALREADY_EXISTS(HttpStatus.CONFLICT.value(), "이미 사용 중인 가게이름입니다"),
     HAVE_FULL_STORE(HttpStatus.CONFLICT.value(), "생성 가능한 가게 수를 초과합니다."),
     OWNER_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "OWNER를 찾을 수 없습니다."),
-    CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "존재하지 않는 카테고리입니다."),
+
+    CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "존재하지 않는 카테고리입니다.");
+
     ALREADY_LINKED_OAUTH(HttpStatus.BAD_REQUEST.value(), "이미 연동된 소셜 계정입니다"),
     EXPIRED_LINKAGE_TOKEN(HttpStatus.UNAUTHORIZED.value(), "만료된 임시 토큰입니다"),
     SOCIAL_ACCOUNT_NOT_FOUND(HttpStatus.BAD_REQUEST.value(), "연동된 소셜 계정을 찾을 수 없습니다"),
