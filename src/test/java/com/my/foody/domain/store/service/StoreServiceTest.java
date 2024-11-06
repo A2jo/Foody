@@ -90,8 +90,6 @@ public class StoreServiceTest {
         Category category1 = mock(Category.class);
 
         when(ownerRepository.findById(ownerId)).thenReturn(Optional.of(owner));
-        when(storeRepository.existsByName(storeCreateReqDto.getName())).thenReturn(false);
-        when(storeRepository.countByOwnerId(ownerId)).thenReturn(2L);
         when(categoryRepository.findById(1L)).thenReturn(Optional.of(category1));
         when(categoryRepository.findById(999L)).thenReturn(Optional.empty());
 
@@ -322,6 +320,7 @@ public class StoreServiceTest {
                 .build();
 
         ModifyStoreReqDto modifyStoreReqDto = new ModifyStoreReqDto();
+        modifyStoreReqDto.setName("New Name");
         modifyStoreReqDto.setCategoryIds(List.of(999L)); // 존재하지 않는 카테고리 ID
 
         when(storeRepository.findById(storeId)).thenReturn(Optional.of(store));
@@ -332,6 +331,7 @@ public class StoreServiceTest {
         );
 
         assertEquals(ErrorCode.CATEGORY_NOT_FOUND, exception.getErrorCode());
+        System.out.println(exception.getMessage());
     }
 
     @DisplayName(("실패 테스트 - 동일한 이름"))
@@ -366,6 +366,7 @@ public class StoreServiceTest {
         );
 
         assertEquals(ErrorCode.STORENAME_ALREADY_EXISTS, exception.getErrorCode());
+        System.out.println(exception.getMessage());
     }
 
     @DisplayName(("실패 테스트 - 최대 생성 수 제한"))
@@ -400,5 +401,67 @@ public class StoreServiceTest {
         );
 
         assertEquals(ErrorCode.HAVE_FULL_STORE, exception.getErrorCode());
+        System.out.println(exception.getMessage());
+    }
+
+    @DisplayName("가게 수정 실패 테스트 - owner가 다른 경우")
+    @Test
+    public void testModifyStore_Fail_InvalidOwner() {
+        Long storeId = 1L;
+        Long ownerId = 1L;
+        Long differentOwnerId = 2L; // 다른 사장님 ID
+
+        Owner storeOwner = Owner.builder().id(ownerId).build();
+        Store store = Store.builder()
+                .id(storeId)
+                .owner(storeOwner)
+                .name("Store A")
+                .minOrderAmount(10000L)
+                .isDeleted(false)
+                .openTime(LocalTime.of(9, 0))
+                .endTime(LocalTime.of(22, 0))
+                .build();
+
+        ModifyStoreReqDto modifyStoreReqDto = new ModifyStoreReqDto();
+        modifyStoreReqDto.setName("New Store Name");
+
+        when(storeRepository.findById(storeId)).thenReturn(Optional.of(store));
+
+        BusinessException exception = assertThrows(BusinessException.class, () ->
+                storeService.modifyStore(storeId, modifyStoreReqDto, differentOwnerId)
+        );
+
+        assertEquals(ErrorCode.FORBIDDEN_ACCESS, exception.getErrorCode());
+        System.out.println(exception.getMessage());
+    }
+
+    @DisplayName("가게 수정 실패 테스트 - 수정된 내용이 없는 경우")
+    @Test
+    public void testModifyStore_Fail_noUpdateData() {
+        Long storeId = 1L;
+        Long ownerId = 1L;
+
+        Owner storeOwner = Owner.builder().id(ownerId).build();
+        Store store = Store.builder()
+                .id(storeId)
+                .owner(storeOwner)
+                .name("Old Store Name")
+                .minOrderAmount(10000L)
+                .isDeleted(false)
+                .openTime(LocalTime.of(9, 0))
+                .endTime(LocalTime.of(22, 0))
+                .build();
+
+        ModifyStoreReqDto modifyStoreReqDto = new ModifyStoreReqDto();
+        // 수정할 필드를 설정하지 않음 (모든 필드는 null)
+
+        when(storeRepository.findById(storeId)).thenReturn(Optional.of(store));
+
+        BusinessException exception = assertThrows(BusinessException.class, () ->
+                storeService.modifyStore(storeId, modifyStoreReqDto, ownerId)
+        );
+
+        assertEquals(ErrorCode.NO_UPDATE_DATA, exception.getErrorCode());
+        System.out.println(exception.getMessage());
     }
 }
