@@ -10,6 +10,7 @@ import com.my.foody.domain.review.entity.Review;
 import com.my.foody.domain.review.repo.ReviewRepository;
 import com.my.foody.domain.review.repo.dto.ReviewProjectionRespDto;
 import com.my.foody.domain.store.entity.Store;
+import com.my.foody.domain.store.service.StoreService;
 import com.my.foody.domain.user.entity.User;
 import com.my.foody.domain.user.service.UserService;
 import com.my.foody.global.ex.BusinessException;
@@ -30,6 +31,7 @@ public class ReviewService {
     private final ReviewRepository reviewRepository;
     private final UserService userService;
     private final OrderRepository orderRepository;
+    private final StoreService storeService;
 
     public ReviewListRespDto getAllReviewByUser(Long userId, int page, int limit) {
         User user = userService.findActivateUserByIdOrFail(userId);
@@ -58,9 +60,8 @@ public class ReviewService {
             throw new BusinessException(ErrorCode.FORBIDDEN_ACCESS);
         }
 
-        // 가게정보확인
-        Store store = order.getStore();
-
+        // 가게 영업중인지 확인
+            Store store = storeService.findActivateStoreByIdOrFail(order.getStore().getId());
         // 리뷰 생성
         Review review = Review.builder()
                 .user(order.getUser())
