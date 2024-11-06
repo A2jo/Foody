@@ -285,4 +285,81 @@ public class StoreServiceTest {
         verify(categoryRepository, times(1)).existsById(categoryId);
         verify(storeCategoryRepository, times(0)).findByCategoryId(anyLong(), any(Pageable.class));
     }
+
+    // -[가게 상세 정보 조회]---------------------------------------------------
+    @DisplayName("가게 상세 조회 성공 테스트")
+    @Test
+    public void testGetStoreInfo_Success() {
+        Long categoryId = 1L;
+        Long storeId = 1L;
+        Category category = mock(Category.class);
+        Owner owner = mock(Owner.class);
+
+        Store store = Store.builder()
+                .id(storeId)
+                .name("Store A")
+                .owner(owner)
+                .minOrderAmount(10000L)
+                .isDeleted(false)
+                .openTime(LocalTime.of(9, 0))
+                .endTime(LocalTime.of(22, 0))
+                .build();
+
+        StoreCategory storeCategory = StoreCategory.builder()
+                .store(store)
+                .category(category)
+                .build();
+
+        when(categoryRepository.existsById(categoryId)).thenReturn(true); // 카테고리 존재 확인 설정
+        when(storeCategoryRepository.findByCategoryIdAndStoreId(categoryId, storeId)).thenReturn(Optional.of(storeCategory)); // 카테고리와 가게 매핑 존재
+
+        GetStoreRespDto result = storeService.getStoreInfo(categoryId, storeId);
+
+        assertNotNull(result);
+        assertEquals("Store A", result.getName());
+        assertEquals(10000L, result.getMinOrderAmount());
+
+        verify(categoryRepository, times(1)).existsById(categoryId);
+        verify(storeCategoryRepository, times(1)).findByCategoryIdAndStoreId(categoryId, storeId);
+    }
+
+    @DisplayName("가게 상세 조회 실패 테스트 - 존재하지 않는 카테고리")
+    @Test
+    public void testGetStoreInfo_Fail_NotFoundCategory() {
+        Long categoryId = 999L; // 존재하지 않는 카테고리 ID
+        Long storeId = 1L;
+
+        when(categoryRepository.existsById(categoryId)).thenReturn(false);
+
+        BusinessException exception = assertThrows(BusinessException.class, () ->
+                storeService.getStoreInfo(categoryId, storeId)
+        );
+
+        assertEquals(ErrorCode.CATEGORY_NOT_FOUND, exception.getErrorCode());
+        System.out.println(exception.getMessage());
+
+        verify(categoryRepository, times(1)).existsById(categoryId);
+        verify(storeCategoryRepository, never()).findByCategoryIdAndStoreId(anyLong(), anyLong());
+    }
+
+    @DisplayName("가게 상세 조회 실패 테스트 - 해당 카테고리 에 존재하지 않는 가게")
+    @Test
+    public void testGetStoreInfo_Fail_NotFoundCategoryInStore() {
+            Long categoryId = 1L;
+            Long storeId = 999L; // 해당 카테고리에 존재하지 않는 가게 ID
+
+            when(categoryRepository.existsById(categoryId)).thenReturn(true);
+            when(storeCategoryRepository.findByCategoryIdAndStoreId(categoryId, storeId)).thenReturn(Optional.empty());
+
+            BusinessException exception = assertThrows(BusinessException.class, () ->
+                    storeService.getStoreInfo(categoryId, storeId)
+            );
+
+            assertEquals(ErrorCode.STORE_NOT_FOUND_IN_CATEGORY, exception.getErrorCode());
+            System.out.println(exception.getMessage());
+
+            verify(categoryRepository, times(1)).existsById(categoryId);
+            verify(storeCategoryRepository, times(1)).findByCategoryIdAndStoreId(categoryId, storeId);
+    }
+
 }
