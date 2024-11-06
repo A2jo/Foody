@@ -5,6 +5,7 @@ import com.my.foody.domain.category.entity.Category;
 import com.my.foody.domain.category.repo.CategoryRepository;
 import com.my.foody.domain.owner.entity.Owner;
 import com.my.foody.domain.owner.repo.OwnerRepository;
+import com.my.foody.domain.review.repo.ReviewRepository;
 import com.my.foody.domain.store.dto.req.ModifyStoreReqDto;
 import com.my.foody.domain.store.dto.req.StoreCreateReqDto;
 import com.my.foody.domain.store.dto.resp.GetStoreRespDto;
@@ -51,6 +52,8 @@ public class StoreServiceTest {
     private CategoryRepository categoryRepository;
     @Mock
     private StoreCategoryRepository storeCategoryRepository;
+    @Mock
+    private ReviewRepository reviewRepository;
 
     @DisplayName("가게 생성 성공")
     @Test
@@ -760,35 +763,39 @@ public class StoreServiceTest {
     public void testGetStoreInfo_Success() {
         Long categoryId = 1L;
         Long storeId = 1L;
-        Category category = mock(Category.class);
-        Owner owner = mock(Owner.class);
 
         Store store = Store.builder()
                 .id(storeId)
-                .name("Store A")
-                .owner(owner)
+                .name("Test Store")
+                .description("Test Description")
                 .minOrderAmount(10000L)
-                .isDeleted(false)
                 .openTime(LocalTime.of(9, 0))
-                .endTime(LocalTime.of(22, 0))
+                .endTime(LocalTime.of(21, 0))
+                .isDeleted(false)
                 .build();
 
         StoreCategory storeCategory = StoreCategory.builder()
+                .id(1L)
                 .store(store)
-                .category(category)
+                .category(Category.builder().id(categoryId).name("Category1").build())
                 .build();
 
-        when(categoryRepository.existsById(categoryId)).thenReturn(true); // 카테고리 존재 확인 설정
-        when(storeCategoryRepository.findByCategoryIdAndStoreId(categoryId, storeId)).thenReturn(Optional.of(storeCategory)); // 카테고리와 가게 매핑 존재
+        // 리뷰 개수 설정 (예를 들어, 리뷰가 5개 있다고 가정)
+        long reviewCount = 5;
 
-        GetStoreRespDto result = storeService.getStoreInfo(categoryId, storeId);
+        when(storeCategoryRepository.findByCategoryIdAndStoreId(categoryId, storeId)).thenReturn(Optional.of(storeCategory));
+        when(categoryRepository.existsById(categoryId)).thenReturn(true);
+        when(reviewRepository.countByStoreId(storeId)).thenReturn(reviewCount);
 
-        assertNotNull(result);
-        assertEquals("Store A", result.getName());
-        assertEquals(10000L, result.getMinOrderAmount());
+        GetStoreRespDto storeRespDto = storeService.getStoreInfo(categoryId, storeId);
 
-        verify(categoryRepository, times(1)).existsById(categoryId);
-        verify(storeCategoryRepository, times(1)).findByCategoryIdAndStoreId(categoryId, storeId);
+        assertNotNull(storeRespDto);
+        assertEquals("Test Store", storeRespDto.getName());
+        assertEquals("Test Description", storeRespDto.getDescription());
+        assertEquals(10000L, storeRespDto.getMinOrderAmount());
+        assertEquals(LocalTime.of(9, 0), storeRespDto.getOpenTime());
+        assertEquals(LocalTime.of(21, 0), storeRespDto.getEndTime());
+        assertEquals(reviewCount, storeRespDto.getReviewCount());
     }
 
     @DisplayName("가게 상세 조회 실패 테스트 - 존재하지 않는 카테고리")
