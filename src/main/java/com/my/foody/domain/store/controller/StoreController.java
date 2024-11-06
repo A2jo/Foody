@@ -41,11 +41,18 @@ public class StoreController {
         return ResponseEntity.ok(ApiResult.success(stores));
     }
 
-    @GetMapping("home/categories/{categoryId}/store")
+    @GetMapping("/home/categories/{categoryId}/store")
     public ResponseEntity<ApiResult<Page<GetStoreRespDto>>> getStoreByCategory(@PathVariable(value = "categoryId") Long categoryId,
                                                                                @RequestParam(value = "page", defaultValue = "0") int page,
                                                                                @RequestParam(value = "limit", defaultValue = "10") int limit) {
         Page<GetStoreRespDto> stores = storeService.getStoreByCategory(categoryId, page, limit);
         return ResponseEntity.ok(ApiResult.success(stores));
+    }
+
+    @GetMapping("/home/categories/{categoryId}/store/{storeId}")
+    public ResponseEntity<ApiResult<GetStoreRespDto>> getStoreInfo(@PathVariable(value = "categoryId") Long categoryId,
+                                                                   @PathVariable(value = "storeId") Long storeId) {
+        GetStoreRespDto storeRespDto = storeService.getStoreInfo(categoryId, storeId);
+        return ResponseEntity.ok(ApiResult.success(storeRespDto));
     }
 }

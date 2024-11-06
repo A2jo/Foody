@@ -85,18 +85,36 @@ public class StoreService {
         }
     }
 
-    public Store findActivateStoreByIdOrFail(Long storeId){
+    public Store findActivateStoreByIdOrFail(Long storeId) {
         return storeRepository.findActivateStore(storeId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.STORE_NOT_FOUND));
     }
 
     public Page<GetStoreRespDto> getStoreByCategory(Long categoryId, int page, int limit) {
-        // 유효성 검사 - 카테고리를 찾을 수 없는 경우
-        if (!categoryRepository.existsById(categoryId)) {
-            throw new BusinessException(ErrorCode.CATEGORY_NOT_FOUND);
-        }
+
+        validateGetStoreCategory(categoryId);
+
         Pageable pageable = PageRequest.of(page, limit);
         Page<StoreCategory> storeCategories = storeCategoryRepository.findByCategoryId(categoryId, pageable);
         return storeCategories.map(storeCategory -> new GetStoreRespDto(storeCategory.getStore()));
+    }
+
+    public GetStoreRespDto getStoreInfo(Long categoryId, Long storeId) {
+
+        validateGetStoreCategory(categoryId);
+
+        // 해당 카테고리에 해당 스토어가 있는지 확인
+        StoreCategory storeCategory = storeCategoryRepository.findByCategoryIdAndStoreId(categoryId, storeId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.STORE_NOT_FOUND_IN_CATEGORY));
+
+        // 가게 정보 DTO 변환 및 반환
+        return new GetStoreRespDto(storeCategory.getStore());
+    }
+
+    // 카테고리 유효성 검사
+    public void validateGetStoreCategory(Long categoryId) {
+        if (!categoryRepository.existsById(categoryId)) {
+            throw new BusinessException(ErrorCode.CATEGORY_NOT_FOUND);
+        }
     }
 }
