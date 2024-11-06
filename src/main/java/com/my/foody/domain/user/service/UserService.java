@@ -6,21 +6,14 @@ import com.my.foody.domain.address.dto.resp.AddressCreateRespDto;
 import com.my.foody.domain.address.dto.resp.AddressModifyRespDto;
 import com.my.foody.domain.address.entity.Address;
 import com.my.foody.domain.address.repo.AddressRepository;
-import com.my.foody.domain.category.entity.Category;
+import com.my.foody.domain.address.service.AddressService;
 import com.my.foody.domain.category.repo.CategoryRepository;
-import com.my.foody.domain.store.entity.Store;
-import com.my.foody.domain.store.repo.StoreRepository;
 import com.my.foody.domain.socialAccount.dto.resp.SocialLoginRespDto;
 import com.my.foody.domain.socialAccount.entity.SocialAccount;
 import com.my.foody.domain.socialAccount.repo.SocialAccountRepository;
-import com.my.foody.domain.user.dto.req.UserDeleteReqDto;
-import com.my.foody.domain.user.dto.req.UserInfoModifyReqDto;
-import com.my.foody.domain.user.dto.req.UserLoginReqDto;
-import com.my.foody.domain.user.dto.req.UserPasswordModifyReqDto;
-import com.my.foody.domain.user.dto.req.UserSignUpReqDto;
+import com.my.foody.domain.store.repo.StoreRepository;
+import com.my.foody.domain.user.dto.req.*;
 import com.my.foody.domain.user.dto.resp.*;
-import com.my.foody.domain.user.dto.resp.UserInfoModifyRespDto;
-import com.my.foody.domain.address.service.AddressService;
 import com.my.foody.domain.user.entity.Provider;
 import com.my.foody.domain.user.entity.User;
 import com.my.foody.domain.user.repo.UserRepository;
@@ -48,18 +41,6 @@ public class UserService {
     private final CategoryRepository categoryRepository;
     private final StoreRepository storeRepository;
 
-    // 메인 화면 조회 메서드 추가
-    public UserHomeRespDto getUserHomeData() {
-
-        // 모든 카테고리 조회
-        List<Category> categories = categoryRepository.findAll();
-
-        // 모든 가게 조회
-        List<Store> stores = storeRepository.findAll();
-
-        // DTO로 반환
-        return new UserHomeRespDto(categories, stores);
-    }
     private final SocialAccountRepository socialAccountRepository;
 
     public UserSignUpRespDto signUp(UserSignUpReqDto userSignUpReqDto){

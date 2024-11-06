@@ -3,21 +3,11 @@ package com.my.foody.domain.user.controller;
 import com.my.foody.domain.address.dto.req.AddressCreateReqDto;
 import com.my.foody.domain.address.dto.req.AddressModifyReqDto;
 import com.my.foody.domain.address.dto.resp.AddressCreateRespDto;
+import com.my.foody.domain.address.dto.resp.AddressModifyRespDto;
 import com.my.foody.domain.review.dto.resp.ReviewListRespDto;
 import com.my.foody.domain.review.service.ReviewService;
-import com.my.foody.domain.user.dto.req.UserDeleteReqDto;
-import com.my.foody.domain.user.dto.resp.UserDeleteRespDto;
-import com.my.foody.domain.user.dto.req.UserInfoModifyReqDto;
-import com.my.foody.domain.user.dto.req.UserLoginReqDto;
-import com.my.foody.domain.user.dto.req.UserPasswordModifyReqDto;
-import com.my.foody.domain.user.dto.req.UserSignUpReqDto;
+import com.my.foody.domain.user.dto.req.*;
 import com.my.foody.domain.user.dto.resp.*;
-import com.my.foody.domain.user.dto.resp.UserInfoModifyRespDto;
-import com.my.foody.domain.address.dto.resp.AddressModifyRespDto;
-import com.my.foody.domain.user.dto.resp.AddressDeleteRespDto;
-import com.my.foody.domain.user.dto.resp.UserInfoRespDto;
-import com.my.foody.domain.user.dto.resp.UserLoginRespDto;
-import com.my.foody.domain.user.dto.resp.UserSignUpRespDto;
 import com.my.foody.domain.user.service.UserService;
 import com.my.foody.global.config.valid.CurrentUser;
 import com.my.foody.global.config.valid.RequireAuth;
@@ -27,7 +17,6 @@ import com.my.foody.global.jwt.UserType;
 import com.my.foody.global.util.api.ApiResult;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -40,13 +29,6 @@ public class UserController {
 
     private final UserService userService;
     private final ReviewService reviewService;
-
-    // 메인 화면 조회
-    @GetMapping("/home")
-    public ResponseEntity<UserHomeRespDto> getUserHome() {
-        UserHomeRespDto response = userService.getUserHomeData();
-        return ResponseEntity.ok(response);
-    }
 
     @PostMapping("/signup")
     public ResponseEntity<ApiResult<UserSignUpRespDto>> signUp(@RequestBody @Valid UserSignUpReqDto userSignUpReqDto){
