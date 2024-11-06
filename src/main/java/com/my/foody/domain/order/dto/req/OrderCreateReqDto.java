@@ -4,6 +4,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 @NoArgsConstructor
+@Builder
 @Getter
 @AllArgsConstructor
 public class OrderCreateReqDto {
