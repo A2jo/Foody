@@ -60,7 +60,7 @@ public class MenuService {
 
 
   //메뉴 전체 조회 (페이징처리)
-    public Page<MenuReadResponseDto> getMenus(Long storeId, Long ownerId, int page, int limit) {
+    public MenuReadResponseDto getMenus(Long storeId, Long ownerId, int page, int limit) {
         //해당 가게가 존재 하는지 확인
         Store store = storeRepository.findById(storeId).orElseThrow(() -> new BusinessException(ErrorCode.STORE_NOT_FOUND));
 
@@ -73,7 +73,7 @@ public class MenuService {
         //가게에 해당하는 모든 메뉴 조회
         Page<Menu> menuPage = menuRepository.findAllByStoreId(storeId, pageable);
 
-        return menuPage.map(MenuReadResponseDto::new);
+        return new MenuReadResponseDto(menuPage);
     }
 
   
