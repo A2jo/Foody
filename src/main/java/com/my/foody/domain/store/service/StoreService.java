@@ -9,6 +9,7 @@ import com.my.foody.domain.store.dto.req.StoreCreateReqDto;
 import com.my.foody.domain.store.dto.resp.GetStoreRespDto;
 import com.my.foody.domain.store.dto.resp.ModifyStoreRespDto;
 import com.my.foody.domain.store.dto.resp.StoreCreateRespDto;
+import com.my.foody.domain.store.dto.resp.StoreListRespDto;
 import com.my.foody.domain.store.entity.Store;
 import com.my.foody.domain.store.repo.StoreRepository;
 import com.my.foody.domain.storeCategory.entity.StoreCategory;
@@ -159,15 +160,18 @@ public class StoreService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.STORE_NOT_FOUND));
     }
 
-    public Page<GetStoreRespDto> getStoreByCategory(Long categoryId, int page, int limit) {
+    public StoreListRespDto getStoreByCategory(Long categoryId, int page, int limit) {
         // 유효성 검사 - 카테고리를 찾을 수 없는 경우
         if (!categoryRepository.existsById(categoryId)) {
             throw new BusinessException(ErrorCode.CATEGORY_NOT_FOUND);
         }
+
         Pageable pageable = PageRequest.of(page, limit);
         Page<StoreCategoryProjection> storeProjections = storeCategoryRepository.findStoresByCategoryId(categoryId, pageable);
 
-        return storeProjections.map(projection ->
+        Page<GetStoreRespDto> storeDtos = storeProjections.map(projection ->
                 new GetStoreRespDto(projection.getStoreId(), projection.getStoreName(), projection.getMinOrderAmount()));
+
+        return new StoreListRespDto(storeDtos);
     }
 }
