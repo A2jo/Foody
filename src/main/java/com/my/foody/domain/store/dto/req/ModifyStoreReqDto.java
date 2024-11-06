@@ -28,4 +28,14 @@ public class ModifyStoreReqDto {
     @Pattern(regexp = "^[0-9]+$", message = "카테고리에 맞는 숫자로 입력해주세요.")
     private List<Long> categoryIds;
     private Boolean isDeleted;
+
+    public boolean hasNoUpdateData() {
+        return name == null &&
+                description == null &&
+                contact == null &&
+                minOrderAmount == null &&
+                openTime == null &&
+                endTime == null &&
+                isDeleted == null;
+    }
 }

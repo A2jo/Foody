@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -59,6 +60,7 @@ public class StoreService {
 
     @Transactional
     public ModifyStoreRespDto modifyStore(Long storeId, ModifyStoreReqDto modifyStoreReqDto, Long ownerId) {
+
         // 가게 조회
         Store store = storeRepository.findById(storeId).orElseThrow(() ->
                 new BusinessException(ErrorCode.STORE_NOT_FOUND)
@@ -70,43 +72,8 @@ public class StoreService {
         //유효성 검사
         validateModifyStore(store, modifyStoreReqDto, ownerId);
 
-        // 수정 flag
-        boolean isModified = false;
 
-        // 수정할 필드가 null이 아닌 경우만 업데이트
-        if (modifyStoreReqDto.getName() != null) {
-            store.setName(modifyStoreReqDto.getName());
-            isModified = true;
-        }
-        if (modifyStoreReqDto.getDescription() != null) {
-            store.setDescription(modifyStoreReqDto.getDescription());
-            isModified = true;
-        }
-        if (modifyStoreReqDto.getContact() != null) {
-            store.setContact(modifyStoreReqDto.getContact());
-            isModified = true;
-        }
-        if (modifyStoreReqDto.getMinOrderAmount() != null) {
-            store.setMinOrderAmount(modifyStoreReqDto.getMinOrderAmount());
-            isModified = true;
-        }
-        if (modifyStoreReqDto.getOpenTime() != null) {
-            store.setOpenTime(modifyStoreReqDto.getOpenTime());
-            isModified = true;
-        }
-        if (modifyStoreReqDto.getEndTime() != null) {
-            store.setEndTime(modifyStoreReqDto.getEndTime());
-            isModified = true;
-        }
-        if (modifyStoreReqDto.getIsDeleted() != null) {
-            store.setIsDeleted(modifyStoreReqDto.getIsDeleted());
-            isModified = true;
-        }
-
-        // 아무것도 수정되지 않은 경우 예외 처리
-        if (!isModified) {
-            throw new BusinessException(ErrorCode.NO_UPDATE_DATA);
-        }
+        store.updateAll(modifyStoreReqDto);
 
         // 가게가 폐업 상태가 아닌 경우에만 카테고리 수정
         if (modifyStoreReqDto.getIsDeleted() == null || !modifyStoreReqDto.getIsDeleted()) {
@@ -119,6 +86,9 @@ public class StoreService {
         }
         return new ModifyStoreRespDto(store);
     }
+
+
+
 
     // 카테고리 저장
     public void saveCategory(StoreCreateReqDto storeCreateReqDto, Store store) {
@@ -163,6 +133,10 @@ public class StoreService {
     }
     // 가게 수정 시 유효성 검사
     public void validateModifyStore(Store store, ModifyStoreReqDto modifyStoreReqDto, Long ownerId) {
+        // 수정할 데이터가 없으면 예외 발생
+        if (modifyStoreReqDto.hasNoUpdateData()) {
+            throw new BusinessException(ErrorCode.NO_UPDATE_DATA);
+        }
         // 요청한 사용자가 가게의 실제 사장님인지 확인
         if (!store.getOwner().getId().equals(ownerId)) {
             throw new BusinessException(ErrorCode.FORBIDDEN_ACCESS);
