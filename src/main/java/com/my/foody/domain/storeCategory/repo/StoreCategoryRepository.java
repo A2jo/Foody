@@ -4,6 +4,7 @@ import com.my.foody.domain.storeCategory.entity.StoreCategory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -13,4 +14,8 @@ public interface StoreCategoryRepository extends JpaRepository<StoreCategory, Lo
     Page<StoreCategory> findByCategoryId(Long categoryId, Pageable pageable);
 
     Optional<StoreCategory> findByCategoryIdAndStoreId(Long categoryId, Long storeId);
+    void deleteByStoreId(Long storeId);
+    @Query("SELECT sc.store.id AS storeId, sc.store.name AS storeName, sc.category.id AS categoryId " +
+            "FROM StoreCategory sc WHERE sc.category.id = :categoryId")
+    Page<StoreCategoryProjection> findStoresByCategoryId(Long categoryId, Pageable pageable);
 }

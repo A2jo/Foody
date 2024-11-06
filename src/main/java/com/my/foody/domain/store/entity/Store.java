@@ -2,10 +2,12 @@ package com.my.foody.domain.store.entity;
 
 import com.my.foody.domain.base.BaseEntity;
 import com.my.foody.domain.owner.entity.Owner;
+import com.my.foody.domain.store.dto.req.ModifyStoreReqDto;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalTime;
+import java.util.Optional;
 
 @Entity
 @Getter
@@ -38,7 +40,6 @@ public class Store extends BaseEntity {
     @Column(nullable = false)
     private LocalTime endTime;
 
-    // isDeleted 초기값 false (가게 생성 시 따로 입력하지 않아도 초기값 false로 저장)
     @Column(nullable = false)
     private Boolean isDeleted; //삭제되면 true, 운영 중이면 false
 
@@ -53,5 +54,15 @@ public class Store extends BaseEntity {
         this.openTime = openTime;
         this.endTime = endTime;
         this.isDeleted = isDeleted;
+    }
+
+    public void updateAll(ModifyStoreReqDto modifyStoreReqDto) {
+        Optional.ofNullable(modifyStoreReqDto.getName()).ifPresent(name -> this.name = name);
+        Optional.ofNullable(modifyStoreReqDto.getDescription()).ifPresent(description -> this.description = description);
+        Optional.ofNullable(modifyStoreReqDto.getContact()).ifPresent(contact -> this.contact = contact);
+        Optional.ofNullable(modifyStoreReqDto.getMinOrderAmount()).ifPresent(minOrderAmount -> this.minOrderAmount = minOrderAmount);
+        Optional.ofNullable(modifyStoreReqDto.getOpenTime()).ifPresent(openTime -> this.openTime = openTime);
+        Optional.ofNullable(modifyStoreReqDto.getEndTime()).ifPresent(endTime -> this.endTime = endTime);
+        Optional.ofNullable(modifyStoreReqDto.getIsDeleted()).ifPresent(isDeleted -> this.isDeleted = isDeleted);
     }
 }

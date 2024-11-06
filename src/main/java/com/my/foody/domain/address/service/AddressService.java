@@ -19,4 +19,9 @@ public class AddressService {
         return addressRepository.findById(addressId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.ADDRESS_NOT_FOUND));
     }
+
+    public Address findMainAddress(Long userId){
+        return addressRepository.findByUserIdAndIsMain(userId, true)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MAIN_ADDRESS_NOT_FOUND));
+    }
 }

@@ -17,4 +17,9 @@ public class GetStoreRespDto {
         this.isDeleted = store.getIsDeleted();
         this.minOrderAmount = store.getMinOrderAmount();
     }
+
+    public GetStoreRespDto(Long storeId, String name, Long minOrderAmount) {
+        this.name = name;
+        this.minOrderAmount = minOrderAmount;
+    }
 }
