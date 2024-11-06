@@ -442,18 +442,20 @@ public class StoreServiceTest {
         Long ownerId = 1L;
 
         Owner storeOwner = Owner.builder().id(ownerId).build();
+
         Store store = Store.builder()
                 .id(storeId)
                 .owner(storeOwner)
                 .name("Old Store Name")
+                .description("Old Description")
+                .contact("010-1111-2222")
                 .minOrderAmount(10000L)
-                .isDeleted(false)
                 .openTime(LocalTime.of(9, 0))
                 .endTime(LocalTime.of(22, 0))
+                .isDeleted(false)
                 .build();
 
         ModifyStoreReqDto modifyStoreReqDto = new ModifyStoreReqDto();
-        // 수정할 필드를 설정하지 않음 (모든 필드는 null)
 
         when(storeRepository.findById(storeId)).thenReturn(Optional.of(store));
 
