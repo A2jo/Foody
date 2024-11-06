@@ -42,6 +42,7 @@ public enum ErrorCode {
     MENU_NOT_FOUND(HttpStatus.BAD_REQUEST.value(), "존재하지 않는 메뉴입니다"),
     MENU_NOT_AVAILABLE(HttpStatus.BAD_REQUEST.value(), "현재 주문할 수 없는 메뉴입니다"),
     OAUTH_CALLBACK_FAILED(HttpStatus.INTERNAL_SERVER_ERROR.value(), "소셜 인증 서버와 통신 중 오류가 발생했습니다"),
+    NO_UPDATE_DATA(HttpStatus.NO_CONTENT.value(), "수정된 내용이 존재하지 않습니다."),
     ;
 
 
