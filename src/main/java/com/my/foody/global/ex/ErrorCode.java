@@ -41,6 +41,8 @@ public enum ErrorCode {
     UNSUPPORTED_OAUTH_PROVIDER(HttpStatus.BAD_REQUEST.value(), "지원하지 않는 Oauth2 입니다"),
     MENU_NOT_FOUND(HttpStatus.BAD_REQUEST.value(), "존재하지 않는 메뉴입니다"),
     MENU_NOT_AVAILABLE(HttpStatus.BAD_REQUEST.value(), "현재 주문할 수 없는 메뉴입니다"),
+    ORDER_NOT_COMPLETED(HttpStatus.BAD_REQUEST.value(), "리뷰는 완료된 주문에 대해서만 작성할 수 있습니다"),
+    REVIEW_ALREADY_EXISTS(HttpStatus.BAD_REQUEST.value(), "해당 주문에 대한 리뷰가 존재합니다"),
     EMAIL_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "존재하지 않는 이메일입니다"),
     MENU_IS_SOLD_OUT(HttpStatus.BAD_REQUEST.value(), "품절된 메뉴입니다"),
     MAIN_ADDRESS_NOT_FOUND(HttpStatus.BAD_REQUEST.value(), "기본 주소지가 등록되지 않았습니다"),
