@@ -11,6 +11,7 @@ import com.my.foody.global.jwt.UserType;
 import com.my.foody.global.util.api.ApiResult;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -41,8 +42,10 @@ public class StoreController {
     }
 
     @GetMapping("home/categories/{categoryId}/store")
-    public ResponseEntity<ApiResult<List<GetStoreRespDto>>> getStoreByCategory(@PathVariable(value = "categoryId") Long categoryId) {
-        List<GetStoreRespDto> stores = storeService.getStoreByCategory(categoryId);
+    public ResponseEntity<ApiResult<Page<GetStoreRespDto>>> getStoreByCategory(@PathVariable(value = "categoryId") Long categoryId,
+                                                                               @RequestParam(value = "page", defaultValue = "0") int page,
+                                                                               @RequestParam(value = "limit", defaultValue = "10") int limit) {
+        Page<GetStoreRespDto> stores = storeService.getStoreByCategory(categoryId, page, limit);
         return ResponseEntity.ok(ApiResult.success(stores));
     }
 }

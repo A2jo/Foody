@@ -14,6 +14,9 @@ import com.my.foody.domain.storeCategory.repo.StoreCategoryRepository;
 import com.my.foody.global.ex.BusinessException;
 import com.my.foody.global.ex.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -83,14 +86,14 @@ public class StoreService {
         }
     }
 
-    public List<GetStoreRespDto> getStoreByCategory(Long categoryId) {
-        List<StoreCategory> storeCategories = storeCategoryRepository.findByCategoryId(categoryId);
+    public Page<GetStoreRespDto> getStoreByCategory(Long categoryId, int page, int limit) {
+        Pageable pageable = PageRequest.of(page, limit);
+        Page<StoreCategory> storeCategories = storeCategoryRepository.findByCategoryId(categoryId, pageable);
+
         // 유효성 검사 - 카테고리를 찾을 수 없는 경우
         if (!categoryRepository.existsById(categoryId)) {
             throw new BusinessException(ErrorCode.CATEGORY_NOT_FOUND);
         }
-        return storeCategories.stream()
-                .map(storeCategory -> new GetStoreRespDto(storeCategory.getStore()))
-                .toList();
+        return storeCategories.map(storeCategory -> new GetStoreRespDto(storeCategory.getStore()));
     }
 }
