@@ -1,5 +1,6 @@
 package com.my.foody.domain.order.controller;
 
+import com.my.foody.domain.order.dto.resp.OrderInfoRespDto;
 import com.my.foody.domain.order.dto.req.OrderCreateReqDto;
 import com.my.foody.domain.order.dto.req.OrderStatusUpdateReqDto;
 import com.my.foody.domain.order.dto.resp.OrderListRespDto;
@@ -67,5 +68,13 @@ public class OrderController {
                                                        @CurrentUser TokenSubject tokenSubject) {
     orderService.createOrder(cartId, orderCreateReqDto, tokenSubject.getId());
     return new ResponseEntity<>(ApiResult.success("주문이 완료되었습니다."), HttpStatus.CREATED);
+  }
+
+
+  @RequireAuth(userType = UserType.OWNER)
+  @GetMapping("/api/owners/orders/{orderId}")
+  public ResponseEntity<ApiResult<OrderInfoRespDto>> getOrderInfo(@RequestParam(value = "orderId", required = true) @Positive Long orderId,
+                                                                  @CurrentUser TokenSubject tokenSubject){
+    return new ResponseEntity<>(ApiResult.success(orderService.getOrderInfo(tokenSubject.getId(), orderId)), HttpStatus.OK);
   }
 }
