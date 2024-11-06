@@ -171,6 +171,7 @@ public class OrderServiceTest extends DummyObject {
                 .roadAddress("abcd")
                 .detailedAddress("abc123")
                 .user(user)
+                .isMain(true)
                 .build();
     }
 
@@ -567,7 +568,7 @@ public class OrderServiceTest extends DummyObject {
         when(userService.findActivateUserByIdOrFail(user.getId())).thenReturn(user);
         when(cartRepository.findById(cart.getId())).thenReturn(Optional.of(cart));
         when(storeService.findActivateStoreByIdOrFail(store.getId())).thenReturn(store);
-        when(addressService.findByIdOrFail(orderCreateReqDto.getUserAddressId())).thenReturn(address);
+        when(addressRepository.findByUserIdAndIsMain(user.getId(), true)).thenReturn(Optional.of(address));
         when(timeProvider.now()).thenReturn(LocalTime.of(12, 0));
 
         orderService.createOrder(cart.getId(), orderCreateReqDto, user.getId());
@@ -619,8 +620,34 @@ public class OrderServiceTest extends DummyObject {
         when(userService.findActivateUserByIdOrFail(user.getId())).thenReturn(user);
         when(cartRepository.findById(cart.getId())).thenReturn(Optional.of(cart));
         when(storeService.findActivateStoreByIdOrFail(store.getId())).thenReturn(store);
-    when(addressService.findByIdOrFail(orderCreateReqDto.getUserAddressId()))
-        .thenThrow(new BusinessException(ErrorCode.ADDRESS_NOT_FOUND));
+        when(addressRepository.findByUserIdAndIsMain(user.getId(), true))
+                .thenReturn(Optional.empty());
+
+        assertThrows(BusinessException.class, () ->
+                orderService.createOrder(cart.getId(), orderCreateReqDto, user.getId())
+        );
+    }
+
+    @Test
+    @DisplayName("주문 생성 실패 테스트 - 주소가 기본 주소가 아님")
+    void createOrder_NotMainAddress() {
+        OrderCreateReqDto orderCreateReqDto = new OrderCreateReqDto();
+        orderCreateReqDto.setUserAddressId(address.getId());
+        orderCreateReqDto.setTotalAmount(2000L);
+
+        // Set up an address that is not the main address
+        Address nonMainAddress = Address.builder()
+                .id(2L)
+                .roadAddress("xyz")
+                .detailedAddress("xyz123")
+                .user(user)
+                .isMain(false)
+                .build();
+
+        when(userService.findActivateUserByIdOrFail(user.getId())).thenReturn(user);
+        when(cartRepository.findById(cart.getId())).thenReturn(Optional.of(cart));
+        when(storeService.findActivateStoreByIdOrFail(store.getId())).thenReturn(store);
+        when(addressRepository.findByUserIdAndIsMain(user.getId(), true)).thenReturn(Optional.of(nonMainAddress));
 
         assertThrows(BusinessException.class, () ->
                 orderService.createOrder(cart.getId(), orderCreateReqDto, user.getId())
@@ -637,7 +664,7 @@ public class OrderServiceTest extends DummyObject {
         when(userService.findActivateUserByIdOrFail(user.getId())).thenReturn(user);
         when(cartRepository.findById(cart.getId())).thenReturn(Optional.of(cart));
         when(storeService.findActivateStoreByIdOrFail(store.getId())).thenReturn(store);
-        when(addressService.findByIdOrFail(orderCreateReqDto.getUserAddressId())).thenReturn(address);
+        when(addressRepository.findByUserIdAndIsMain(user.getId(), true)).thenReturn(Optional.of(address));
 
         assertThrows(BusinessException.class, () ->
                 orderService.createOrder(cart.getId(), orderCreateReqDto, user.getId())
@@ -659,7 +686,7 @@ public class OrderServiceTest extends DummyObject {
         when(userService.findActivateUserByIdOrFail(user.getId())).thenReturn(user);
         when(cartRepository.findById(cart.getId())).thenReturn(Optional.of(cart));
         when(storeService.findActivateStoreByIdOrFail(store.getId())).thenReturn(store);
-        when(addressService.findByIdOrFail(orderCreateReqDto.getUserAddressId())).thenReturn(address);
+        when(addressRepository.findByUserIdAndIsMain(user.getId(), true)).thenReturn(Optional.of(address));
 
         assertThrows(BusinessException.class, () ->
                 orderService.createOrder(cart.getId(), orderCreateReqDto, user.getId())
