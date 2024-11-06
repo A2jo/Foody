@@ -48,11 +48,18 @@ public enum ErrorCode {
     MENU_IS_SOLD_OUT(HttpStatus.BAD_REQUEST.value(), "품절된 메뉴입니다"),
     MAIN_ADDRESS_NOT_FOUND(HttpStatus.BAD_REQUEST.value(), "기본 주소지가 등록되지 않았습니다"),
     CART_IS_EMPTY(HttpStatus.BAD_REQUEST.value(), "장바구니가 비어있습니다"),
-
     NO_UPDATE_DATA(HttpStatus.NO_CONTENT.value(), "수정된 내용이 존재하지 않습니다."),
-    MENU_STORE_MISMATCH(HttpStatus.BAD_REQUEST.value(), "해당 메뉴가 가게에 존재하지 않습니다"),
-    NOT_MAIN_ADDRESS(HttpStatus.BAD_REQUEST.value(), "기본 주소가 아닙니다.");
 
+
+    ORDER_NOT_COMPLETED(HttpStatus.BAD_REQUEST.value(), "리뷰는 완료된 주문에 대해서만 작성할 수 있습니다"),
+    REVIEW_ALREADY_EXISTS(HttpStatus.BAD_REQUEST.value(), "해당 주문에 대한 리뷰가 존재합니다"),
+
+    STORE_NOT_FOUND_IN_CATEGORY(HttpStatus.NOT_FOUND.value(), "해당 카테고리에 해당 가게가 존재하지 않습니다."),
+    MENU_STORE_MISMATCH(HttpStatus.BAD_REQUEST.value(), "해당 메뉴가 가게에 존재하지 않습니다"),
+
+    INVALID_MENU_NAME(HttpStatus.BAD_REQUEST.value(), "메뉴 이름은 1자 이상 30자 이하여야 합니다"),
+    INVALID_MENU_PRICE(HttpStatus.BAD_REQUEST.value(), "메뉴 가격은 1원 이상이어야 합니다"),
+    NOT_MAIN_ADDRESS(HttpStatus.BAD_REQUEST.value(), "기본 주소가 아닙니다.");
 
 
     private final int status;
