@@ -4,6 +4,9 @@ import com.my.foody.domain.category.entity.Category;
 import com.my.foody.domain.category.repo.CategoryRepository;
 import com.my.foody.domain.owner.entity.Owner;
 import com.my.foody.domain.owner.repo.OwnerRepository;
+import com.my.foody.domain.review.dto.resp.ReviewListRespDto;
+import com.my.foody.domain.review.repo.ReviewRepository;
+import com.my.foody.domain.review.repo.dto.ReviewProjectionRespDto;
 import com.my.foody.domain.store.dto.req.ModifyStoreReqDto;
 import com.my.foody.domain.store.dto.req.StoreCreateReqDto;
 import com.my.foody.domain.store.dto.resp.GetStoreRespDto;
@@ -35,6 +38,7 @@ public class StoreService {
     private final OwnerRepository ownerRepository;
     private final CategoryRepository categoryRepository;
     private final StoreCategoryRepository storeCategoryRepository;
+    private final ReviewRepository reviewRepository;
 
     @Transactional
     public StoreCreateRespDto createStore(StoreCreateReqDto storeCreateReqDto, Long ownerId) {
@@ -173,5 +177,33 @@ public class StoreService {
                 new GetStoreRespDto(projection.getStoreId(), projection.getStoreName(), projection.getMinOrderAmount()));
 
         return new StoreListRespDto(storeDtos);
+    }
+
+    public ReviewListRespDto getStoreReviews(Long categoryId, Long storeId, int page, int limit) {
+        // 유효성 검사 수행
+        validateGetStoreReviews(categoryId, storeId);
+
+        Pageable pageable = PageRequest.of(page, limit);
+        Page<ReviewProjectionRespDto> reviewProjections = reviewRepository.findReviewsByStoreId(storeId, pageable);
+
+        return new ReviewListRespDto(reviewProjections);
+    }
+
+    // 카테고리 및 가게 존재 유효성 검사
+    private void validateGetStoreReviews(Long categoryId, Long storeId) {
+        // 카테고리가 존재하는지
+        if (!categoryRepository.existsById(categoryId)) {
+            throw new BusinessException(ErrorCode.CATEGORY_NOT_FOUND);
+        }
+        // 카테고리에 가게가 존재하는지
+        storeCategoryRepository.findByCategoryIdAndStoreId(categoryId, storeId).orElseThrow(() ->
+                new BusinessException(ErrorCode.STORE_NOT_FOUND_IN_CATEGORY)
+        );
+        // 가게 삭제 여부
+        Store store = storeRepository.findById(storeId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.STORE_NOT_FOUND));
+        if (store.getIsDeleted()) {
+            throw new BusinessException(ErrorCode.STORE_NOT_FOUND);
+        }
     }
 }
