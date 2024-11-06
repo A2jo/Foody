@@ -57,9 +57,11 @@ public class OwnerController {
 
     // 로그아웃 추가
     @PostMapping("/logout")
-    public ResponseEntity<ApiResult<OwnerLogoutRespDto>> logout() {
-        OwnerLogoutRespDto responseMessage = ownerService.logout();
-        return ResponseEntity.ok(ApiResult.success(responseMessage));
+    public ResponseEntity<ApiResult<OwnerLogoutRespDto>> logout(@CurrentUser TokenSubject tokenSubject) {
+        OwnerLogoutRespDto responseMessage = ownerService.logout(tokenSubject);
+        return ResponseEntity.ok()
+                .header("Authorization", "") // 클라이언트에서 토큰을 삭제하도록 헤더를 비움
+                .body(ApiResult.success(responseMessage));
     }
 
     // 회원 탈퇴 기능 추가

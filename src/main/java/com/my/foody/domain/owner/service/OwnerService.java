@@ -54,14 +54,19 @@ public class OwnerService {
         Owner owner = ownerRepository.findByEmail(reqDto.getEmail())
                 .orElseThrow(() -> new BusinessException(ErrorCode.EMAIL_NOT_FOUND));
 
-        // 2. 비밀번호 검증
+        // 2. 삭제된 회원인지 확인
+        if (owner.getIsDeleted()) {
+            throw new BusinessException(ErrorCode.ALREADY_DEACTIVATED_USER);
+        }
+
+        // 3. 비밀번호 검증
         if (!PasswordEncoder.matches(reqDto.getPassword(), owner.getPassword())) {
             throw new BusinessException(ErrorCode.INVALID_PASSWORD);
         }
-        // 3. JWT 토큰 생성
+        // 4. JWT 토큰 생성
         String token = jwtProvider.create(new TokenSubject(owner.getId(), UserType.OWNER));
 
-        // 4. 로그인 성공 응답 생성
+        // 5. 로그인 성공 응답 생성
         return new OwnerLoginRespDto(token);
     }
 
@@ -97,8 +102,11 @@ public class OwnerService {
     }
 
     // 로그아웃 메서드 추가
-    public OwnerLogoutRespDto logout() {
-        return new OwnerLogoutRespDto();  // 로그아웃 성공 메시지 반환
+    public OwnerLogoutRespDto logout(TokenSubject tokenSubject) {
+        // JWT 토큰을 무효화
+        jwtProvider.invalidateToken(tokenSubject);
+
+        return new OwnerLogoutRespDto();
     }
 
     // 이메일 중복 확인
