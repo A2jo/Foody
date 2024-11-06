@@ -46,7 +46,7 @@ public enum ErrorCode {
     CART_IS_EMPTY(HttpStatus.BAD_REQUEST.value(), "장바구니가 비어있습니다"),
     OAUTH_CALLBACK_FAILED(HttpStatus.INTERNAL_SERVER_ERROR.value(), "소셜 인증 서버와 통신 중 오류가 발생했습니다"),
     NO_UPDATE_DATA(HttpStatus.NO_CONTENT.value(), "수정된 내용이 존재하지 않습니다."),
-    ;
+    MENU_STORE_MISMATCH(HttpStatus.BAD_REQUEST.value(), "해당 메뉴가 가게에 존재하지 않습니다");
 
 
 

@@ -1,9 +1,6 @@
 package com.my.foody.domain.order.dto.resp;
 
-import com.my.foody.domain.order.repo.dto.OrderProjectionRespDto;
-import com.my.foody.domain.owner.entity.OrderStatus;
-import com.my.foody.domain.review.dto.resp.ReviewListRespDto;
-import com.my.foody.domain.review.repo.dto.ReviewProjectionRespDto;
+import com.my.foody.domain.orderMenu.repo.dto.OrderProjectionDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,7 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 @Getter
 public class OrderListRespDto {
-    public OrderListRespDto(Page<OrderProjectionRespDto> orderList) {
+    public OrderListRespDto(Page<OrderProjectionDto> orderList) {
         this.orderList = orderList.stream().map(OrderRespDto::new).toList();
         this.pageInfo = new PageInfo(orderList);
     }
@@ -27,7 +24,7 @@ public class OrderListRespDto {
     @Getter
     @AllArgsConstructor
     public static class PageInfo {
-        public PageInfo(Page<OrderProjectionRespDto> page) {
+        public PageInfo(Page<OrderProjectionDto> page) {
             this.pageNumber = page.getNumber();
             this.pageSize = page.getSize();
             this.totalElements = page.getTotalElements();
@@ -53,7 +50,7 @@ public class OrderListRespDto {
     @AllArgsConstructor
     public static class OrderRespDto{
 
-        public OrderRespDto(OrderProjectionRespDto dto) {
+        public OrderRespDto(OrderProjectionDto dto) {
             this.storeName = dto.getStoreName();
             this.orderStatus = dto.getOrderStatus().getDescription();
             this.roadAddress = dto.getRoadAddress();
