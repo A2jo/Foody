@@ -7,20 +7,29 @@ import com.my.foody.domain.cart.entity.Cart;
 import com.my.foody.domain.cart.repo.CartRepository;
 import com.my.foody.domain.cartMenu.CartMenu;
 import com.my.foody.domain.cartMenu.CartMenuRepository;
-import com.my.foody.domain.menu.entity.Menu;
 import com.my.foody.domain.order.dto.req.OrderStatusUpdateReqDto;
+import com.my.foody.domain.order.dto.resp.OrderListRespDto;
 import com.my.foody.domain.order.dto.resp.OrderPreviewRespDto;
 import com.my.foody.domain.order.dto.resp.OrderStatusUpdateRespDto;
 import com.my.foody.domain.order.entity.Order;
 import com.my.foody.domain.order.repo.OrderRepository;
 import com.my.foody.domain.store.entity.Store;
 import com.my.foody.domain.store.service.StoreService;
+import com.my.foody.domain.order.repo.dto.OrderProjectionRespDto;
+import com.my.foody.domain.orderMenu.repo.OrderMenuRepository;
+import com.my.foody.domain.owner.entity.Owner;
+import com.my.foody.domain.owner.service.OwnerService;
+import com.my.foody.domain.store.repo.StoreRepository;
 import com.my.foody.domain.user.entity.User;
 import com.my.foody.domain.user.repo.UserRepository;
 import com.my.foody.domain.user.service.UserService;
 import com.my.foody.global.ex.BusinessException;
 import com.my.foody.global.ex.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,6 +45,10 @@ public class OrderService {
     private final UserService userService;
     private final StoreService storeService;
     private final CartMenuRepository cartMenuRepository;
+    private final AddressRepository addressRepository;
+    private final OwnerService ownerService;
+    private final StoreRepository storeRepository;
+    private final OrderMenuRepository orderMenuRepository;
 
     @Transactional
     public OrderStatusUpdateRespDto updateOrderStatus(OrderStatusUpdateReqDto requestDto, Long orderId, Long ownerId) {
@@ -87,5 +100,13 @@ public class OrderService {
         return cartMenuList.stream()
                 .mapToLong(cartMenu -> cartMenu.getMenu().getPrice() * cartMenu.getQuantity())
                 .sum();
+    }
+
+    public OrderListRespDto getAllOrder(Long ownerId, int page, int limit) {
+        Owner owner = ownerService.findActivateOwnerByIdOrFail(ownerId);
+        Pageable pageable = PageRequest.of(page, limit, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<OrderProjectionRespDto> orderPage
+                = orderMenuRepository.findByOwnerWithOrderWithStoreWithMenu(owner, pageable);
+        return new OrderListRespDto(orderPage);
     }
 }

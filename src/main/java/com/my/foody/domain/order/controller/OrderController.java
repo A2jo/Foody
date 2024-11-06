@@ -1,6 +1,7 @@
 package com.my.foody.domain.order.controller;
 
 import com.my.foody.domain.order.dto.req.OrderStatusUpdateReqDto;
+import com.my.foody.domain.order.dto.resp.OrderListRespDto;
 import com.my.foody.domain.order.dto.resp.OrderPreviewRespDto;
 import com.my.foody.domain.order.dto.resp.OrderStatusUpdateRespDto;
 import com.my.foody.domain.order.service.OrderService;
@@ -9,13 +10,17 @@ import com.my.foody.global.config.valid.RequireAuth;
 import com.my.foody.global.jwt.TokenSubject;
 import com.my.foody.global.jwt.UserType;
 import com.my.foody.global.util.api.ApiResult;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
+@Validated
 public class OrderController {
 
   private final OrderService orderService;
@@ -42,5 +47,13 @@ public class OrderController {
                                                                         @PathVariable(value = "cartId", required = true) Long cartId,
                                                                         @CurrentUser TokenSubject tokenSubject) {
     return new ResponseEntity<>(ApiResult.success(orderService.getOrderPreview(tokenSubject.getId(), storeId, cartId)), HttpStatus.OK);
+  }
+
+  @RequireAuth(userType = UserType.OWNER)
+  @GetMapping("/api/owners/orders")
+  public ResponseEntity<ApiResult<OrderListRespDto>> getAllOrder(@RequestParam(value = "page", required = false) @Min(value = 0) int page,
+                                                                  @RequestParam(value = "limit", required = false) @Positive int limit,
+                                                                  @CurrentUser TokenSubject tokenSubject){
+    return new ResponseEntity<>(ApiResult.success(orderService.getAllOrder(tokenSubject.getId(), page, limit)), HttpStatus.OK);
   }
 }
