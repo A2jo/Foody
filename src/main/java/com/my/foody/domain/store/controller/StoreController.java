@@ -1,5 +1,6 @@
 package com.my.foody.domain.store.controller;
 
+import com.my.foody.domain.review.dto.resp.ReviewListRespDto;
 import com.my.foody.domain.store.dto.req.ModifyStoreReqDto;
 import com.my.foody.domain.store.dto.req.StoreCreateReqDto;
 import com.my.foody.domain.store.dto.resp.GetStoreRespDto;
@@ -58,5 +59,14 @@ public class StoreController {
                                                                           @RequestParam(value = "limit", defaultValue = "10") int limit) {
         StoreListRespDto storeListRespDto = storeService.getStoreByCategory(categoryId, page, limit);
         return ResponseEntity.ok(ApiResult.success(storeListRespDto));
+    }
+
+    @GetMapping("/home/categories/{categoryId}/stores/{storeId}/reviews")
+    public ResponseEntity<ApiResult<ReviewListRespDto>> getStoreReviews(@PathVariable(value = "categoryId") Long categoryId,
+                                                                        @PathVariable(value = "storeId") Long storeId,
+                                                                        @RequestParam(value = "page", defaultValue = "0") int page,
+                                                                        @RequestParam(value = "limit", defaultValue = "10") int limit) {
+        ReviewListRespDto reviewListRespDto = StoreService.getStoreReviews(categoryId, storeId, page, limit);
+        return ResponseEntity.ok(ApiResult.success(reviewListRespDto));
     }
 }
