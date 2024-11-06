@@ -27,7 +27,8 @@ public class StoreCategory extends BaseEntity {
     private Category category;
 
     @Builder
-    public StoreCategory(Store store, Category category) {
+    public StoreCategory(Long id, Store store, Category category) {
+        this.id = id;
         this.store = store;
         this.category = category;
     }

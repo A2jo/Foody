@@ -5,6 +5,8 @@ import com.my.foody.domain.base.BaseEntity;
 import com.my.foody.domain.owner.entity.OrderStatus;
 import com.my.foody.domain.store.entity.Store;
 import com.my.foody.domain.user.entity.User;
+import com.my.foody.global.ex.BusinessException;
+import com.my.foody.global.ex.ErrorCode;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -41,15 +43,22 @@ public class Order extends BaseEntity {
     private OrderStatus orderStatus = OrderStatus.PENDING; //기본값 설정
 
     @Builder
-    public Order(OrderStatus orderStatus, User user, Store store, Address address, Long totalAmount) {
+    public Order(OrderStatus orderStatus, User user, Store store, Address address, Long totalAmount, Long id) {
         this.orderStatus = orderStatus;
         this.user = user;
         this.store = store;
         this.address = address;
         this.totalAmount = totalAmount;
+        this.id = id;
     }
 
     public void updateOrderStatus(OrderStatus orderStatus) {
         this.orderStatus = orderStatus;
+    }
+
+    public void isStoreOwner(Long ownerId) {
+        if (!this.store.getOwner().getId().equals(ownerId)) {
+            throw new BusinessException(ErrorCode.FORBIDDEN_ACCESS);
+        }
     }
 }

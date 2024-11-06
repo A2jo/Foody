@@ -4,7 +4,9 @@ import com.my.foody.domain.base.BaseEntity;
 import com.my.foody.domain.store.entity.Store;
 import com.my.foody.domain.user.entity.User;
 import jakarta.persistence.*;
+import kotlin.BuilderInference;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -31,4 +33,12 @@ public class Review extends BaseEntity {
     @Column(length = 255)
     private String comment;
 
+    @Builder
+    public Review(Long id, User user, Store store, Integer rating, String comment) {
+        this.id = id;
+        this.user = user;
+        this.store = store;
+        this.rating = rating;
+        this.comment = comment;
+    }
 }

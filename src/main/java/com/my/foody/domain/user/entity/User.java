@@ -49,6 +49,7 @@ public class User extends BaseEntity {
         }
     }
 
+
     public void modifyBasicInfo(String name, String nickname, String contact, String email){
         this.name = updateIfValid(name, this.name);
         this.nickname = updateIfValid(nickname, this.nickname);
@@ -58,5 +59,22 @@ public class User extends BaseEntity {
 
     private String updateIfValid(String newValue, String currentValue) {
         return StringUtils.hasText(newValue) ? newValue.trim() : currentValue;
+    }
+
+
+    public void validPassword(String currentPassword) {
+        if(!PasswordEncoder.matches(currentPassword, this.password)){
+            throw new BusinessException(ErrorCode.INVALID_PASSWORD);
+        }
+    }
+
+
+    public void changePassword(String newPassword) {
+        this.password = PasswordEncoder.encode(newPassword);
+    }
+
+
+    public void deactivate(){
+        this.isDeleted = true;
     }
 }

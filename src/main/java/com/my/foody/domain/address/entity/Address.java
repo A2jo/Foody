@@ -29,18 +29,22 @@ public class Address extends BaseEntity {
     @Column(length = 30, nullable = false)
     private String detailedAddress;
 
+    private Boolean isMain;
+
     @Builder
-    public Address(Long id, User user, String roadAddress, String detailedAddress) {
+    public Address(Long id, User user, String roadAddress, String detailedAddress, boolean isMain) {
         this.id = id;
         this.user = user;
         this.roadAddress = roadAddress;
         this.detailedAddress = detailedAddress;
+        this.isMain = isMain;
     }
 
-    public void modifyAll(String roadAddress, String detailedAddress){
+    public void modifyAll(String roadAddress, String detailedAddress, boolean isMain){
         validateAddress(roadAddress, detailedAddress);
         this.roadAddress = roadAddress;
         this.detailedAddress = detailedAddress;
+        this.isMain = isMain;
     }
 
     private void validateAddress(String roadAddress, String detailedAddress) {

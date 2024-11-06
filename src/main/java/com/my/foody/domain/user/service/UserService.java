@@ -6,24 +6,28 @@ import com.my.foody.domain.address.dto.resp.AddressCreateRespDto;
 import com.my.foody.domain.address.dto.resp.AddressModifyRespDto;
 import com.my.foody.domain.address.entity.Address;
 import com.my.foody.domain.address.repo.AddressRepository;
+import com.my.foody.domain.socialAccount.dto.resp.SocialLoginRespDto;
+import com.my.foody.domain.socialAccount.entity.SocialAccount;
+import com.my.foody.domain.socialAccount.repo.SocialAccountRepository;
+import com.my.foody.domain.user.dto.req.UserDeleteReqDto;
 import com.my.foody.domain.user.dto.req.UserInfoModifyReqDto;
 import com.my.foody.domain.user.dto.req.UserLoginReqDto;
+import com.my.foody.domain.user.dto.req.UserPasswordModifyReqDto;
 import com.my.foody.domain.user.dto.req.UserSignUpReqDto;
 import com.my.foody.domain.user.dto.resp.*;
 import com.my.foody.domain.user.dto.resp.UserInfoModifyRespDto;
 import com.my.foody.domain.address.service.AddressService;
-import com.my.foody.domain.user.dto.resp.AddressDeleteRespDto;
-import com.my.foody.domain.user.dto.resp.UserInfoRespDto;
-import com.my.foody.domain.user.dto.resp.UserLoginRespDto;
-import com.my.foody.domain.user.dto.resp.UserSignUpRespDto;
+import com.my.foody.domain.user.entity.Provider;
 import com.my.foody.domain.user.entity.User;
 import com.my.foody.domain.user.repo.UserRepository;
 import com.my.foody.global.ex.BusinessException;
 import com.my.foody.global.ex.ErrorCode;
 import com.my.foody.global.jwt.JwtProvider;
 import com.my.foody.global.jwt.TokenSubject;
+import com.my.foody.infra.oauth.common.OAuth2UserInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,6 +42,7 @@ public class UserService {
     private final AddressRepository addressRepository;
     private final AddressService addressService;
     private final JwtProvider jwtProvider;
+    private final SocialAccountRepository socialAccountRepository;
 
     public UserSignUpRespDto signUp(UserSignUpReqDto userSignUpReqDto){
         //이메일 중복 검사
@@ -57,6 +62,9 @@ public class UserService {
     public UserLoginRespDto login(UserLoginReqDto userLoginReqDto){
         User user = userRepository.findByEmail(userLoginReqDto.getEmail())
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+        if(user.getIsDeleted()){
+            throw new BusinessException(ErrorCode.ALREADY_DEACTIVATED_USER);
+        }
         user.matchPassword(userLoginReqDto.getPassword());
         String token = jwtProvider.create(TokenSubject.of(user));
         return new UserLoginRespDto(token);
@@ -64,28 +72,30 @@ public class UserService {
 
 
     public UserInfoRespDto getUserInfo(Long userId) {
-        User user = findByIdOrFail(userId);
+        User user = findActivateUserByIdOrFail(userId);
         return new UserInfoRespDto(user);
     }
 
 
     public AddressCreateRespDto registerAddress(AddressCreateReqDto addressCreateReqDto, Long userId) {
-        User user = findByIdOrFail(userId);
-        Address address = addressCreateReqDto.toEntity(user);
+        User user = findActivateUserByIdOrFail(userId);
+        //유저의 주소지가 하나도 없을 시 최초 등록한 주소지를 main 주소지로 설정
+        boolean isMainAddress = !addressRepository.existsByUser(user);
+        Address address = addressCreateReqDto.toEntity(user, isMainAddress);
         addressRepository.save(address);
         return new AddressCreateRespDto();
     }
 
 
-    public User findByIdOrFail(Long userId){
-        return userRepository.findById(userId)
+    public User findActivateUserByIdOrFail(Long userId){
+        return userRepository.findActivateUser(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
     }
 
 
     @Transactional
     public UserInfoModifyRespDto modifyUserInfo(UserInfoModifyReqDto userInfoModifyReqDto, Long userId) {
-        User user = findByIdOrFail(userId);
+        User user = findActivateUserByIdOrFail(userId);
         validateDuplicatedUserInfo(userInfoModifyReqDto);
         user.modifyBasicInfo(userInfoModifyReqDto.getName(), userInfoModifyReqDto.getNickname(),
                 userInfoModifyReqDto.getContact(), userInfoModifyReqDto.getEmail());
@@ -104,28 +114,71 @@ public class UserService {
         }
     }
 
+    @Transactional
     public AddressModifyRespDto modifyAddress(AddressModifyReqDto addressModifyReqDto, Long userId, Long addressId) {
-        User user = findByIdOrFail(userId);
+        User user = findActivateUserByIdOrFail(userId);
         Address address = addressService.findByIdOrFail(addressId);
         address.validateUser(user);
-        address.modifyAll(addressModifyReqDto.getRoadAddress(), addressModifyReqDto.getDetailedAddress());
+        address.modifyAll(addressModifyReqDto.getRoadAddress(), addressModifyReqDto.getDetailedAddress(), addressModifyReqDto.getIsMain());
         return new AddressModifyRespDto();
     }
 
 
     @Transactional
     public AddressDeleteRespDto deleteAddressById(Long addressId, Long userId) {
-        User user = findByIdOrFail(userId);
+        User user = findActivateUserByIdOrFail(userId);
         Address address = addressService.findByIdOrFail(addressId);
         address.validateUser(user);
         addressRepository.delete(address);
         return new AddressDeleteRespDto();
     }
 
+    @Transactional
+    public UserPasswordModifyRespDto modifyUserPassword(UserPasswordModifyReqDto userPasswordModifyReqDto, Long userId) {
+        User user = findActivateUserByIdOrFail(userId);
+        user.validPassword(userPasswordModifyReqDto.getCurrentPassword());
+        user.changePassword(userPasswordModifyReqDto.getNewPassword());
+        return new UserPasswordModifyRespDto();
+    }
+
+    public UserDeleteRespDto deleteUserById(UserDeleteReqDto userDeleteReqDto, Long userId) {
+        User user = findActivateUserByIdOrFail(userId);
+        user.validPassword(userDeleteReqDto.getCurrentPassword());
+        user.deactivate();
+        return new UserDeleteRespDto();
+    }
 
     public AddressListRespDto getAllAddress(Long userId) {
-        User user = findByIdOrFail(userId);
+        User user = findActivateUserByIdOrFail(userId);
         List<Address> addressList = addressRepository.findAllByUserOrderByCreatedAtDesc(user);
         return new AddressListRespDto(addressList);
+    }
+
+    public SocialLoginRespDto linkAccount(Long userId, OAuth2UserInfo userInfo, Provider provider) {
+        //기존 사용자 확인
+        User user = findActivateUserByIdOrFail(userId);
+
+        //이미 연동된 소셜 계정인지 확인
+        if(socialAccountRepository.existsByProviderAndProviderId(provider, userInfo.getProviderId())){
+            throw new BusinessException(ErrorCode.ALREADY_LINKED_OAUTH);
+        }
+
+        //새로운 소셜 계정 연동
+        SocialAccount socialAccount = SocialAccount.builder()
+                .user(user)
+                .providerId(userInfo.getProviderId())
+                .provider(provider)
+                .email(userInfo.getEmail())
+                .nickname(userInfo.getName())
+                .name(userInfo.getName())
+                .build();
+        socialAccountRepository.save(socialAccount);
+        String token = jwtProvider.create(TokenSubject.of(user));
+        return new SocialLoginRespDto(user, socialAccount, token);
+    }
+
+    public UserLogoutRespDto logout(Long userId, String token) {
+        jwtProvider.logout(userId, token);
+        return new UserLogoutRespDto();
     }
 }
