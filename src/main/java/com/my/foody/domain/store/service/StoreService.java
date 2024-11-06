@@ -9,18 +9,22 @@ import com.my.foody.domain.store.dto.req.StoreCreateReqDto;
 import com.my.foody.domain.store.dto.resp.GetStoreRespDto;
 import com.my.foody.domain.store.dto.resp.ModifyStoreRespDto;
 import com.my.foody.domain.store.dto.resp.StoreCreateRespDto;
+import com.my.foody.domain.store.dto.resp.StoreListRespDto;
 import com.my.foody.domain.store.entity.Store;
 import com.my.foody.domain.store.repo.StoreRepository;
 import com.my.foody.domain.storeCategory.entity.StoreCategory;
+import com.my.foody.domain.storeCategory.repo.StoreCategoryProjection;
 import com.my.foody.domain.storeCategory.repo.StoreCategoryRepository;
 import com.my.foody.global.ex.BusinessException;
 import com.my.foody.global.ex.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -88,8 +92,6 @@ public class StoreService {
     }
 
 
-
-
     // 카테고리 저장
     public void saveCategory(StoreCreateReqDto storeCreateReqDto, Store store) {
         List<Long> categoryIds = storeCreateReqDto.getCategoryIds();
@@ -104,6 +106,7 @@ public class StoreService {
             storeCategoryRepository.save(storeCategory);
         }
     }
+
     // 카테고리 수정
     public void modifyCategory(ModifyStoreReqDto modifyStoreReqDto, Store store) {
         List<Long> categoryIds = modifyStoreReqDto.getCategoryIds();
@@ -131,6 +134,7 @@ public class StoreService {
             throw new BusinessException(ErrorCode.HAVE_FULL_STORE);
         }
     }
+
     // 가게 수정 시 유효성 검사
     public void validateModifyStore(Store store, ModifyStoreReqDto modifyStoreReqDto, Long ownerId) {
         // 수정할 데이터가 없으면 예외 발생
@@ -151,8 +155,23 @@ public class StoreService {
         }
     }
 
-    public Store findActivateStoreByIdOrFail(Long storeId){
+    public Store findActivateStoreByIdOrFail(Long storeId) {
         return storeRepository.findActivateStore(storeId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.STORE_NOT_FOUND));
+    }
+
+    public StoreListRespDto getStoreByCategory(Long categoryId, int page, int limit) {
+        // 유효성 검사 - 카테고리를 찾을 수 없는 경우
+        if (!categoryRepository.existsById(categoryId)) {
+            throw new BusinessException(ErrorCode.CATEGORY_NOT_FOUND);
+        }
+
+        Pageable pageable = PageRequest.of(page, limit);
+        Page<StoreCategoryProjection> storeProjections = storeCategoryRepository.findStoresByCategoryId(categoryId, pageable);
+
+        Page<GetStoreRespDto> storeDtos = storeProjections.map(projection ->
+                new GetStoreRespDto(projection.getStoreId(), projection.getStoreName(), projection.getMinOrderAmount()));
+
+        return new StoreListRespDto(storeDtos);
     }
 }

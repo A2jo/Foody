@@ -18,20 +18,22 @@ import com.my.foody.domain.menu.repo.MenuRepository;
 import com.my.foody.domain.menu.service.MenuService;
 import com.my.foody.domain.order.dto.req.OrderCreateReqDto;
 import com.my.foody.domain.order.dto.req.OrderStatusUpdateReqDto;
+import com.my.foody.domain.order.dto.resp.OrderInfoRespDto;
 import com.my.foody.domain.order.dto.resp.OrderListRespDto;
 import com.my.foody.domain.order.dto.resp.OrderPreviewRespDto;
 import com.my.foody.domain.order.dto.resp.OrderStatusUpdateRespDto;
 import com.my.foody.domain.order.entity.Order;
 import com.my.foody.domain.order.repo.OrderRepository;
-import com.my.foody.domain.order.repo.dto.OrderProjectionRespDto;
 import com.my.foody.domain.orderMenu.entity.OrderMenu;
 import com.my.foody.domain.orderMenu.repo.OrderMenuRepository;
+import com.my.foody.domain.orderMenu.repo.dto.OrderMenuProjectionDto;
+import com.my.foody.domain.orderMenu.repo.dto.OrderProjectionDto;
 import com.my.foody.domain.owner.entity.OrderStatus;
 import com.my.foody.domain.owner.entity.Owner;
 import com.my.foody.domain.owner.service.OwnerService;
 import com.my.foody.domain.store.entity.Store;
-import com.my.foody.domain.store.service.StoreService;
 import com.my.foody.domain.store.repo.StoreRepository;
+import com.my.foody.domain.store.service.StoreService;
 import com.my.foody.domain.user.entity.User;
 import com.my.foody.domain.user.repo.UserRepository;
 import com.my.foody.domain.user.service.UserService;
@@ -41,6 +43,7 @@ import com.my.foody.global.util.DummyObject;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -51,19 +54,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.*;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class OrderServiceTest extends DummyObject {
@@ -97,6 +87,8 @@ public class OrderServiceTest extends DummyObject {
 
     @Mock
     private CartMenuRepository cartMenuRepository;
+
+    @Mock
     private OwnerService ownerService;
     private StoreRepository storeRepository;
 
@@ -489,7 +481,7 @@ public class OrderServiceTest extends DummyObject {
         int page = 0;
         int limit = 10;
         Owner owner = newOwner(ownerId);
-        Page<OrderProjectionRespDto> mockOrderPage = createMockOrderPage();
+        Page<OrderProjectionDto> mockOrderPage = createMockOrderPage();
 
         Pageable expectedPageable = PageRequest.of(page, limit, Sort.by(Sort.Direction.DESC, "createdAt"));
 
@@ -523,7 +515,7 @@ public class OrderServiceTest extends DummyObject {
         int page = 0;
         int limit = 10;
         Owner owner = newOwner(ownerId);
-        Page<OrderProjectionRespDto> emptyPage = Page.empty(PageRequest.of(page, limit));
+        Page<OrderProjectionDto> emptyPage = Page.empty(PageRequest.of(page, limit));
 
         when(ownerService.findActivateOwnerByIdOrFail(ownerId)).thenReturn(owner);
         when(orderMenuRepository.findByOwnerWithOrderWithStoreWithMenu(any(), any())).thenReturn(emptyPage);
@@ -559,7 +551,7 @@ public class OrderServiceTest extends DummyObject {
         int page = 0;
         int limit = 10;
         Owner owner = newOwner(ownerId);
-        Page<OrderProjectionRespDto> mockOrderPage = createMockOrderPage();
+        Page<OrderProjectionDto> mockOrderPage = createMockOrderPage();
 
         when(ownerService.findActivateOwnerByIdOrFail(ownerId)).thenReturn(owner);
         when(orderMenuRepository.findByOwnerWithOrderWithStoreWithMenu(any(), any())).thenReturn(mockOrderPage);
@@ -578,8 +570,142 @@ public class OrderServiceTest extends DummyObject {
     }
 
 
-    private Page<OrderProjectionRespDto> createMockOrderPage() {
-        List<OrderProjectionRespDto> orders = Arrays.asList(
+    @Test
+    @DisplayName("주문 상세 정보 조회 성공 테스트")
+    void getOrderInfo_Success() {
+        // Given
+        Long ownerId = 1L;
+        Long orderId = 1L;
+        Owner owner = newOwner(ownerId);
+        Order order = createOrder();
+        List<OrderMenuProjectionDto> orderMenus = createOrderMenuProjections();
+
+        when(ownerService.findActivateOwnerByIdOrFail(ownerId)).thenReturn(owner);
+        when(orderRepository.findOrderWithDetails(orderId)).thenReturn(Optional.of(order));
+        when(orderMenuRepository.findOrderMenuDetailByOrder(order)).thenReturn(orderMenus);
+
+        // When
+        OrderInfoRespDto result = orderService.getOrderInfo(ownerId, orderId);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getOrderId()).isEqualTo(order.getId());
+        assertThat(result.getStoreName()).isEqualTo(order.getStore().getName());
+        assertThat(result.getTotalAmount()).isEqualTo(order.getTotalAmount());
+        assertThat(result.getOrderStatus()).isEqualTo(OrderStatus.DELIVERED.getDescription());
+        assertThat(result.getUserContact()).isEqualTo(order.getUser().getContact());
+        assertThat(result.getRoadAddress()).isEqualTo(order.getAddress().getRoadAddress());
+        assertThat(result.getDetailedAddress()).isEqualTo(order.getAddress().getDetailedAddress());
+
+        // OrderMenu 검증
+        List<OrderInfoRespDto.OrderInfoDto> orderList = result.getOrderList();
+        assertThat(orderList).hasSize(2);
+        assertThat(orderList.get(0).getMenuName()).isEqualTo("후라이드 치킨");
+        assertThat(orderList.get(0).getQuantity()).isEqualTo(2L);
+        assertThat(orderList.get(0).getAmount()).isEqualTo(18000L);
+
+        verify(ownerService).findActivateOwnerByIdOrFail(ownerId);
+        verify(orderRepository).findOrderWithDetails(orderId);
+        verify(orderMenuRepository).findOrderMenuDetailByOrder(order);
+    }
+
+
+    @Test
+    @DisplayName("주문 상세 조회 실패 테스트: 존재하지 않는 주문")
+    void getOrderInfo_OrderNotFound() {
+        // Given
+        Long ownerId = 1L;
+        Long orderId = 999L;
+        Owner owner = newOwner(orderId);
+
+        when(ownerService.findActivateOwnerByIdOrFail(ownerId)).thenReturn(owner);
+        when(orderRepository.findOrderWithDetails(orderId)).thenReturn(Optional.empty());
+
+        // When & Then
+        assertThatThrownBy(() -> orderService.getOrderInfo(ownerId, orderId))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ORDER_NOT_FOUND);
+
+        verify(ownerService).findActivateOwnerByIdOrFail(ownerId);
+        verify(orderRepository).findOrderWithDetails(orderId);
+        verify(orderMenuRepository, never()).findOrderMenuDetailByOrder(any());
+    }
+
+    @Test
+    @DisplayName("주문 상세 조회 실패 테스트: 비활성화된 사장님")
+    void getOrderInfo_InactiveOwner() {
+        // Given
+        Long ownerId = 1L;
+        Long orderId = 1L;
+
+        when(ownerService.findActivateOwnerByIdOrFail(ownerId))
+                .thenThrow(new BusinessException(ErrorCode.OWNER_NOT_FOUND));
+
+        // When & Then
+        assertThatThrownBy(() -> orderService.getOrderInfo(ownerId, orderId))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.OWNER_NOT_FOUND);
+
+        verify(ownerService).findActivateOwnerByIdOrFail(ownerId);
+        verify(orderRepository, never()).findOrderWithDetails(anyLong());
+        verify(orderMenuRepository, never()).findOrderMenuDetailByOrder(any());
+    }
+
+
+    private Order createOrder() {
+        Store store = Store.builder()
+                .id(1L)
+                .name("맛있는 치킨")
+                .build();
+
+        User user = User.builder()
+                .id(1L)
+                .contact("010-1234-5678")
+                .build();
+
+        Address address = Address.builder()
+                .roadAddress("서울시 강남구")
+                .detailedAddress("테헤란로 123")
+                .build();
+
+        return Order.builder()
+                .id(1L)
+                .store(store)
+                .user(user)
+                .address(address)
+                .totalAmount(50000L)
+                .orderStatus(OrderStatus.DELIVERED)
+                .build();
+    }
+
+    private List<OrderMenuProjectionDto> createOrderMenuProjections() {
+        return List.of(
+                new OrderMenuProjectionDto() {
+                    @Override
+                    public Long getQuantity() { return 2L; }
+                    @Override
+                    public Long getPrice() { return 18000L; }
+                    @Override
+                    public Long getMenuId() { return 1L; }
+                    @Override
+                    public String getMenuName() { return "후라이드 치킨"; }
+                },
+                new OrderMenuProjectionDto() {
+                    @Override
+                    public Long getQuantity() { return 1L; }
+                    @Override
+                    public Long getPrice() { return 19000L; }
+                    @Override
+                    public Long getMenuId() { return 2L; }
+                    @Override
+                    public String getMenuName() { return "양념 치킨"; }
+                }
+        );
+    }
+
+
+    private Page<OrderProjectionDto> createMockOrderPage() {
+        List<OrderProjectionDto> orders = Arrays.asList(
                 createMockOrderProjection("맛있는 치킨", "후라이드 치킨,양념 치킨,콜라"),
                 createMockOrderProjection("맛있는 피자", "페퍼로니피자")
         );
@@ -591,8 +717,8 @@ public class OrderServiceTest extends DummyObject {
         );
     }
 
-    private OrderProjectionRespDto createMockOrderProjection(String storeName, String menuNames) {
-        return new OrderProjectionRespDto() {
+    private OrderProjectionDto createMockOrderProjection(String storeName, String menuNames) {
+        return new OrderProjectionDto() {
             @Override
             public String getStoreName() {
                 return storeName;
