@@ -28,6 +28,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -255,10 +256,11 @@ public class StoreService {
     }
 
     public DetailedReviewListRespDto getStoreReviews(Long categoryId, Long storeId, int page, int limit) {
-        // 1. 유효성 검사 수행
+        // 유효성 검사 수행
         validateGetStoreReviews(categoryId, storeId);
 
-        Pageable pageable = PageRequest.of(page, limit);
+        // 페이지 및 정렬 설정: 리뷰 생성일 기준 내림차순
+        Pageable pageable = PageRequest.of(page, limit, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<DetailedReviewProjectionRespDto> reviewProjections = reviewRepository.findDetailedReviewsByStoreId(storeId, pageable);
 
         return new DetailedReviewListRespDto(reviewProjections);
