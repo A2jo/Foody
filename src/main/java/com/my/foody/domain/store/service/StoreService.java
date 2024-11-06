@@ -85,6 +85,11 @@ public class StoreService {
         }
     }
 
+    public Store findActivateStoreByIdOrFail(Long storeId){
+        return storeRepository.findActivateStore(storeId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.STORE_NOT_FOUND));
+    }
+
     public Page<GetStoreRespDto> getStoreByCategory(Long categoryId, int page, int limit) {
         // 유효성 검사 - 카테고리를 찾을 수 없는 경우
         if (!categoryRepository.existsById(categoryId)) {
