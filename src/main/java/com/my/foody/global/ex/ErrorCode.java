@@ -34,6 +34,7 @@ public enum ErrorCode {
     MENU_NOT_AVAILABLE(HttpStatus.BAD_REQUEST.value(), "현재 주문할 수 없는 메뉴입니다"),
     EMAIL_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "존재하지 않는 이메일입니다");
 
+
     private final int status;
     private final String msg;
 
