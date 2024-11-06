@@ -2,10 +2,7 @@ package com.my.foody.domain.category.entity;
 
 import com.my.foody.domain.base.BaseEntity;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @Getter
@@ -18,6 +15,12 @@ public class Category extends BaseEntity {
 
     @Column(length = 10, nullable = false, unique = true)
     private String name;
+
+    @Builder
+    public Category(Long id, String name) {
+        this.id = id;
+        this.name = name;
+    }
 
     @Builder
     public Category(String name) {
