@@ -13,23 +13,33 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface OrderMenuRepository extends JpaRepository<OrderMenu, Long> {
 
-    @Query("""
-            select distinct 
-                s.name as storeName,
-                o.status as orderStatus,
-                o.roadAddress as roadAddress,
-                o.detailedAddress as detailedAddress,
-                o.totalAmount as totalAmount,
-                o.id as orderId,
-                o.createdAt as createdAt,
-                (select group_concat(m.name)
-                 from OrderMenu om2 
-                 join Menu m on m.id = om2.menuId
-                 where om2.order = o) as menuNames
-            from OrderMenu om
-            join om.order o
-            join o.store s
-            where s.owner = :owner
-       """)
+    @Query(
+            value = """
+        select distinct 
+            s.name as storeName,
+            o.orderStatus as orderStatus,
+            a.roadAddress as roadAddress,
+            a.detailedAddress as detailedAddress,
+            o.totalAmount as totalAmount,
+            o.id as orderId,
+            o.createdAt as createdAt,
+            (select group_concat(m.name)
+             from OrderMenu om2 
+             join Menu m on m.id = om2.menuId
+             where om2.order = o) as menuNames
+        from OrderMenu om
+        join om.order o
+        join o.store s
+        join o.address a
+        where s.owner = :owner
+    """,
+            countQuery = """
+        select count(distinct o.id)
+        from OrderMenu om
+        join om.order o
+        join o.store s
+        where s.owner = :owner
+    """
+    )
     Page<OrderProjectionRespDto> findByOwnerWithOrderWithStoreWithMenu(@Param("owner") Owner owner, Pageable pageable);
 }

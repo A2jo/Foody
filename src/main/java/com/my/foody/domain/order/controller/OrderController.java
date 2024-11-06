@@ -45,16 +45,10 @@ public class OrderController {
 
   @GetMapping("/api/home/stores/{storeId}/cart/{cartId}/orders")
   @RequireAuth(userType = UserType.USER)
-  public ResponseEntity<ApiResult<OrderPreviewRespDto>> getOrderPreview(
-          @PathVariable Long storeId,
-          @PathVariable Long cartId,
-          @CurrentUser TokenSubject tokenSubject) {
-
-    Long userId = tokenSubject.getId();
-    OrderPreviewRespDto orderPreview = orderService.getOrderPreview(userId, storeId, cartId);
-    ApiResult<OrderPreviewRespDto> apiResult = ApiResult.success(orderPreview);
-
-    return new ResponseEntity<>(apiResult, HttpStatus.OK);
+  public ResponseEntity<ApiResult<OrderPreviewRespDto>> getOrderPreview(@PathVariable(value = "storeId", required = true) Long storeId,
+                                                                        @PathVariable(value = "cartId", required = true) Long cartId,
+                                                                        @CurrentUser TokenSubject tokenSubject) {
+    return new ResponseEntity<>(ApiResult.success(orderService.getOrderPreview(tokenSubject.getId(), storeId, cartId)), HttpStatus.OK);
   }
 
   @RequireAuth(userType = UserType.USER)

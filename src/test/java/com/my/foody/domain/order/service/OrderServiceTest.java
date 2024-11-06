@@ -8,6 +8,7 @@ import static org.mockito.Mockito.*;
 
 import com.my.foody.domain.address.entity.Address;
 import com.my.foody.domain.address.repo.AddressRepository;
+import com.my.foody.domain.address.service.AddressService;
 import com.my.foody.domain.cart.entity.Cart;
 import com.my.foody.domain.cart.repo.CartRepository;
 import com.my.foody.domain.cartMenu.CartMenu;
@@ -29,9 +30,11 @@ import com.my.foody.domain.owner.entity.OrderStatus;
 import com.my.foody.domain.owner.entity.Owner;
 import com.my.foody.domain.owner.service.OwnerService;
 import com.my.foody.domain.store.entity.Store;
+import com.my.foody.domain.store.service.StoreService;
 import com.my.foody.domain.store.repo.StoreRepository;
 import com.my.foody.domain.user.entity.User;
 import com.my.foody.domain.user.repo.UserRepository;
+import com.my.foody.domain.user.service.UserService;
 import com.my.foody.global.ex.BusinessException;
 import com.my.foody.global.ex.ErrorCode;
 import com.my.foody.global.util.DummyObject;
@@ -48,6 +51,19 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class OrderServiceTest extends DummyObject {
@@ -71,20 +87,27 @@ public class OrderServiceTest extends DummyObject {
     private AddressRepository addressRepository;
 
     @Mock
+    private AddressService addressService;
+
+    @Mock
+    private UserService userService;
+
+    @Mock
+    private StoreService storeService;
+
+    @Mock
+    private CartMenuRepository cartMenuRepository;
     private StoreRepository storeRepository;
 
     @Mock
     private OrderMenuRepository orderMenuRepository;
 
     @Mock
-    private CartMenuRepository cartMenuRepository;
-
-    @Mock
     private MenuRepository menuRepository;
 
     @Mock
     private OwnerService ownerService;
-    
+
 
     private Order order;
     private Owner owner;
@@ -173,104 +196,138 @@ public class OrderServiceTest extends DummyObject {
 
     @Test
     @DisplayName("주문 미리보기 성공 테스트")
-    void getOrderPreview_Success() {
-        Long userId = user.getId();
-        Long storeId = store.getId();
-        Long cartId = cart.getId();
-
-        // Mock setup
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(addressRepository.findByUserIdAndIsMain(userId, true)).thenReturn(Optional.of(address));
-        when(cartRepository.findWithStoreAndMenuByIdAndUserIdAndStoreId(cartId, userId, storeId)).thenReturn(Optional.of(cart));
-
-        menu = Menu.builder()
-                .id(1L)
-                .name("테스트 메뉴")
-                .price(1000L)
-                .build();
-
-        when(menuRepository.findActivateMenu(anyLong())).thenReturn(Optional.of(menu));
-        when(menuService.findActiveMenuByIdOrFail(menu.getId())).thenReturn(menu);
-
-        OrderPreviewRespDto orderPreview = orderService.getOrderPreview(userId, storeId, cartId);
-
-        // Verifications
-        assertNotNull(orderPreview);  // Verify the result is not null
-        assertEquals(address.getRoadAddress(), orderPreview.getRoadAddress());
-        assertEquals(address.getDetailedAddress(), orderPreview.getDetailedAddress());
-        assertEquals(user.getContact(), orderPreview.getUserContact());
-        assertEquals(store.getName(), orderPreview.getStoreName());
-        assertEquals(store.getId(), orderPreview.getStoreId());
-        assertEquals(menu.getName(), orderPreview.getMenuName());
-        assertEquals(menu.getPrice(), orderPreview.getMenuPrice());
-
-        // Verify interactions with mocks
-        verify(userRepository).findById(userId);
-        verify(addressRepository).findByUserIdAndIsMain(userId, true);
-        verify(cartRepository).findWithStoreAndMenuByIdAndUserIdAndStoreId(cartId, userId, storeId);
-        verify(menuRepository).findActivateMenu(anyLong());
-    }
-
-
-    @Test
-    @DisplayName("주문 미리보기 실패 테스트 - 사용자 미발견")
-    void getOrderPreview_UserNotFound() {
+    void getOrderPreview_Success_test() {
+        // given
         Long userId = 1L;
         Long storeId = 1L;
         Long cartId = 1L;
 
-        // Mocking behavior for dependencies
-        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+        User user = mock(User.class);
+        Store store = mock(Store.class);
+        Cart cart = mock(Cart.class);
+        Address address = mock(Address.class);
+        Menu menu = mock(Menu.class);
 
-        // Exception verification
-        assertThrows(BusinessException.class, () -> {
-            orderService.getOrderPreview(userId, storeId, cartId);
-        }, " 예상된 USER_NOT_FOUND의 예외 처리");
+        // Menu mock 설정
+        when(menu.getPrice()).thenReturn(10000L);
+        when(menu.getName()).thenReturn("테스트메뉴");
 
-        verify(userRepository).findById(userId);
-    }
+        CartMenu cartMenu = mock(CartMenu.class);
+        when(cartMenu.getMenu()).thenReturn(menu);
+        when(cartMenu.getQuantity()).thenReturn(2L);
 
-    @Test
-    @DisplayName("주문 미리보기 실패 테스트 - 주소 미발견")
-    void getOrderPreview_AddressNotFound() {
-        Long userId = user.getId();
-        Long storeId = store.getId();
-        Long cartId = cart.getId();
+        List<CartMenu> cartMenuList = List.of(cartMenu);
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(addressRepository.findByUserIdAndIsMain(userId, true)).thenReturn(Optional.empty());
 
-        assertThrows(BusinessException.class, () -> {
-            orderService.getOrderPreview(userId, storeId, cartId);
-        }, "예상된 ADDRESS_NOT_FOUND의 예외 처리");
-
-        verify(userRepository).findById(userId);
-        verify(addressRepository).findByUserIdAndIsMain(userId, true);
-    }
-
-    @Test
-    @DisplayName("주문 미리보기 실패 테스트 - 카트 항목 미발견")
-    void getOrderPreview_CartItemNotFound() {
-
-        //given
-        Long userId = user.getId();
-        Long storeId = store.getId();
-        Long cartId = cart.getId();
+        when(userService.findActivateUserByIdOrFail(userId)).thenReturn(user);
+        when(storeService.findActivateStoreByIdOrFail(storeId)).thenReturn(store);
+        when(cartRepository.findByIdAndUser(cartId, user)).thenReturn(Optional.of(cart));
+        when(addressService.findMainAddress(userId)).thenReturn(address);
+        when(cartMenuRepository.findByCartWithMenu(cart)).thenReturn(cartMenuList);
 
         // when
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(addressRepository.findByUserIdAndIsMain(userId, true)).thenReturn(Optional.of(address));
-        when(cartRepository.findWithStoreAndMenuByIdAndUserIdAndStoreId(cartId, userId, storeId))
-                .thenReturn(Optional.empty());
+        OrderPreviewRespDto result = orderService.getOrderPreview(userId, storeId, cartId);
 
-       //then
-        assertThrows(BusinessException.class, () -> {
-            orderService.getOrderPreview(userId, storeId, cartId);
-        }, "예상된 CART_ITEM_NOT_FOUND의 예외 처리");
+        verify(userService).findActivateUserByIdOrFail(userId);
+        verify(storeService).findActivateStoreByIdOrFail(storeId);
+        verify(cartRepository).findByIdAndUser(cartId, user);
+        verify(addressService).findMainAddress(userId);
+        verify(cartMenuRepository).findByCartWithMenu(cart);
+    }
 
-        verify(userRepository).findById(userId);
-        verify(addressRepository).findByUserIdAndIsMain(userId, true);
-        verify(cartRepository).findWithStoreAndMenuByIdAndUserIdAndStoreId(cartId, userId, storeId);
+
+    @Test
+    @DisplayName("주문 미리보기 실패 테스트: 존재하지 않는 사용자")
+    void getOrderPreview_UserNotFound() {
+        // given
+        Long userId = 1L;
+        Long storeId = 1L;
+        Long cartId = 1L;
+
+        when(userService.findActivateUserByIdOrFail(userId))
+                .thenThrow(new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        // when & then
+        assertThatThrownBy(() ->
+                orderService.getOrderPreview(userId, storeId, cartId))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.USER_NOT_FOUND);
+
+        verify(userService).findActivateUserByIdOrFail(userId);
+        verify(storeService, never()).findActivateStoreByIdOrFail(anyLong());
+        verify(cartRepository, never()).findByIdAndUser(anyLong(), any());
+        verify(addressService, never()).findMainAddress(anyLong());
+        verify(cartMenuRepository, never()).findByCartWithMenu(any());
+    }
+
+    @Test
+    @DisplayName("주문 미리보기 실패 테스트: 빈 장바구니")
+    void getOrderPreview_EmptyCart() {
+        // given
+        Long userId = 1L;
+        Long storeId = 1L;
+        Long cartId = 1L;
+
+        User user = mock(User.class);
+        Store store = mock(Store.class);
+        Cart cart = mock(Cart.class);
+        Address address = mock(Address.class);
+
+        when(userService.findActivateUserByIdOrFail(userId)).thenReturn(user);
+        when(storeService.findActivateStoreByIdOrFail(storeId)).thenReturn(store);
+        when(cartRepository.findByIdAndUser(cartId, user)).thenReturn(Optional.of(cart));
+        when(addressService.findMainAddress(userId)).thenReturn(address);
+        when(cartMenuRepository.findByCartWithMenu(cart)).thenReturn(Collections.emptyList());
+
+        // when & then
+        assertThatThrownBy(() ->
+                orderService.getOrderPreview(userId, storeId, cartId))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.CART_IS_EMPTY);
+
+        verify(userService).findActivateUserByIdOrFail(userId);
+        verify(storeService).findActivateStoreByIdOrFail(storeId);
+        verify(cartRepository).findByIdAndUser(cartId, user);
+        verify(addressService).findMainAddress(userId);
+        verify(cartMenuRepository).findByCartWithMenu(cart);
+    }
+
+    @Test
+    @DisplayName("주문 미리보기 실패 테스트: 품절된 메뉴 포함")
+    void getOrderPreview_SoldOutMenu() {
+        // given
+        Long userId = 1L;
+        Long storeId = 1L;
+        Long cartId = 1L;
+
+        User user = mock(User.class);
+        Store store = mock(Store.class);
+        Cart cart = mock(Cart.class);
+        Address address = mock(Address.class);
+
+        CartMenu cartMenu = mock(CartMenu.class);
+        doThrow(new BusinessException(ErrorCode.MENU_NOT_AVAILABLE))
+                .when(cartMenu).validateMenuCanOrder();
+
+        List<CartMenu> cartMenuList = List.of(cartMenu);
+
+        when(userService.findActivateUserByIdOrFail(userId)).thenReturn(user);
+        when(storeService.findActivateStoreByIdOrFail(storeId)).thenReturn(store);
+        when(cartRepository.findByIdAndUser(cartId, user)).thenReturn(Optional.of(cart));
+        when(addressService.findMainAddress(userId)).thenReturn(address);
+        when(cartMenuRepository.findByCartWithMenu(cart)).thenReturn(cartMenuList);
+
+        // when & then
+        assertThatThrownBy(() ->
+                orderService.getOrderPreview(userId, storeId, cartId))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.MENU_NOT_AVAILABLE);
+
+        verify(userService).findActivateUserByIdOrFail(userId);
+        verify(storeService).findActivateStoreByIdOrFail(storeId);
+        verify(cartRepository).findByIdAndUser(cartId, user);
+        verify(addressService).findMainAddress(userId);
+        verify(cartMenuRepository).findByCartWithMenu(cart);
     }
 
     @Test
@@ -425,7 +482,6 @@ public class OrderServiceTest extends DummyObject {
         verify(cartRepository).findById(cartId);
     }
 
-    @Test
     @DisplayName("주문 목록 조회 성공 테스트")
     void getAllOrder_Success() {
         // Given

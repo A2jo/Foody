@@ -18,4 +18,6 @@ public class AddressModifyReqDto {
 
     @Length(min = 1, max = 30, message = "최소 1자에서 최대 30자 사이여야 합니다")
     private String detailedAddress;
+
+    private Boolean isMain;
 }
