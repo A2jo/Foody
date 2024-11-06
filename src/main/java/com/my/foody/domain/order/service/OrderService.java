@@ -5,6 +5,7 @@ import com.my.foody.domain.address.repo.AddressRepository;
 import com.my.foody.domain.cart.entity.Cart;
 import com.my.foody.domain.cart.repo.CartRepository;
 import com.my.foody.domain.order.dto.req.OrderStatusUpdateReqDto;
+import com.my.foody.domain.order.dto.resp.OrderInfoRespDto;
 import com.my.foody.domain.order.dto.resp.OrderListRespDto;
 import com.my.foody.domain.order.dto.resp.OrderPreviewRespDto;
 import com.my.foody.domain.order.dto.resp.OrderStatusUpdateRespDto;
@@ -93,5 +94,9 @@ public class OrderService {
         Page<OrderProjectionRespDto> orderPage
                 = orderMenuRepository.findByOwnerWithOrderWithStoreWithMenu(owner, pageable);
         return new OrderListRespDto(orderPage);
+    }
+
+    public OrderInfoRespDto getOrderInfo(Long ownerId, Long orderId) {
+        return null;
     }
 }
