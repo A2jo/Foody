@@ -10,6 +10,7 @@ import com.my.foody.domain.store.dto.req.StoreCreateReqDto;
 import com.my.foody.domain.store.dto.resp.GetStoreRespDto;
 import com.my.foody.domain.store.dto.resp.ModifyStoreRespDto;
 import com.my.foody.domain.store.dto.resp.StoreCreateRespDto;
+import com.my.foody.domain.store.dto.resp.StoreListRespDto;
 import com.my.foody.domain.store.entity.Store;
 import com.my.foody.domain.store.repo.StoreRepository;
 import com.my.foody.domain.storeCategory.entity.StoreCategory;
@@ -556,13 +557,13 @@ public class StoreServiceTest {
         when(storeCategoryRepository.findStoresByCategoryId(categoryId, PageRequest.of(page, limit)))
                 .thenReturn(projections);
 
-        Page<GetStoreRespDto> result = storeService.getStoreByCategory(categoryId, page, limit);
+        StoreListRespDto result = storeService.getStoreByCategory(categoryId, page, limit);
 
-        assertEquals(2, result.getTotalElements());
-        assertEquals("Store A", result.getContent().get(0).getName());
-        assertEquals(10000L, result.getContent().get(0).getMinOrderAmount());
-        assertEquals("Store B", result.getContent().get(1).getName());
-        assertEquals(15000L, result.getContent().get(1).getMinOrderAmount());
+        assertEquals(2, result.getStoreList().size());
+        assertEquals("Store A", result.getStoreList().get(0).getName());
+        assertEquals(10000L, result.getStoreList().get(0).getMinOrderAmount());
+        assertEquals("Store B", result.getStoreList().get(1).getName());
+        assertEquals(15000L, result.getStoreList().get(1).getMinOrderAmount());
 
         verify(categoryRepository, times(1)).existsById(categoryId);
         verify(storeCategoryRepository, times(1)).findStoresByCategoryId(categoryId, PageRequest.of(page, limit));
@@ -581,9 +582,9 @@ public class StoreServiceTest {
         when(storeCategoryRepository.findStoresByCategoryId(categoryId, PageRequest.of(page, limit)))
                 .thenReturn(projections);
 
-        Page<GetStoreRespDto> result = storeService.getStoreByCategory(categoryId, page, limit);
+        StoreListRespDto result = storeService.getStoreByCategory(categoryId, page, limit);
 
-        assertEquals(0, result.getTotalElements());
+        assertEquals(0, result.getStoreList().size());
 
         verify(categoryRepository, times(1)).existsById(categoryId);
         verify(storeCategoryRepository, times(1)).findStoresByCategoryId(categoryId, PageRequest.of(page, limit));
