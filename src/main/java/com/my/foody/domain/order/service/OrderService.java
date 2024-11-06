@@ -34,6 +34,11 @@ import com.my.foody.domain.user.repo.UserRepository;
 import com.my.foody.domain.user.service.UserService;
 import com.my.foody.global.ex.BusinessException;
 import com.my.foody.global.ex.ErrorCode;
+import java.time.LocalTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -140,17 +145,16 @@ public class OrderService {
     }
 
     public void createOrder(Long storeId, Long cartId, OrderCreateReqDto orderCreateReqDto, Long userId) {
+    @Transactional
+    public void createOrder(Long cartId, OrderCreateReqDto orderCreateReqDto, Long userId) {
 
         User user = userService.findActivateUserByIdOrFail(userId);
-        Store store = storeService.findActivateStoreByIdOrFail(storeId);
-        addressService.findByIdOrFail(orderCreateReqDto.getUserAddressId());
-
 
         Cart cart = cartRepository.findById(cartId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.CART_ITEM_NOT_FOUND));
-        if (!cart.getStore().getId().equals(storeId)) {
-            throw new BusinessException(ErrorCode.STORE_NOT_FOUND);
-        }
+        Store store = storeService.findActivateStoreByIdOrFail(cart.getStore().getId());
+
+        addressService.findByIdOrFail(orderCreateReqDto.getUserAddressId());
 
         if (orderCreateReqDto.getTotalAmount() < store.getMinOrderAmount()) {
             throw new BusinessException(ErrorCode.UNDER_MINIMUM_ORDER_AMOUNT);
@@ -161,11 +165,17 @@ public class OrderService {
             throw new BusinessException(ErrorCode.STORE_CLOSED);
         }
 
-        //주문의 총금액 계산
         Long totalAmount = 0L;
         List<CartMenu> cartMenus = cartMenuRepository.findByCart(cart);
+
+        Map<Long, Menu> menuCache = new HashMap<>();
         for (CartMenu cartMenu : cartMenus) {
-            Menu menu = menuService.findActiveMenuByIdOrFail(cartMenu.getMenu().getId());
+            Menu menu = menuCache.computeIfAbsent(cartMenu.getMenu().getId(), menuService::findActiveMenuByIdOrFail);
+
+            if (menu.getIsSoldOut()) {
+                throw new BusinessException(ErrorCode.MENU_IS_SOLD_OUT);
+            }
+
             totalAmount += cartMenu.getQuantity() * menu.getPrice();
         }
 
@@ -178,7 +188,7 @@ public class OrderService {
         orderRepository.save(order);
 
         for (CartMenu cartMenu : cartMenus) {
-            Menu menu = menuService.findActiveMenuByIdOrFail(cartMenu.getMenu().getId());
+            Menu menu = menuCache.get(cartMenu.getMenu().getId());
             OrderMenu orderMenu = OrderMenu.builder()
                     .order(order)
                     .menuId(menu.getId())
@@ -189,4 +199,11 @@ public class OrderService {
         }
     }
 
+    public OrderListRespDto getAllOrder(Long ownerId, int page, int limit) {
+        Owner owner = ownerService.findActivateOwnerByIdOrFail(ownerId);
+        Pageable pageable = PageRequest.of(page, limit, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<OrderProjectionRespDto> orderPage
+                = orderMenuRepository.findByOwnerWithOrderWithStoreWithMenu(owner, pageable);
+        return new OrderListRespDto(orderPage);
+    }
 }
