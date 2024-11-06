@@ -21,4 +21,6 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
             "from Review r " +
             "where r.user = :user")
     Page<ReviewProjectionRespDto> findReviewsByUser(@Param(value = "user") User user, Pageable pageable);
+
+    long countByStoreId(Long storeId);
 }
