@@ -128,11 +128,13 @@ public class OrderService {
 
         List<CartMenu> cartMenus = cartMenuRepository.findByCart(cart);
         for (CartMenu cartMenu : cartMenus) {
+
+            Menu menu = menuService.findActiveMenuByIdOrFail(cartMenu.getMenu().getId());
             OrderMenu orderMenu = OrderMenu.builder()
                     .order(order)
-                    .menuId(cartMenu.getMenu().getId())
+                    .menuId(menu.getId())
                     .quantity(cartMenu.getQuantity())
-                    .price(cartMenu.getMenu().getPrice())
+                    .price(menu.getPrice())
                     .build();
             orderMenuRepository.save(orderMenu);
         }
