@@ -30,7 +30,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
             "join o.address a " +
             "join o.orderMenus om " +
             "join om.menu m " +
-            "where u.id = :userId " +
+            "where o.id = :userId " +
             "group by o.id")
     Page<OrderProjectionDto> findByUserId(@Param("userId") Long userId, Pageable pageable);
 
