@@ -52,12 +52,12 @@ public class OrderController {
   }
 
   @RequireAuth(userType = UserType.USER)
-  @PostMapping("/api/home/stores/{storeId}/cart/{cartId}/orders")
-  public ResponseEntity<ApiResult<String>> createOrder(@PathVariable Long storeId,
+  @PostMapping("/api/home/cart/{cartId}/orders")
+  public ResponseEntity<ApiResult<String>> createOrder(
                                                        @PathVariable Long cartId,
                                                        @RequestBody @Valid OrderCreateReqDto orderCreateReqDto,
                                                        @CurrentUser TokenSubject tokenSubject) {
-    orderService.createOrder(storeId, cartId, orderCreateReqDto, tokenSubject.getId());
+    orderService.createOrder(cartId, orderCreateReqDto, tokenSubject.getId());
     return new ResponseEntity<>(ApiResult.success("주문이 완료되었습니다."), HttpStatus.CREATED);
   }
 
