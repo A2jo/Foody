@@ -11,7 +11,7 @@ public class GetStoreRespDto {
     private String name;
     private String description;
     private Long minOrderAmount;
-    private boolean isDeleted;
+    private Boolean isDeleted;
     private String openTime;
     private String endTime;
     private int reviewCount;
