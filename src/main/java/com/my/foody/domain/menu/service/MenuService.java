@@ -74,6 +74,7 @@ public class MenuService {
   // 메뉴 등록
     @Transactional
     @Transactional
+    @Transactional
 
 
     // 메뉴 등록
