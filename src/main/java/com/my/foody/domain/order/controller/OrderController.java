@@ -77,4 +77,15 @@ public class OrderController {
                                                                   @CurrentUser TokenSubject tokenSubject){
     return new ResponseEntity<>(ApiResult.success(orderService.getOrderInfo(tokenSubject.getId(), orderId)), HttpStatus.OK);
   }
+
+  @RequireAuth(userType = UserType.USER)
+  @GetMapping("/orders")
+  public ResponseEntity<ApiResult<OrderListRespDto>> getUserOrders(
+          @RequestParam(value = "page", defaultValue = "0") @Min(value = 0) int page,
+          @RequestParam(value = "limit", defaultValue = "10") @Positive int limit,
+          @CurrentUser TokenSubject tokenSubject) {
+
+    OrderListRespDto response = orderService.getUserOrders(tokenSubject.getId(), page, limit);
+    return ResponseEntity.ok(ApiResult.success(response));
+  }
 }
