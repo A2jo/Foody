@@ -32,9 +32,8 @@ public class MenuService {
   }
 
   // 메뉴 등록
-  @Transactional
-  public MenuCreateRespDto createMenu(
-      Long storeId, MenuCreateReqDto menuCreateReqDto, Long ownerId) {
+    @Transactional
+    public MenuCreateRespDto createMenu(Long storeId, MenuCreateReqDto menuCreateReqDto, Long ownerId) {
 
     Store store =
         storeRepository
@@ -59,10 +58,10 @@ public class MenuService {
     return new MenuCreateRespDto();
   }
 
-  // 가게 주인 확인 메서드
-  private void isStoreOwner(Store store, Long ownerId) {
-    if (!store.getOwner().getId().equals(ownerId)) {
-      throw new BusinessException(ErrorCode.FORBIDDEN_ACCESS);
+    // 가게 주인 확인 메서드
+    private void isStoreOwner(Store store, Long ownerId) {
+        if (!store.getOwner().getId().equals(ownerId)) {
+            throw new BusinessException(ErrorCode.FORBIDDEN_ACCESS);
+        }
     }
-  }
 }

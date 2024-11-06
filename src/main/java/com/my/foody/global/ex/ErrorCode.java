@@ -42,9 +42,13 @@ public enum ErrorCode {
     MENU_NOT_AVAILABLE(HttpStatus.BAD_REQUEST.value(), "현재 주문할 수 없는 메뉴입니다"),
     UNDER_MINIMUM_ORDER_AMOUNT(HttpStatus.BAD_REQUEST.value(), "최소 금액 이상만 주문이 가능합니다."),
     STORE_CLOSED(HttpStatus.BAD_REQUEST.value(), "가계의 영업 시간이 아닙니다."),
+    MENU_IS_SOLD_OUT(HttpStatus.BAD_REQUEST.value(), "품절된 메뉴입니다"),
+    MAIN_ADDRESS_NOT_FOUND(HttpStatus.BAD_REQUEST.value(), "기본 주소지가 등록되지 않았습니다"),
+    CART_IS_EMPTY(HttpStatus.BAD_REQUEST.value(), "장바구니가 비어있습니다"),
     OAUTH_CALLBACK_FAILED(HttpStatus.INTERNAL_SERVER_ERROR.value(), "소셜 인증 서버와 통신 중 오류가 발생했습니다"),
     NO_UPDATE_DATA(HttpStatus.NO_CONTENT.value(), "수정된 내용이 존재하지 않습니다."),
     ;
+
 
 
     private final int status;
