@@ -1,14 +1,29 @@
 package com.my.foody.domain.order.service;
 
 import com.my.foody.domain.address.entity.Address;
+import com.my.foody.domain.address.repo.AddressRepository;
+import com.my.foody.domain.address.service.AddressService;
+import com.my.foody.domain.cart.entity.Cart;
+import com.my.foody.domain.cart.repo.CartRepository;
+import com.my.foody.domain.cartMenu.CartMenu;
+import com.my.foody.domain.cartMenu.CartMenuRepository;
+import com.my.foody.domain.menu.entity.Menu;
 import com.my.foody.domain.order.dto.req.OrderStatusUpdateReqDto;
+import com.my.foody.domain.order.dto.resp.OrderListRespDto;
+import com.my.foody.domain.order.dto.resp.OrderPreviewRespDto;
 import com.my.foody.domain.order.dto.resp.OrderStatusUpdateRespDto;
 import com.my.foody.domain.order.entity.Order;
 import com.my.foody.domain.order.repo.OrderRepository;
+import com.my.foody.domain.order.repo.dto.OrderProjectionRespDto;
+import com.my.foody.domain.orderMenu.repo.OrderMenuRepository;
 import com.my.foody.domain.owner.entity.OrderStatus;
 import com.my.foody.domain.owner.entity.Owner;
+import com.my.foody.domain.owner.service.OwnerService;
 import com.my.foody.domain.store.entity.Store;
+import com.my.foody.domain.store.service.StoreService;
 import com.my.foody.domain.user.entity.User;
+import com.my.foody.domain.user.repo.UserRepository;
+import com.my.foody.domain.user.service.UserService;
 import com.my.foody.global.ex.BusinessException;
 import com.my.foody.global.ex.ErrorCode;
 import com.my.foody.global.util.DummyObject;
@@ -19,9 +34,17 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
+import org.springframework.data.domain.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -35,11 +58,38 @@ public class OrderServiceTest extends DummyObject {
     @Mock
     private OrderRepository orderRepository;
 
+    @Mock
+    private UserRepository userRepository;
+
+    @Mock
+    private CartRepository cartRepository;
+
+    @Mock
+    private AddressRepository addressRepository;
+
+    @Mock
+    private AddressService addressService;
+
+    @Mock
+    private UserService userService;
+
+    @Mock
+    private StoreService storeService;
+
+    @Mock
+    private CartMenuRepository cartMenuRepository;
+    private OwnerService ownerService;
+
+    @Mock
+    private OrderMenuRepository orderMenuRepository;
+
     private Order order;
     private Owner owner;
     private Store store;
     private User user;
     private Address address;
+    private Cart cart;
+    private Menu menu;
 
     @BeforeEach
     public void setUp() {
@@ -48,6 +98,15 @@ public class OrderServiceTest extends DummyObject {
         user = newUser(1L);
         address = mockAddress(user);
         order = mockOrder(owner, user, address);
+
+        menu = Menu.builder()
+                .price(100L)
+                .name("테스트 메뉴")
+                .build();
+
+        cart = Cart.builder()
+                .store(store)
+                .build();
     }
 
     @Test
@@ -108,6 +167,296 @@ public class OrderServiceTest extends DummyObject {
         // 주문 저장 메서드는 호출되지 않아야 함
         verify(orderRepository, never()).save(any(Order.class));
     }
+
+    @Test
+    @DisplayName("주문 미리보기 성공 테스트")
+    void getOrderPreview_Success_test() {
+        // given
+        Long userId = 1L;
+        Long storeId = 1L;
+        Long cartId = 1L;
+
+        User user = mock(User.class);
+        Store store = mock(Store.class);
+        Cart cart = mock(Cart.class);
+        Address address = mock(Address.class);
+        Menu menu = mock(Menu.class);
+
+        // Menu mock 설정
+        when(menu.getPrice()).thenReturn(10000L);
+        when(menu.getName()).thenReturn("테스트메뉴");
+
+        CartMenu cartMenu = mock(CartMenu.class);
+        when(cartMenu.getMenu()).thenReturn(menu);
+        when(cartMenu.getQuantity()).thenReturn(2L);
+
+        List<CartMenu> cartMenuList = List.of(cartMenu);
+
+
+        when(userService.findActivateUserByIdOrFail(userId)).thenReturn(user);
+        when(storeService.findActivateStoreByIdOrFail(storeId)).thenReturn(store);
+        when(cartRepository.findByIdAndUser(cartId, user)).thenReturn(Optional.of(cart));
+        when(addressService.findMainAddress(userId)).thenReturn(address);
+        when(cartMenuRepository.findByCartWithMenu(cart)).thenReturn(cartMenuList);
+
+        // when
+        OrderPreviewRespDto result = orderService.getOrderPreview(userId, storeId, cartId);
+
+        verify(userService).findActivateUserByIdOrFail(userId);
+        verify(storeService).findActivateStoreByIdOrFail(storeId);
+        verify(cartRepository).findByIdAndUser(cartId, user);
+        verify(addressService).findMainAddress(userId);
+        verify(cartMenuRepository).findByCartWithMenu(cart);
+    }
+
+    @Test
+    @DisplayName("주문 미리보기 실패 테스트: 존재하지 않는 사용자")
+    void getOrderPreview_UserNotFound() {
+        // given
+        Long userId = 1L;
+        Long storeId = 1L;
+        Long cartId = 1L;
+
+        when(userService.findActivateUserByIdOrFail(userId))
+                .thenThrow(new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        // when & then
+        assertThatThrownBy(() ->
+                orderService.getOrderPreview(userId, storeId, cartId))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.USER_NOT_FOUND);
+
+        verify(userService).findActivateUserByIdOrFail(userId);
+        verify(storeService, never()).findActivateStoreByIdOrFail(anyLong());
+        verify(cartRepository, never()).findByIdAndUser(anyLong(), any());
+        verify(addressService, never()).findMainAddress(anyLong());
+        verify(cartMenuRepository, never()).findByCartWithMenu(any());
+    }
+
+    @Test
+    @DisplayName("주문 미리보기 실패 테스트: 빈 장바구니")
+    void getOrderPreview_EmptyCart() {
+        // given
+        Long userId = 1L;
+        Long storeId = 1L;
+        Long cartId = 1L;
+
+        User user = mock(User.class);
+        Store store = mock(Store.class);
+        Cart cart = mock(Cart.class);
+        Address address = mock(Address.class);
+
+        when(userService.findActivateUserByIdOrFail(userId)).thenReturn(user);
+        when(storeService.findActivateStoreByIdOrFail(storeId)).thenReturn(store);
+        when(cartRepository.findByIdAndUser(cartId, user)).thenReturn(Optional.of(cart));
+        when(addressService.findMainAddress(userId)).thenReturn(address);
+        when(cartMenuRepository.findByCartWithMenu(cart)).thenReturn(Collections.emptyList());
+
+        // when & then
+        assertThatThrownBy(() ->
+                orderService.getOrderPreview(userId, storeId, cartId))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.CART_IS_EMPTY);
+
+        verify(userService).findActivateUserByIdOrFail(userId);
+        verify(storeService).findActivateStoreByIdOrFail(storeId);
+        verify(cartRepository).findByIdAndUser(cartId, user);
+        verify(addressService).findMainAddress(userId);
+        verify(cartMenuRepository).findByCartWithMenu(cart);
+    }
+
+    @Test
+    @DisplayName("주문 미리보기 실패 테스트: 품절된 메뉴 포함")
+    void getOrderPreview_SoldOutMenu() {
+        // given
+        Long userId = 1L;
+        Long storeId = 1L;
+        Long cartId = 1L;
+
+        User user = mock(User.class);
+        Store store = mock(Store.class);
+        Cart cart = mock(Cart.class);
+        Address address = mock(Address.class);
+
+        CartMenu cartMenu = mock(CartMenu.class);
+        doThrow(new BusinessException(ErrorCode.MENU_NOT_AVAILABLE))
+                .when(cartMenu).validateMenuCanOrder();
+
+        List<CartMenu> cartMenuList = List.of(cartMenu);
+
+        when(userService.findActivateUserByIdOrFail(userId)).thenReturn(user);
+        when(storeService.findActivateStoreByIdOrFail(storeId)).thenReturn(store);
+        when(cartRepository.findByIdAndUser(cartId, user)).thenReturn(Optional.of(cart));
+        when(addressService.findMainAddress(userId)).thenReturn(address);
+        when(cartMenuRepository.findByCartWithMenu(cart)).thenReturn(cartMenuList);
+
+        // when & then
+        assertThatThrownBy(() ->
+                orderService.getOrderPreview(userId, storeId, cartId))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.MENU_NOT_AVAILABLE);
+
+        verify(userService).findActivateUserByIdOrFail(userId);
+        verify(storeService).findActivateStoreByIdOrFail(storeId);
+        verify(cartRepository).findByIdAndUser(cartId, user);
+        verify(addressService).findMainAddress(userId);
+        verify(cartMenuRepository).findByCartWithMenu(cart);
+    }
+
+
+    @DisplayName("주문 목록 조회 성공 테스트")
+    void getAllOrder_Success() {
+        // Given
+        Long ownerId = 1L;
+        int page = 0;
+        int limit = 10;
+        Owner owner = newOwner(ownerId);
+        Page<OrderProjectionRespDto> mockOrderPage = createMockOrderPage();
+
+        Pageable expectedPageable = PageRequest.of(page, limit, Sort.by(Sort.Direction.DESC, "createdAt"));
+
+        when(ownerService.findActivateOwnerByIdOrFail(ownerId)).thenReturn(owner);
+        when(orderMenuRepository.findByOwnerWithOrderWithStoreWithMenu(owner, expectedPageable))
+                .thenReturn(mockOrderPage);
+
+        // When
+        OrderListRespDto result = orderService.getAllOrder(ownerId, page, limit);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getOrderList()).hasSize(2);
+        assertThat(result.getPageInfo().getPageNumber()).isEqualTo(page);
+        assertThat(result.getPageInfo().getPageSize()).isEqualTo(limit);
+
+        OrderListRespDto.OrderRespDto firstOrder = result.getOrderList().get(0);
+        assertThat(firstOrder.getStoreName()).isEqualTo("맛있는 치킨");
+        assertThat(firstOrder.getMenuSummary()).isEqualTo("후라이드 치킨 외 2개");
+
+        verify(ownerService).findActivateOwnerByIdOrFail(ownerId);
+        verify(orderMenuRepository).findByOwnerWithOrderWithStoreWithMenu(owner, expectedPageable);
+    }
+
+
+    @Test
+    @DisplayName("주문 목록 조회 성공 테스트: 주문이 없는 경우")
+    void getAllOrder_EmptyOrders() {
+        // Given
+        Long ownerId = 1L;
+        int page = 0;
+        int limit = 10;
+        Owner owner = newOwner(ownerId);
+        Page<OrderProjectionRespDto> emptyPage = Page.empty(PageRequest.of(page, limit));
+
+        when(ownerService.findActivateOwnerByIdOrFail(ownerId)).thenReturn(owner);
+        when(orderMenuRepository.findByOwnerWithOrderWithStoreWithMenu(any(), any())).thenReturn(emptyPage);
+
+        // When
+        OrderListRespDto result = orderService.getAllOrder(ownerId, page, limit);
+
+        // Then
+        assertThat(result.getOrderList()).isEmpty();
+        assertThat(result.getPageInfo().getTotalElements()).isZero();
+    }
+
+    @Test
+    @DisplayName("주문 목록 조회 실패 테스트: 존재하지 않는 사장님")
+    void getAllOrder_OwnerNotFound() {
+        // Given
+        Long nonExistentOwnerId = 999L;
+        when(ownerService.findActivateOwnerByIdOrFail(nonExistentOwnerId))
+                .thenThrow(new BusinessException(ErrorCode.OWNER_NOT_FOUND));
+
+        // When & Then
+        assertThatThrownBy(() ->
+                orderService.getAllOrder(nonExistentOwnerId, 0, 10)
+        ).isInstanceOf(BusinessException.class)
+                .hasMessage(ErrorCode.OWNER_NOT_FOUND.getMsg());
+    }
+
+
+    @Test
+    @DisplayName("주문 목록 조회 성공 테스트: 메뉴명 포맷팅 확인")
+    void getAllOrder_MenuNameFormatting() {
+        Long ownerId = 1L;
+        int page = 0;
+        int limit = 10;
+        Owner owner = newOwner(ownerId);
+        Page<OrderProjectionRespDto> mockOrderPage = createMockOrderPage();
+
+        when(ownerService.findActivateOwnerByIdOrFail(ownerId)).thenReturn(owner);
+        when(orderMenuRepository.findByOwnerWithOrderWithStoreWithMenu(any(), any())).thenReturn(mockOrderPage);
+
+        // When
+        OrderListRespDto result = orderService.getAllOrder(ownerId, page, limit);
+
+        // Then
+        OrderListRespDto.OrderRespDto firstOrder = result.getOrderList().get(0);
+        assertThat(firstOrder.getMenuSummary())
+                .isEqualTo("후라이드 치킨 외 2개");
+
+        OrderListRespDto.OrderRespDto secondOrder = result.getOrderList().get(1);
+        assertThat(secondOrder.getMenuSummary())
+                .isEqualTo("페퍼로니피자");
+    }
+
+
+    private Page<OrderProjectionRespDto> createMockOrderPage() {
+        List<OrderProjectionRespDto> orders = Arrays.asList(
+                createMockOrderProjection("맛있는 치킨", "후라이드 치킨,양념 치킨,콜라"),
+                createMockOrderProjection("맛있는 피자", "페퍼로니피자")
+        );
+
+        return new PageImpl<>(
+                orders,
+                PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt")),
+                orders.size()
+        );
+    }
+
+    private OrderProjectionRespDto createMockOrderProjection(String storeName, String menuNames) {
+        return new OrderProjectionRespDto() {
+            @Override
+            public String getStoreName() {
+                return storeName;
+            }
+
+            @Override
+            public OrderStatus getOrderStatus() {
+                return OrderStatus.DELIVERED;
+            }
+
+            @Override
+            public String getRoadAddress() {
+                return "서울시 강남구";
+            }
+
+            @Override
+            public String getDetailedAddress() {
+                return "123번길";
+            }
+
+            @Override
+            public String getMenuNames() {
+                return menuNames;
+            }
+
+            @Override
+            public Long getOrderId() {
+                return 1L;
+            }
+
+            @Override
+            public Long getTotalAmount() {
+                return 50000L;
+            }
+
+            @Override
+            public LocalDateTime getCreatedAt() {
+                return LocalDateTime.now();
+            }
+        };
+    }
+
 
 
 }

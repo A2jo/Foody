@@ -9,7 +9,6 @@ import lombok.*;
 @Getter
 @Builder
 @Table(name = "menu")
-@AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Menu extends BaseEntity {
     @Id
@@ -33,7 +32,8 @@ public class Menu extends BaseEntity {
     private Boolean isDeleted;
 
     @Builder
-    public Menu(Store store, String name, Long price, Boolean isSoldOut, Boolean isDeleted) {
+    public Menu(Long id, Store store, String name, Long price, Boolean isSoldOut, Boolean isDeleted) {
+        this.id = id ;
         this.store = store;
         this.name = name;
         this.price = price;

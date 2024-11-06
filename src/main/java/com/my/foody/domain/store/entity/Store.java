@@ -2,17 +2,17 @@ package com.my.foody.domain.store.entity;
 
 import com.my.foody.domain.base.BaseEntity;
 import com.my.foody.domain.owner.entity.Owner;
+import com.my.foody.domain.store.dto.req.ModifyStoreReqDto;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalTime;
+import java.util.Optional;
 
 @Entity
 @Getter
-@Builder
-@Table(name = "store")
+@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
 public class Store extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -44,7 +44,8 @@ public class Store extends BaseEntity {
     private Boolean isDeleted; //삭제되면 true, 운영 중이면 false
 
     @Builder
-    public Store(String name, Owner owner, String description, String contact, Long minOrderAmount, LocalTime openTime, LocalTime endTime, Boolean isDeleted) {
+    public Store(Long id, String name, Owner owner, String description, String contact, Long minOrderAmount, LocalTime openTime, LocalTime endTime, boolean isDeleted) {
+        this.id = id;
         this.name = name;
         this.owner = owner;
         this.description = description;
@@ -52,6 +53,15 @@ public class Store extends BaseEntity {
         this.minOrderAmount = minOrderAmount;
         this.openTime = openTime;
         this.endTime = endTime;
-        this.isDeleted = false;
+        this.isDeleted = isDeleted;
+    }
+    public void updateAll(ModifyStoreReqDto modifyStoreReqDto) {
+        Optional.ofNullable(modifyStoreReqDto.getName()).ifPresent(name -> this.name = name);
+        Optional.ofNullable(modifyStoreReqDto.getDescription()).ifPresent(description -> this.description = description);
+        Optional.ofNullable(modifyStoreReqDto.getContact()).ifPresent(contact -> this.contact = contact);
+        Optional.ofNullable(modifyStoreReqDto.getMinOrderAmount()).ifPresent(minOrderAmount -> this.minOrderAmount = minOrderAmount);
+        Optional.ofNullable(modifyStoreReqDto.getOpenTime()).ifPresent(openTime -> this.openTime = openTime);
+        Optional.ofNullable(modifyStoreReqDto.getEndTime()).ifPresent(endTime -> this.endTime = endTime);
+        Optional.ofNullable(modifyStoreReqDto.getIsDeleted()).ifPresent(isDeleted -> this.isDeleted = isDeleted);
     }
 }

@@ -2,6 +2,7 @@ package com.my.foody.domain.address.service;
 
 import com.my.foody.domain.address.entity.Address;
 import com.my.foody.domain.address.repo.AddressRepository;
+import com.my.foody.domain.user.entity.User;
 import com.my.foody.global.ex.BusinessException;
 import com.my.foody.global.ex.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -17,5 +18,10 @@ public class AddressService {
     public Address findByIdOrFail(Long addressId){
         return addressRepository.findById(addressId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.ADDRESS_NOT_FOUND));
+    }
+
+    public Address findMainAddress(Long userId){
+        return addressRepository.findByUserIdAndIsMain(userId, true)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MAIN_ADDRESS_NOT_FOUND));
     }
 }
