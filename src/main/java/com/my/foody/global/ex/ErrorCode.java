@@ -33,7 +33,10 @@ public enum ErrorCode {
     OWNER_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "OWNER를 찾을 수 없습니다."),
     CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "존재하지 않는 카테고리입니다."),
     MENU_NOT_FOUND(HttpStatus.BAD_REQUEST.value(), "존재하지 않는 메뉴입니다"),
-    MENU_NOT_AVAILABLE(HttpStatus.BAD_REQUEST.value(), "현재 주문할 수 없는 메뉴입니다");
+    MENU_NOT_AVAILABLE(HttpStatus.BAD_REQUEST.value(), "현재 주문할 수 없는 메뉴입니다"),
+    UNDER_MINIMUM_ORDER_AMOUNT(HttpStatus.BAD_REQUEST.value(), "최소 금액 이상만 주문이 가능합니다."),
+    STORE_CLOSED(HttpStatus.BAD_REQUEST.value(), "가계의 영업 시간이 아닙니다.")
+    ;
 
 
     private final int status;
