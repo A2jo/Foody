@@ -11,4 +11,6 @@ import org.springframework.stereotype.Repository;
 public interface AddressRepository extends JpaRepository<Address, Long> {
     List<Address> findAllByUserOrderByCreatedAtDesc(User user);
     Optional<Address> findByUserIdAndIsMain(Long userId, Boolean isMain);
+
+    boolean existsByUser(User user);
 }
