@@ -199,11 +199,11 @@ public class StoreService {
         storeCategoryRepository.findByCategoryIdAndStoreId(categoryId, storeId).orElseThrow(() ->
                 new BusinessException(ErrorCode.STORE_NOT_FOUND_IN_CATEGORY)
         );
-        // 가게 삭제 여부
+        // 가게 폐업처리 확인
         Store store = storeRepository.findById(storeId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.STORE_NOT_FOUND));
         if (store.getIsDeleted()) {
-            throw new BusinessException(ErrorCode.STORE_NOT_FOUND);
+            throw new BusinessException(ErrorCode.STORE_CLOSED);
         }
     }
 }

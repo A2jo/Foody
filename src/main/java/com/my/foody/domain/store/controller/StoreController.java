@@ -66,7 +66,7 @@ public class StoreController {
                                                                         @PathVariable(value = "storeId") Long storeId,
                                                                         @RequestParam(value = "page", defaultValue = "0") int page,
                                                                         @RequestParam(value = "limit", defaultValue = "10") int limit) {
-        ReviewListRespDto reviewListRespDto = StoreService.getStoreReviews(categoryId, storeId, page, limit);
+        ReviewListRespDto reviewListRespDto = storeService.getStoreReviews(categoryId, storeId, page, limit);
         return ResponseEntity.ok(ApiResult.success(reviewListRespDto));
     }
 }
