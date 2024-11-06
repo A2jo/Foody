@@ -4,6 +4,7 @@ import com.my.foody.domain.order.repo.dto.OrderProjectionRespDto;
 import com.my.foody.domain.owner.entity.OrderStatus;
 import com.my.foody.domain.review.dto.resp.ReviewListRespDto;
 import com.my.foody.domain.review.repo.dto.ReviewProjectionRespDto;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -24,6 +25,7 @@ public class OrderListRespDto {
 
     @NoArgsConstructor
     @Getter
+    @AllArgsConstructor
     public static class PageInfo {
         public PageInfo(Page<OrderProjectionRespDto> page) {
             this.pageNumber = page.getNumber();
@@ -48,6 +50,7 @@ public class OrderListRespDto {
 
     @NoArgsConstructor
     @Getter
+    @AllArgsConstructor
     public static class OrderRespDto{
 
         public OrderRespDto(OrderProjectionRespDto dto) {
