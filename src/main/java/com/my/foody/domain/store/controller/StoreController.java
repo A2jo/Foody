@@ -1,7 +1,9 @@
 package com.my.foody.domain.store.controller;
 
+import com.my.foody.domain.store.dto.req.ModifyStoreReqDto;
 import com.my.foody.domain.store.dto.req.StoreCreateReqDto;
 import com.my.foody.domain.store.dto.resp.GetStoreRespDto;
+import com.my.foody.domain.store.dto.resp.ModifyStoreRespDto;
 import com.my.foody.domain.store.dto.resp.StoreCreateRespDto;
 import com.my.foody.domain.store.service.StoreService;
 import com.my.foody.global.config.valid.CurrentUser;
@@ -47,5 +49,14 @@ public class StoreController {
                                                                                @RequestParam(value = "limit", defaultValue = "10") int limit) {
         Page<GetStoreRespDto> stores = storeService.getStoreByCategory(categoryId, page, limit);
         return ResponseEntity.ok(ApiResult.success(stores));
+    }
+
+    @RequireAuth(userType = UserType.OWNER)
+    @PatchMapping("/stores/{storeId}")
+    public ResponseEntity<ApiResult<ModifyStoreRespDto>> modifyStore(@PathVariable(value = "storeId") Long storeId,
+                                                                     @RequestBody @Valid ModifyStoreReqDto modifyStoreReqDto,
+                                                                     @CurrentUser TokenSubject tokenSubject) {
+        Long ownerId = tokenSubject.getId();
+        return new ResponseEntity<>(ApiResult.success(storeService.modifyStore(storeId, modifyStoreReqDto, ownerId)), HttpStatus.OK);
     }
 }
