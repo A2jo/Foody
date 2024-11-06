@@ -66,12 +66,6 @@ public class StoreControllerTest {
                 .isDeleted(false)
                 .build();
 
-        // StoreCategory 객체로 Store와 Category 연결
-        StoreCategory storeCategory = StoreCategory.builder()
-                .store(store)
-                .category(category)
-                .build();
-
         // 서비스 Mock 설정
         GetStoreRespDto storeDto = new GetStoreRespDto(store.getId(), store.getName(), store.getMinOrderAmount());
         List<GetStoreRespDto> storeList = List.of(storeDto);
