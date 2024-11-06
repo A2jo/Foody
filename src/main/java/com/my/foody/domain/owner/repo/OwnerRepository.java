@@ -5,9 +5,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import org.springframework.web.bind.annotation.PathVariable;
-
-import java.util.Optional;
 
 import java.util.Optional;
 
@@ -17,7 +14,7 @@ public interface OwnerRepository extends JpaRepository<Owner, Long> {
 
     @Query("select o from Owner o where o.id = :ownerId and o.isDeleted = false")
     Optional<Owner> findActivateOwner(@Param(value = "ownerId") Long ownerId);
-}
+
 
     Optional<Owner> findByEmail(String email);
 }
