@@ -53,6 +53,12 @@ public enum ErrorCode {
 
 
 
+
+    ORDER_NOT_COMPLETED(HttpStatus.BAD_REQUEST.value(), "리뷰는 완료된 주문에 대해서만 작성할 수 있습니다"),
+    REVIEW_ALREADY_EXISTS(HttpStatus.BAD_REQUEST.value(), "해당 주문에 대한 리뷰가 존재합니다")
+
+    ;
+
     private final int status;
     private final String msg;
 
