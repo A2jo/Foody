@@ -13,7 +13,6 @@ import com.my.foody.global.util.api.ApiResult;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -31,7 +30,11 @@ public class OwnerController {
     @PostMapping("/login")
     public ResponseEntity<ApiResult<OwnerLoginRespDto>> login(@RequestBody @Valid OwnerLoginReqDto ownerLoginReqDto) {
         OwnerLoginRespDto responseMessage = ownerService.login(ownerLoginReqDto);
-        return ResponseEntity.ok(ApiResult.success(responseMessage));
+
+        // 응답 헤더에 토큰 추가
+        return ResponseEntity.ok()
+                .header("Authorization", "Bearer " + responseMessage.getToken())
+                .body(ApiResult.success(responseMessage));
     }
 
     @GetMapping("/mypage")
