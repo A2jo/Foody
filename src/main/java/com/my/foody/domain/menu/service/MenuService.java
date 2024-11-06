@@ -31,7 +31,7 @@ public class MenuService {
   
   
   // 메뉴 등록
-    @Transational
+    @Transactional
     public MenuCreateRespDto createMenu(Long storeId, MenuCreateReqDto menuCreateReqDto, Long ownerId) {
 
         Store store = storeRepository.findById(storeId).orElseThrow(() -> new BusinessException(ErrorCode.STORE_NOT_FOUND));
@@ -58,4 +58,5 @@ public class MenuService {
         if (!store.getOwner().getId().equals(ownerId)) {
             throw new BusinessException(ErrorCode.FORBIDDEN_ACCESS);
         }
+    }
 }
