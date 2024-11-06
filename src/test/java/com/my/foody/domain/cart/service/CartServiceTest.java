@@ -1,5 +1,6 @@
 package com.my.foody.domain.cart.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hibernate.validator.internal.util.Contracts.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -49,160 +50,155 @@ public class CartServiceTest extends DummyObject {
     private CartMenuRepository cartMenuRepository;
 
     @Test
-    @DisplayName("장바구니에 메뉴 추가 성공 테스트: 장바구니가 이미 존재하는 경우")
-    void addCartItem_ExistingCart_Success() {
-        // given
-        Long userId = 1L;
-        Long storeId = 1L;
-        Long menuId = 1L;
-        CartMenuCreateReqDto request = new CartMenuCreateReqDto(2L);
-
-        User user = mock(User.class);
-        Store store = mock(Store.class);
-        Menu menu = mock(Menu.class);
-        Cart cart = mock(Cart.class);
-        CartMenu cartMenu = mock(CartMenu.class);
-
-        when(userService.findActivateUserByIdOrFail(userId)).thenReturn(user);
-        when(storeService.findActivateStoreByIdOrFail(storeId)).thenReturn(store);
-        when(menuService.findActiveMenuByIdOrFail(menuId)).thenReturn(menu);
-        when(cartRepository.findByUser(user)).thenReturn(Optional.of(cart));
-        when(cartMenuRepository.save(any(CartMenu.class))).thenReturn(cartMenu);
-
-        // when
-        CartMenuCreateRespDto result = cartService.addCartItem(storeId, menuId, request, userId);
-
-        // then
-        assertNotNull(result);
-        verify(userService).findActivateUserByIdOrFail(userId);
-        verify(storeService).findActivateStoreByIdOrFail(storeId);
-        verify(menuService).findActiveMenuByIdOrFail(menuId);
-        verify(cartRepository).findByUser(user);
-        verify(cartRepository, never()).save(any(Cart.class));
-        verify(cartMenuRepository).save(any(CartMenu.class));
-    }
-
-
-    @Test
     @DisplayName("장바구니에 메뉴 추가 성공 테스트: 새로운 장바구니 생성")
-    void addCartItem_NewCart_Success() {
-        // given
+    void addCartItem_CreateNewCart_Success() {
+        // Given
         Long userId = 1L;
         Long storeId = 1L;
         Long menuId = 1L;
         CartMenuCreateReqDto request = new CartMenuCreateReqDto(2L);
 
-        User user = mock(User.class);
-        Store store = mock(Store.class);
-        Menu menu = mock(Menu.class);
-        Cart newCart = mock(Cart.class);
-        CartMenu cartMenu = mock(CartMenu.class);
+        User user = newUser(userId);
+        Store store = createStore(storeId);
+        Menu menu = createMenu(menuId, store);
+        Cart cart = createCart(user, store);
+        CartMenu cartMenu = createCartMenu(cart, menu, request.getQuantity());
 
         when(userService.findActivateUserByIdOrFail(userId)).thenReturn(user);
         when(storeService.findActivateStoreByIdOrFail(storeId)).thenReturn(store);
         when(menuService.findActiveMenuByIdOrFail(menuId)).thenReturn(menu);
         when(cartRepository.findByUser(user)).thenReturn(Optional.empty());
-        when(cartRepository.save(any(Cart.class))).thenReturn(newCart);
+        when(cartRepository.save(any(Cart.class))).thenReturn(cart);
         when(cartMenuRepository.save(any(CartMenu.class))).thenReturn(cartMenu);
 
-        // when
+        // When
         CartMenuCreateRespDto result = cartService.addCartItem(storeId, menuId, request, userId);
 
-        // then
-        assertNotNull(result);
-        verify(userService).findActivateUserByIdOrFail(userId);
-        verify(storeService).findActivateStoreByIdOrFail(storeId);
-        verify(menuService).findActiveMenuByIdOrFail(menuId);
+        // Then
+        assertThat(result).isNotNull();
         verify(cartRepository).findByUser(user);
         verify(cartRepository).save(any(Cart.class));
         verify(cartMenuRepository).save(any(CartMenu.class));
+        verify(cartMenuRepository, never()).deleteByCart(any(Cart.class));
     }
 
-
-
     @Test
-    @DisplayName("장바구니에 메뉴 추가 실패 테스트: 존재하지 않는 사용자")
-    void addCartItem_UserNotFound() {
-        // given
+    @DisplayName("장바구니에 메뉴 추가 성공: 같은 가게의 메뉴 추가")
+    void addCartItem_SameStore_Success() {
+        // Given
         Long userId = 1L;
         Long storeId = 1L;
         Long menuId = 1L;
         CartMenuCreateReqDto request = new CartMenuCreateReqDto(2L);
 
-        when(userService.findActivateUserByIdOrFail(userId))
-                .thenThrow(new BusinessException(ErrorCode.USER_NOT_FOUND));
-
-        // when & then
-        assertThatThrownBy(() ->
-                cartService.addCartItem(storeId, menuId, request, userId))
-                .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.USER_NOT_FOUND);
-
-        verify(userService).findActivateUserByIdOrFail(userId);
-        verify(storeService, never()).findActivateStoreByIdOrFail(anyLong());
-        verify(menuService, never()).findActiveMenuByIdOrFail(anyLong());
-        verify(cartRepository, never()).findByUser(any(User.class));
-        verify(cartRepository, never()).save(any(Cart.class));
-        verify(cartMenuRepository, never()).save(any(CartMenu.class));
-    }
-
-
-    @Test
-    @DisplayName("장바구니에 메뉴 추가 실패 테스트: 존재하지 않는 가게")
-    void addCartItem_StoreNotFound() {
-        // given
-        Long userId = 1L;
-        Long storeId = 1L;
-        Long menuId = 1L;
-        CartMenuCreateReqDto request = new CartMenuCreateReqDto(2L);
-        User user = mock(User.class);
-
-        when(userService.findActivateUserByIdOrFail(userId)).thenReturn(user);
-        when(storeService.findActivateStoreByIdOrFail(storeId))
-                .thenThrow(new BusinessException(ErrorCode.STORE_NOT_FOUND));
-
-        // when & then
-        assertThatThrownBy(() ->
-                cartService.addCartItem(storeId, menuId, request, userId))
-                .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.STORE_NOT_FOUND);
-
-        verify(userService).findActivateUserByIdOrFail(userId);
-        verify(storeService).findActivateStoreByIdOrFail(storeId);
-        verify(menuService, never()).findActiveMenuByIdOrFail(anyLong());
-        verify(cartRepository, never()).findByUser(any(User.class));
-        verify(cartMenuRepository, never()).save(any(CartMenu.class));
-    }
-
-
-    @Test
-    @DisplayName("장바구니에 메뉴 추가 실패 테스트:  품절된 메뉴")
-    void addCartItem_MenuNotAvailable() {
-        // given
-        Long userId = 1L;
-        Long storeId = 1L;
-        Long menuId = 1L;
-        CartMenuCreateReqDto request = new CartMenuCreateReqDto(2L);
-        User user = mock(User.class);
-        Store store = mock(Store.class);
+        User user = newUser(userId);
+        Store store = createStore(storeId);
+        Menu menu = createMenu(menuId, store);
+        Cart existingCart = createCart(user, store);
+        CartMenu cartMenu = createCartMenu(existingCart, menu, request.getQuantity());
 
         when(userService.findActivateUserByIdOrFail(userId)).thenReturn(user);
         when(storeService.findActivateStoreByIdOrFail(storeId)).thenReturn(store);
-        when(menuService.findActiveMenuByIdOrFail(menuId))
-                .thenThrow(new BusinessException(ErrorCode.MENU_NOT_AVAILABLE));
+        when(menuService.findActiveMenuByIdOrFail(menuId)).thenReturn(menu);
+        when(cartRepository.findByUser(user)).thenReturn(Optional.of(existingCart));
+        when(cartMenuRepository.save(any(CartMenu.class))).thenReturn(cartMenu);
 
-        // when & then
-        assertThatThrownBy(() ->
-                cartService.addCartItem(storeId, menuId, request, userId))
+        // When
+        CartMenuCreateRespDto result = cartService.addCartItem(storeId, menuId, request, userId);
+
+        // Then
+        assertThat(result).isNotNull();
+        verify(cartMenuRepository, never()).deleteByCart(any(Cart.class));
+        verify(cartMenuRepository).save(any(CartMenu.class));
+    }
+
+    @Test
+    @DisplayName("장바구니에 메뉴 추가 성공 테스트: 다른 가게의 메뉴 추가 (장바구니 초기화)")
+    void addCartItem_DifferentStore_Success() {
+        // Given
+        Long userId = 1L;
+        Long oldStoreId = 1L;
+        Long newStoreId = 2L;
+        Long menuId = 2L;
+        CartMenuCreateReqDto request = new CartMenuCreateReqDto(2L);
+
+        User user = newUser(userId);
+        Store oldStore = createStore(oldStoreId);
+        Store newStore = createStore(newStoreId);
+        Menu menu = createMenu(menuId, newStore);
+        Cart existingCart = createCart(user, oldStore);
+        CartMenu cartMenu = createCartMenu(existingCart, menu, request.getQuantity());
+
+        when(userService.findActivateUserByIdOrFail(userId)).thenReturn(user);
+        when(storeService.findActivateStoreByIdOrFail(newStoreId)).thenReturn(newStore);
+        when(menuService.findActiveMenuByIdOrFail(menuId)).thenReturn(menu);
+        when(cartRepository.findByUser(user)).thenReturn(Optional.of(existingCart));
+        when(cartMenuRepository.save(any(CartMenu.class))).thenReturn(cartMenu);
+
+        // When
+        CartMenuCreateRespDto result = cartService.addCartItem(newStoreId, menuId, request, userId);
+
+        // Then
+        assertThat(result).isNotNull();
+        verify(cartMenuRepository).deleteByCart(existingCart);
+        verify(cartMenuRepository).save(any(CartMenu.class));
+        assertThat(existingCart.getStore()).isEqualTo(newStore);
+    }
+
+    @Test
+    @DisplayName("장바구니 메뉴 추가 실패 테스트: 메뉴와 가게 불일치")
+    void addCartItem_MenuStoreMismatch_Fail() {
+        // Given
+        Long userId = 1L;
+        Long storeId = 1L;
+        Long menuId = 1L;
+        CartMenuCreateReqDto request = new CartMenuCreateReqDto(2L);
+
+        User user = newUser(userId);
+        Store requestStore = createStore(storeId);
+        Store menuStore = createStore(2L);
+        Menu menu = createMenu(menuId, menuStore);
+
+        when(userService.findActivateUserByIdOrFail(userId)).thenReturn(user);
+        when(storeService.findActivateStoreByIdOrFail(storeId)).thenReturn(requestStore);
+        when(menuService.findActiveMenuByIdOrFail(menuId)).thenReturn(menu);
+
+        // When & Then
+        assertThatThrownBy(() -> cartService.addCartItem(storeId, menuId, request, userId))
                 .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.MENU_NOT_AVAILABLE);
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.MENU_STORE_MISMATCH);
+    }
 
-        verify(userService).findActivateUserByIdOrFail(userId);
-        verify(storeService).findActivateStoreByIdOrFail(storeId);
-        verify(menuService).findActiveMenuByIdOrFail(menuId);
-        verify(cartRepository, never()).findByUser(any(User.class));
-        verify(cartRepository, never()).save(any(Cart.class));
-        verify(cartMenuRepository, never()).save(any(CartMenu.class));
+
+    private Store createStore(Long id) {
+        return Store.builder()
+                .id(id)
+                .name("Test Store " + id)
+                .build();
+    }
+
+    private Menu createMenu(Long id, Store store) {
+        return Menu.builder()
+                .id(id)
+                .store(store)
+                .name("Test Menu " + id)
+                .price(10000L)
+                .build();
+    }
+
+    private Cart createCart(User user, Store store) {
+        return Cart.builder()
+                .user(user)
+                .store(store)
+                .build();
+    }
+
+    private CartMenu createCartMenu(Cart cart, Menu menu, long quantity) {
+        return CartMenu.builder()
+                .cart(cart)
+                .menu(menu)
+                .quantity(quantity)
+                .build();
     }
 
 

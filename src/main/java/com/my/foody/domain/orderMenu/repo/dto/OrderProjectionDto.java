@@ -1,10 +1,10 @@
-package com.my.foody.domain.order.repo.dto;
+package com.my.foody.domain.orderMenu.repo.dto;
 
 import com.my.foody.domain.owner.entity.OrderStatus;
 
 import java.time.LocalDateTime;
 
-public interface OrderProjectionRespDto {
+public interface OrderProjectionDto {
 
     String getStoreName();
     OrderStatus getOrderStatus();
