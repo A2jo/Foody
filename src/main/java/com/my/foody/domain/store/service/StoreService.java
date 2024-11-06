@@ -217,7 +217,7 @@ public class StoreService {
     // 메뉴가 존재하는지 유효성 검사
     private void validateMenuExists(Page<MenuProjection> menuProjections) {
         if (menuProjections.isEmpty()) {
-            throw new BusinessException(ErrorCode.MENU_NOT_FOUND);
+            throw new BusinessException(ErrorCode.MENU_NOT_FOUND_IN_STORE);
         }
     }
 }
