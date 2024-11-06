@@ -16,6 +16,7 @@ import com.my.foody.domain.order.dto.resp.OrderStatusUpdateRespDto;
 import com.my.foody.domain.order.entity.Order;
 import com.my.foody.domain.order.repo.OrderRepository;
 import com.my.foody.domain.order.repo.dto.OrderProjectionRespDto;
+import com.my.foody.domain.order.service.timepro.TimeProvider;
 import com.my.foody.domain.orderMenu.entity.OrderMenu;
 import com.my.foody.domain.orderMenu.repo.OrderMenuRepository;
 import com.my.foody.domain.owner.entity.Owner;
@@ -53,6 +54,7 @@ public class OrderService {
     
     private final MenuService menuService;
     private final OwnerService ownerService;
+    private  final TimeProvider timeProvider;
 
     @Transactional
     public OrderStatusUpdateRespDto updateOrderStatus(OrderStatusUpdateReqDto requestDto, Long orderId, Long ownerId) {
@@ -122,7 +124,8 @@ public class OrderService {
             throw new BusinessException(ErrorCode.UNDER_MINIMUM_ORDER_AMOUNT);
         }
 
-        LocalTime now = LocalTime.now();
+        LocalTime now = timeProvider.now();
+
         if (now.isBefore(store.getOpenTime()) || now.isAfter(store.getEndTime())) {
             throw new BusinessException(ErrorCode.STORE_CLOSED);
         }
