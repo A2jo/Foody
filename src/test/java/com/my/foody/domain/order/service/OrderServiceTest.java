@@ -22,6 +22,7 @@ import com.my.foody.domain.order.service.timepro.TimeProvider;
 import com.my.foody.domain.orderMenu.entity.OrderMenu;
 import com.my.foody.domain.orderMenu.repo.OrderMenuRepository;
 import com.my.foody.domain.order.repo.dto.OrderProjectionRespDto;
+import com.my.foody.domain.orderMenu.repo.dto.OrderProjectionDto;
 import com.my.foody.domain.orderMenu.repo.OrderMenuRepository;
 import com.my.foody.domain.owner.entity.OrderStatus;
 import com.my.foody.domain.owner.entity.Owner;
@@ -55,6 +56,7 @@ import java.time.LocalTime;
 import java.util.List;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.*;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -701,7 +703,7 @@ public class OrderServiceTest extends DummyObject {
         int page = 0;
         int limit = 10;
         Owner owner = newOwner(ownerId);
-        Page<OrderProjectionRespDto> mockOrderPage = createMockOrderPage();
+        Page<OrderProjectionDto> mockOrderPage = createMockOrderPage();
 
         Pageable expectedPageable = PageRequest.of(page, limit, Sort.by(Sort.Direction.DESC, "createdAt"));
 
@@ -735,7 +737,7 @@ public class OrderServiceTest extends DummyObject {
         int page = 0;
         int limit = 10;
         Owner owner = newOwner(ownerId);
-        Page<OrderProjectionRespDto> emptyPage = Page.empty(PageRequest.of(page, limit));
+        Page<OrderProjectionDto> emptyPage = Page.empty(PageRequest.of(page, limit));
 
         when(ownerService.findActivateOwnerByIdOrFail(ownerId)).thenReturn(owner);
         when(orderMenuRepository.findByOwnerWithOrderWithStoreWithMenu(any(), any())).thenReturn(emptyPage);
@@ -771,7 +773,7 @@ public class OrderServiceTest extends DummyObject {
         int page = 0;
         int limit = 10;
         Owner owner = newOwner(ownerId);
-        Page<OrderProjectionRespDto> mockOrderPage = createMockOrderPage();
+        Page<OrderProjectionDto> mockOrderPage = createMockOrderPage();
 
         when(ownerService.findActivateOwnerByIdOrFail(ownerId)).thenReturn(owner);
         when(orderMenuRepository.findByOwnerWithOrderWithStoreWithMenu(any(), any())).thenReturn(mockOrderPage);
@@ -790,8 +792,8 @@ public class OrderServiceTest extends DummyObject {
     }
 
 
-    private Page<OrderProjectionRespDto> createMockOrderPage() {
-        List<OrderProjectionRespDto> orders = Arrays.asList(
+    private Page<OrderProjectionDto> createMockOrderPage() {
+        List<OrderProjectionDto> orders = Arrays.asList(
                 createMockOrderProjection("맛있는 치킨", "후라이드 치킨,양념 치킨,콜라"),
                 createMockOrderProjection("맛있는 피자", "페퍼로니피자")
         );
@@ -803,8 +805,8 @@ public class OrderServiceTest extends DummyObject {
         );
     }
 
-    private OrderProjectionRespDto createMockOrderProjection(String storeName, String menuNames) {
-        return new OrderProjectionRespDto() {
+    private OrderProjectionDto createMockOrderProjection(String storeName, String menuNames) {
+        return new OrderProjectionDto() {
             @Override
             public String getStoreName() {
                 return storeName;

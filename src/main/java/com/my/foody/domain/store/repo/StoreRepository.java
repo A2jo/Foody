@@ -1,7 +1,5 @@
 package com.my.foody.domain.store.repo;
 
-import com.my.foody.domain.order.repo.dto.OrderProjectionRespDto;
-import com.my.foody.domain.owner.entity.Owner;
 import com.my.foody.domain.store.entity.Store;
 import org.springframework.data.domain.Pageable;
 import com.my.foody.domain.user.entity.User;
