@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+
 @RestController
 @RequiredArgsConstructor
 public class MenuController {
@@ -35,7 +36,6 @@ public class MenuController {
                 .body(ApiResult.success(menuService.createMenu(storeId, menuCreateReqDto, ownerId)));
     }
 
-
     // 메뉴삭제
     @PatchMapping("/api/owners/stores/{storeId}/menus/{menuId}")
     //권한 확인
@@ -47,6 +47,4 @@ public class MenuController {
         MenuDeleteRespDto responseDto = menuService.SoftDeleteMenu(storeId, menuId, ownerId);
         return ResponseEntity.status(HttpStatus.OK).body(ApiResult.success(responseDto));
     }
-
-
 }
