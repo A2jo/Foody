@@ -1,11 +1,14 @@
 package com.my.foody.domain.cart.service;
 
 import com.my.foody.domain.cart.dto.req.CartMenuCreateReqDto;
+import com.my.foody.domain.cart.dto.resp.CartItemListRespDto;
+import com.my.foody.domain.cart.dto.resp.CartItemRespDto;
 import com.my.foody.domain.cart.dto.resp.CartMenuCreateRespDto;
 import com.my.foody.domain.cart.entity.Cart;
 import com.my.foody.domain.cart.repo.CartRepository;
 import com.my.foody.domain.cartMenu.CartMenu;
 import com.my.foody.domain.cartMenu.CartMenuRepository;
+import com.my.foody.domain.cartMenu.dto.CartMenuDetailProjectionDto;
 import com.my.foody.domain.menu.entity.Menu;
 import com.my.foody.domain.menu.service.MenuService;
 import com.my.foody.domain.store.entity.Store;
@@ -17,8 +20,14 @@ import com.my.foody.global.ex.BusinessException;
 import com.my.foody.global.ex.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -32,30 +41,15 @@ public class CartService {
     private final MenuService menuService;
     private final CartMenuRepository cartMenuRepository;
 
-    //TODO 수정해야 함
-
-//    public Page<CartItemRespDto> getCartItems(Long userId, int page, int limit) {
-//
-//        //Active User의 존재 검증
-//        userService.findActivateUserByIdOrFail(userId);
-//
-//        Pageable pageable = PageRequest.of(page, limit, Sort.by("id").descending());
-//        Page<Cart> cartItemsPage = cartRepository.findByUserId(userId, pageable);
-//
-//    return cartItemsPage.map(
-//        cartItem -> {
-//          Long totalOrderAmount = cartItem.getMenu().getPrice() * cartItem.getQuantity();
-//          Long minOrderAmount = cartItem.getStore().getMinOrderAmount();
-//
-//          return new CartItemRespDto(
-//              cartItem.getStore().getName(),
-//              cartItem.getMenu().getName(),
-//              cartItem.getMenu().getPrice(),
-//              cartItem.getQuantity(),
-//              totalOrderAmount,
-//              minOrderAmount);
-//        });
-//    }
+    public CartItemListRespDto getCartItems(Long userId, int page, int limit) {
+        User user = userService.findActivateUserByIdOrFail(userId);
+        //유저의 장바구니 조회
+        Cart cart = cartRepository.findByUserWithStore(user)
+                .orElseThrow(() -> new BusinessException(ErrorCode.CART_ITEM_NOT_FOUND));
+        Pageable pageable = PageRequest.of(page, limit, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<CartMenuDetailProjectionDto> cartMenuDetailPage = cartMenuRepository.findCartMenuDetailByCart(cart, pageable);
+        return new CartItemListRespDto(cartMenuDetailPage, cart);
+    }
 
     @Transactional
     public CartMenuCreateRespDto addCartItem(Long storeId, Long menuId, CartMenuCreateReqDto cartMenuCreateReqDto, Long userId) {
