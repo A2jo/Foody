@@ -17,45 +17,52 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class MenuService {
 
-    private final MenuRepository menuRepository;
-    private final StoreRepository storeRepository;
+  private final MenuRepository menuRepository;
+  private final StoreRepository storeRepository;
 
-    public Menu findActiveMenuByIdOrFail(Long menuId){
-        Menu menu = menuRepository.findActivateMenu(menuId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.MENU_NOT_FOUND));
-        if(menu.getIsSoldOut()){
-            throw new BusinessException(ErrorCode.MENU_NOT_AVAILABLE);
-        }
-        return menu;
+  public Menu findActiveMenuByIdOrFail(Long menuId) {
+    Menu menu =
+        menuRepository
+            .findActivateMenu(menuId)
+            .orElseThrow(() -> new BusinessException(ErrorCode.MENU_NOT_FOUND));
+    if (menu.getIsSoldOut()) {
+      throw new BusinessException(ErrorCode.MENU_NOT_AVAILABLE);
     }
-  
-  
+    return menu;
+  }
+
   // 메뉴 등록
-    @Transational
-    public MenuCreateRespDto createMenu(Long storeId, MenuCreateReqDto menuCreateReqDto, Long ownerId) {
+  @Transactional
+  public MenuCreateRespDto createMenu(
+      Long storeId, MenuCreateReqDto menuCreateReqDto, Long ownerId) {
 
-        Store store = storeRepository.findById(storeId).orElseThrow(() -> new BusinessException(ErrorCode.STORE_NOT_FOUND));
+    Store store =
+        storeRepository
+            .findById(storeId)
+            .orElseThrow(() -> new BusinessException(ErrorCode.STORE_NOT_FOUND));
 
-        //가게 주인 확인
-        isStoreOwner(store, ownerId);
+    // 가게 주인 확인
+    isStoreOwner(store, ownerId);
 
-        Menu menu = Menu.builder()
-                .store(store)
-                .name(menuCreateReqDto.getName())
-                .price(menuCreateReqDto.getPrice())
-                .isSoldOut(false)
-                .isDeleted(false)
-                .build();
+    Menu menu =
+        Menu.builder()
+            .store(store)
+            .name(menuCreateReqDto.getName())
+            .price(menuCreateReqDto.getPrice())
+            .isSoldOut(false)
+            .isDeleted(false)
+            .build();
 
-        menuRepository.save(menu);
+    menuRepository.save(menu);
 
-        // 메세제 응답 반환
-        return new MenuCreateRespDto();
+    // 메세제 응답 반환
+    return new MenuCreateRespDto();
+  }
+
+  // 가게 주인 확인 메서드
+  private void isStoreOwner(Store store, Long ownerId) {
+    if (!store.getOwner().getId().equals(ownerId)) {
+      throw new BusinessException(ErrorCode.FORBIDDEN_ACCESS);
     }
-
-    // 가게 주인 확인 메서드
-    private void isStoreOwner(Store store, Long ownerId) {
-        if (!store.getOwner().getId().equals(ownerId)) {
-            throw new BusinessException(ErrorCode.FORBIDDEN_ACCESS);
-        }
+  }
 }
