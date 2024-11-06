@@ -3,6 +3,7 @@ package com.my.foody.domain.category.entity;
 import com.my.foody.domain.base.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -17,4 +18,9 @@ public class Category extends BaseEntity {
 
     @Column(length = 10, nullable = false, unique = true)
     private String name;
+
+    @Builder
+    public Category(String name) {
+        this.name = name;
+    }
 }
