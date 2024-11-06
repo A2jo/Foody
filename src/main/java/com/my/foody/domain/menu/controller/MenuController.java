@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 import com.my.foody.domain.menu.dto.req.MenuUpdateReqDto;
+import com.my.foody.domain.menu.dto.resp.MenuDeleteRespDto;
 import com.my.foody.domain.menu.dto.resp.MenuUpdateRespDto;
 import com.my.foody.domain.menu.service.MenuService;
 import com.my.foody.global.config.valid.CurrentUser;

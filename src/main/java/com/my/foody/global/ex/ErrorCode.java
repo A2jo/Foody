@@ -49,8 +49,16 @@ public enum ErrorCode {
     STORE_NOT_FOUND_IN_CATEGORY(HttpStatus.NOT_FOUND.value(), "해당 카테고리에 해당 가게가 존재하지 않습니다."),
 
     MENU_NOT_AVAILABLE(HttpStatus.BAD_REQUEST.value(), "현재 주문할 수 없는 메뉴입니다"),
+    MENU_IS_SOLD_OUT(HttpStatus.BAD_REQUEST.value(), "품절된 메뉴입니다"),
+    MAIN_ADDRESS_NOT_FOUND(HttpStatus.BAD_REQUEST.value(), "기본 주소지가 등록되지 않았습니다"),
+    CART_IS_EMPTY(HttpStatus.BAD_REQUEST.value(), "장바구니가 비어있습니다"),
     OAUTH_CALLBACK_FAILED(HttpStatus.INTERNAL_SERVER_ERROR.value(), "소셜 인증 서버와 통신 중 오류가 발생했습니다"),
 
+    ORDER_NOT_COMPLETED(HttpStatus.BAD_REQUEST.value(), "리뷰는 완료된 주문에 대해서만 작성할 수 있습니다"),
+    REVIEW_ALREADY_EXISTS(HttpStatus.BAD_REQUEST.value(), "해당 주문에 대한 리뷰가 존재합니다"),
+
+
+    MENU_NOT_AVAILABLE(HttpStatus.BAD_REQUEST.value(), "현재 주문할 수 없는 메뉴입니다"),
     UNDER_MINIMUM_ORDER_AMOUNT(HttpStatus.BAD_REQUEST.value(), "최소 금액 이상만 주문이 가능합니다."),
     STORE_CLOSED(HttpStatus.BAD_REQUEST.value(), "가계의 영업 시간이 아닙니다."),
 
