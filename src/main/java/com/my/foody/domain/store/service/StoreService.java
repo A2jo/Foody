@@ -176,4 +176,9 @@ public class StoreService {
             throw new BusinessException(ErrorCode.HAVE_FULL_STORE);
         }
     }
+
+    public Store findActivateStoreByIdOrFail(Long storeId){
+        return storeRepository.findActivateStore(storeId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.STORE_NOT_FOUND));
+    }
 }
