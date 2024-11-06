@@ -18,4 +18,5 @@ public interface StoreCategoryRepository extends JpaRepository<StoreCategory, Lo
     Page<StoreCategoryProjection> findStoresByCategoryId(Long categoryId, Pageable pageable);
     List<StoreCategory> findByCategoryId(Long categoryId);
     List<StoreCategory> findByCategoryId(Long categoryId);
+    Page<StoreCategory> findByCategoryId(Long categoryId, Pageable pageable);
 }
