@@ -189,4 +189,11 @@ public class OrderService {
         return new OrderInfoRespDto(orderDetailProjection, order);
     }
 
+    public OrderListRespDto getUserOrders(Long userId, int page, int limit) {
+        userService.findActivateUserByIdOrFail(userId);
+        Pageable pageable = PageRequest.of(page, limit, Sort.by("createdAt").descending());
+        Page<OrderProjectionDto> orderPage = orderRepository.findByUserId(userId, pageable);
+        return new OrderListRespDto(orderPage);
+    }
+
 }
