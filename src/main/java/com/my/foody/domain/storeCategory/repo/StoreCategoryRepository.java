@@ -11,7 +11,7 @@ import org.springframework.stereotype.Repository;
 public interface StoreCategoryRepository extends JpaRepository<StoreCategory, Long> {
     Page<StoreCategory> findByCategoryId(Long categoryId, Pageable pageable);
     void deleteByStoreId(Long storeId);
-    @Query("SELECT sc.store.id AS storeId, sc.store.name AS storeName, sc.category.id AS categoryId " +
-            "FROM StoreCategory sc WHERE sc.category.id = :categoryId")
+    @Query("SELECT sc.store.id AS storeId, sc.store.name AS storeName, sc.category.id AS categoryId, sc.store.minOrderAmount AS minOrderAmount " +
+                  "FROM StoreCategory sc WHERE sc.category.id = :categoryId")
     Page<StoreCategoryProjection> findStoresByCategoryId(Long categoryId, Pageable pageable);
 }
