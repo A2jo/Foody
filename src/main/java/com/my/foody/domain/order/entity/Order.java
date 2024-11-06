@@ -43,12 +43,13 @@ public class Order extends BaseEntity {
     private OrderStatus orderStatus = OrderStatus.PENDING; //기본값 설정
 
     @Builder
-    public Order(OrderStatus orderStatus, User user, Store store, Address address, Long totalAmount) {
+    public Order(OrderStatus orderStatus, User user, Store store, Address address, Long totalAmount, Long id) {
         this.orderStatus = orderStatus;
         this.user = user;
         this.store = store;
         this.address = address;
         this.totalAmount = totalAmount;
+        this.id = id;
     }
 
     public void updateOrderStatus(OrderStatus orderStatus) {

@@ -6,11 +6,13 @@ import com.my.foody.domain.cart.entity.Cart;
 import com.my.foody.domain.cart.repo.CartRepository;
 import com.my.foody.domain.menu.entity.Menu;
 import com.my.foody.domain.order.dto.req.OrderStatusUpdateReqDto;
+import com.my.foody.domain.order.dto.resp.OrderInfoRespDto;
 import com.my.foody.domain.order.dto.resp.OrderListRespDto;
 import com.my.foody.domain.order.dto.resp.OrderPreviewRespDto;
 import com.my.foody.domain.order.dto.resp.OrderStatusUpdateRespDto;
 import com.my.foody.domain.order.entity.Order;
 import com.my.foody.domain.order.repo.OrderRepository;
+import com.my.foody.domain.orderMenu.repo.dto.OrderMenuProjectionDto;
 import com.my.foody.domain.orderMenu.repo.dto.OrderProjectionDto;
 import com.my.foody.domain.orderMenu.repo.OrderMenuRepository;
 import com.my.foody.domain.owner.entity.OrderStatus;
@@ -339,6 +341,97 @@ public class OrderServiceTest extends DummyObject {
         OrderListRespDto.OrderRespDto secondOrder = result.getOrderList().get(1);
         assertThat(secondOrder.getMenuSummary())
                 .isEqualTo("페퍼로니피자");
+    }
+
+
+    @Test
+    @DisplayName("주문 상세 정보 조회 성공 테스트")
+    void getOrderInfo_Success() {
+        // Given
+        Long ownerId = 1L;
+        Long orderId = 1L;
+        Owner owner = newOwner(ownerId);
+        Order order = createOrder();
+        List<OrderMenuProjectionDto> orderMenus = createOrderMenuProjections();
+
+        when(ownerService.findActivateOwnerByIdOrFail(ownerId)).thenReturn(owner);
+        when(orderRepository.findOrderWithDetails(orderId)).thenReturn(Optional.of(order));
+        when(orderMenuRepository.findOrderMenuDetailByOrder(order)).thenReturn(orderMenus);
+
+        // When
+        OrderInfoRespDto result = orderService.getOrderInfo(ownerId, orderId);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getOrderId()).isEqualTo(order.getId());
+        assertThat(result.getStoreName()).isEqualTo(order.getStore().getName());
+        assertThat(result.getTotalAmount()).isEqualTo(order.getTotalAmount());
+        assertThat(result.getOrderStatus()).isEqualTo(OrderStatus.DELIVERED.getDescription());
+        assertThat(result.getUserContact()).isEqualTo(order.getUser().getContact());
+        assertThat(result.getRoadAddress()).isEqualTo(order.getAddress().getRoadAddress());
+        assertThat(result.getDetailedAddress()).isEqualTo(order.getAddress().getDetailedAddress());
+
+        // OrderMenu 검증
+        List<OrderInfoRespDto.OrderInfoDto> orderList = result.getOrderList();
+        assertThat(orderList).hasSize(2);
+        assertThat(orderList.get(0).getMenuName()).isEqualTo("후라이드 치킨");
+        assertThat(orderList.get(0).getQuantity()).isEqualTo(2L);
+        assertThat(orderList.get(0).getAmount()).isEqualTo(18000L);
+
+        verify(ownerService).findActivateOwnerByIdOrFail(ownerId);
+        verify(orderRepository).findOrderWithDetails(orderId);
+        verify(orderMenuRepository).findOrderMenuDetailByOrder(order);
+    }
+
+    private Order createOrder() {
+        Store store = Store.builder()
+                .id(1L)
+                .name("맛있는 치킨")
+                .build();
+
+        User user = User.builder()
+                .id(1L)
+                .contact("010-1234-5678")
+                .build();
+
+        Address address = Address.builder()
+                .roadAddress("서울시 강남구")
+                .detailedAddress("테헤란로 123")
+                .build();
+
+        return Order.builder()
+                .id(1L)
+                .store(store)
+                .user(user)
+                .address(address)
+                .totalAmount(50000L)
+                .orderStatus(OrderStatus.DELIVERED)
+                .build();
+    }
+
+    private List<OrderMenuProjectionDto> createOrderMenuProjections() {
+        return List.of(
+                new OrderMenuProjectionDto() {
+                    @Override
+                    public Long getQuantity() { return 2L; }
+                    @Override
+                    public Long getPrice() { return 18000L; }
+                    @Override
+                    public Long getMenuId() { return 1L; }
+                    @Override
+                    public String getMenuName() { return "후라이드 치킨"; }
+                },
+                new OrderMenuProjectionDto() {
+                    @Override
+                    public Long getQuantity() { return 1L; }
+                    @Override
+                    public Long getPrice() { return 19000L; }
+                    @Override
+                    public Long getMenuId() { return 2L; }
+                    @Override
+                    public String getMenuName() { return "양념 치킨"; }
+                }
+        );
     }
 
 
