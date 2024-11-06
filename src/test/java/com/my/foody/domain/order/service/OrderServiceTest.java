@@ -375,6 +375,7 @@ public class OrderServiceTest extends DummyObject {
         when(cartRepository.findById(cart.getId())).thenReturn(Optional.of(cart));
         when(storeService.findActivateStoreByIdOrFail(store.getId())).thenReturn(store);
         when(addressService.findByIdOrFail(orderCreateReqDto.getUserAddressId())).thenReturn(address);
+        when(timeProvider.now()).thenReturn(LocalTime.of(12, 0));
 
         orderService.createOrder(cart.getId(), orderCreateReqDto, user.getId());
 
