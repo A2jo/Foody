@@ -43,7 +43,7 @@ public class StoreController {
         return ResponseEntity.ok(ApiResult.success(stores));
     }
 
-    @GetMapping("home/categories/{categoryId}/store")
+    @GetMapping("/home/categories/{categoryId}/store")
     public ResponseEntity<ApiResult<Page<GetStoreRespDto>>> getStoreByCategory(@PathVariable(value = "categoryId") Long categoryId,
                                                                                @RequestParam(value = "page", defaultValue = "0") int page,
                                                                                @RequestParam(value = "limit", defaultValue = "10") int limit) {
