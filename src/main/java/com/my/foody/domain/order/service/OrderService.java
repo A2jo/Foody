@@ -109,7 +109,7 @@ public class OrderService {
             throw new BusinessException(ErrorCode.STORE_NOT_FOUND);
         }
 
-        if (orderCreateReqDto.getPaymentAmount() < store.getMinOrderAmount()) {
+        if (orderCreateReqDto.getTotalAmount() < store.getMinOrderAmount()) {
             throw new BusinessException(ErrorCode.UNDER_MINIMUM_ORDER_AMOUNT);
         }
 
@@ -118,17 +118,23 @@ public class OrderService {
             throw new BusinessException(ErrorCode.STORE_CLOSED);
         }
 
+        //주문의 총금액 계산
+        Long totalAmount = 0L;
+        List<CartMenu> cartMenus = cartMenuRepository.findByCart(cart);
+        for (CartMenu cartMenu : cartMenus) {
+            Menu menu = menuService.findActiveMenuByIdOrFail(cartMenu.getMenu().getId());
+            totalAmount += cartMenu.getQuantity() * menu.getPrice();
+        }
+
         Order order = Order.builder()
                 .user(user)
                 .store(store)
                 .address(addressService.findByIdOrFail(orderCreateReqDto.getUserAddressId()))
-                .totalAmount(orderCreateReqDto.getPaymentAmount())
+                .totalAmount(totalAmount)
                 .build();
         orderRepository.save(order);
 
-        List<CartMenu> cartMenus = cartMenuRepository.findByCart(cart);
         for (CartMenu cartMenu : cartMenus) {
-
             Menu menu = menuService.findActiveMenuByIdOrFail(cartMenu.getMenu().getId());
             OrderMenu orderMenu = OrderMenu.builder()
                     .order(order)
