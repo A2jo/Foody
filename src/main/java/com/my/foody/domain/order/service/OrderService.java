@@ -71,6 +71,8 @@ public class OrderService {
     private final MenuRepository menuRepository;
     private final CartMenuRepository cartMenuRepository;
     private final OrderMenuRepository orderMenuRepository;
+    private final AddressRepository addressRepository;
+
 
     private final MenuService menuService;
     private final OwnerService ownerService;
@@ -160,7 +162,13 @@ public class OrderService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.CART_ITEM_NOT_FOUND));
         Store store = storeService.findActivateStoreByIdOrFail(cart.getStore().getId());
 
-        addressService.findByIdOrFail(orderCreateReqDto.getUserAddressId());
+        Address mainAddress = addressRepository.findByUserIdAndIsMain(userId, true)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MAIN_ADDRESS_NOT_FOUND));
+
+        if (!mainAddress.getId().equals(orderCreateReqDto.getUserAddressId())) {
+            throw new BusinessException(ErrorCode.NOT_MAIN_ADDRESS);
+        }
+
 
         if (orderCreateReqDto.getTotalAmount() < store.getMinOrderAmount()) {
             throw new BusinessException(ErrorCode.UNDER_MINIMUM_ORDER_AMOUNT);
@@ -189,7 +197,7 @@ public class OrderService {
         Order order = Order.builder()
                 .user(user)
                 .store(store)
-                .address(addressService.findByIdOrFail(orderCreateReqDto.getUserAddressId()))
+                .address(mainAddress)
                 .totalAmount(totalAmount)
                 .build();
         orderRepository.save(order);
