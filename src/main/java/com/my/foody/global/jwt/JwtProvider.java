@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component;
 import java.util.Date;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeUnit;
 
 @Component
 @Slf4j
@@ -26,6 +27,8 @@ import java.util.concurrent.TimeUnit;
 public class JwtProvider {
     @Value("${jwt.secret}")
     private String secretKey;
+    private final RedisTemplate<String, String> redisTemplate;
+    private final static String LOGOUT_KEY = "BL:";
     private final RedisTemplate<String, String> redisTemplate;
     private final static String LOGOUT_KEY = "BL:";
 
@@ -83,6 +86,13 @@ public class JwtProvider {
         DecodedJWT decodedJWT = JWT.decode(token);
         Date expiresAt = decodedJWT.getExpiresAt();
         tokenBlacklist.put(token, expiresAt); // 블랙리스트에 추가
+    }
+    public void logout(Long userId, String token) {
+        String key = LOGOUT_KEY + token.replace(JwtVo.TOKEN_PREFIX, "");
+        DecodedJWT jwt = JWT.decode(token.replace(JwtVo.TOKEN_PREFIX, ""));
+        long remainingTime = jwt.getExpiresAt().getTime() - System.currentTimeMillis();
+
+        redisTemplate.opsForValue().set(key, userId.toString(), remainingTime, TimeUnit.MILLISECONDS);
     }
     public void logout(Long userId, String token) {
         String key = LOGOUT_KEY + token.replace(JwtVo.TOKEN_PREFIX, "");

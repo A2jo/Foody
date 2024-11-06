@@ -11,6 +11,7 @@ import java.util.List;
 
 @Repository
 public interface CartMenuRepository extends JpaRepository<CartMenu, Long> {
+    List<CartMenu> findByCart(Cart cart);
 
     @Query("select cm from CartMenu cm left join fetch cm.menu m where cm.cart = :cart")
     List<CartMenu> findByCartWithMenu(@Param(value = "cart")Cart cart);

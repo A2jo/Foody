@@ -7,17 +7,25 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 import java.util.List;
 
 import java.util.Optional;
 
 @Repository
 public interface StoreCategoryRepository extends JpaRepository<StoreCategory, Long> {
+    Page<StoreCategory> findByCategoryId(Long categoryId, Pageable pageable);
+
+    Optional<StoreCategory> findByCategoryIdAndStoreId(Long categoryId, Long storeId);
     List<StoreCategory> findByCategoryId(Long categoryId);
     Page<StoreCategory> findByCategoryId(Long categoryId, Pageable pageable);
 
     Optional<StoreCategory> findByCategoryIdAndStoreId(Long categoryId, Long storeId);
     void deleteByStoreId(Long storeId);
+    @Query("SELECT sc.store.id AS storeId, sc.store.name AS storeName, sc.category.id AS categoryId, sc.store.minOrderAmount AS minOrderAmount " +
+                  "FROM StoreCategory sc WHERE sc.category.id = :categoryId")
+    Page<StoreCategoryProjection> findStoresByCategoryId(Long categoryId, Pageable pageable);
     @Query("SELECT sc.store.id AS storeId, sc.store.name AS storeName, sc.category.id AS categoryId, sc.store.minOrderAmount AS minOrderAmount " +
                   "FROM StoreCategory sc WHERE sc.category.id = :categoryId")
     Page<StoreCategoryProjection> findStoresByCategoryId(Long categoryId, Pageable pageable);

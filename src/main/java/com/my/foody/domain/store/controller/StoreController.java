@@ -1,5 +1,6 @@
 package com.my.foody.domain.store.controller;
 
+import com.my.foody.domain.menu.dto.resp.MenuListRespDto;
 import com.my.foody.domain.store.dto.req.ModifyStoreReqDto;
 import com.my.foody.domain.store.dto.req.StoreCreateReqDto;
 import com.my.foody.domain.store.dto.resp.GetStoreRespDto;
@@ -14,6 +15,7 @@ import com.my.foody.global.jwt.UserType;
 import com.my.foody.global.util.api.ApiResult;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -41,6 +43,8 @@ public class StoreController {
         Long ownerId = tokenSubject.getId();
         List<GetStoreRespDto> stores = storeService.getAllStoresByOwnerId(ownerId);
         return ResponseEntity.ok(ApiResult.success(stores));
+        List<GetStoreRespDto> stores = storeService.getAllStoresByOwnerId(ownerId);
+        return ResponseEntity.ok(ApiResult.success(stores));
     }
 
     @GetMapping("/home/categories/{categoryId}/store")
@@ -54,7 +58,7 @@ public class StoreController {
 
     @RequireAuth(userType = UserType.OWNER)
     @PatchMapping("/stores/{storeId}")
-    public ResponseEntity<ApiResult<ModifyStoreRespDto>> modifyStore(@PathVariable(value = "storeId") Long storeId ,
+    public ResponseEntity<ApiResult<ModifyStoreRespDto>> modifyStore(@PathVariable(value = "storeId") Long storeId,
                                                                      @RequestBody @Valid ModifyStoreReqDto modifyStoreReqDto,
                                                                      @CurrentUser TokenSubject tokenSubject) {
         Long ownerId = tokenSubject.getId();
@@ -100,5 +104,29 @@ public class StoreController {
                                                                           @RequestParam(value = "limit", defaultValue = "10") int limit) {
         StoreListRespDto storeListRespDto = storeService.getStoreByCategory(categoryId, page, limit);
         return ResponseEntity.ok(ApiResult.success(storeListRespDto));
+    }
+
+    @GetMapping("/home/categories/{categoryId}/store")
+    public ResponseEntity<ApiResult<StoreListRespDto>> getStoreByCategory(@PathVariable(value = "categoryId") Long categoryId,
+                                                                          @RequestParam(value = "page", defaultValue = "0") int page,
+                                                                          @RequestParam(value = "limit", defaultValue = "10") int limit) {
+        StoreListRespDto storeListRespDto = storeService.getStoreByCategory(categoryId, page, limit);
+        return ResponseEntity.ok(ApiResult.success(storeListRespDto));
+    }
+
+    @GetMapping("/home/categories/{categoryId}/store/{storeId}")
+    public ResponseEntity<ApiResult<GetStoreRespDto>> getStoreInfo(@PathVariable(value = "categoryId") Long categoryId,
+                                                                   @PathVariable(value = "storeId") Long storeId) {
+        GetStoreRespDto storeRespDto = storeService.getStoreInfo(categoryId, storeId);
+        return ResponseEntity.ok(ApiResult.success(storeRespDto));
+    }
+
+    @GetMapping("/home/categories/{categoryId}/stores/{storeId}/menus")
+    public ResponseEntity<ApiResult<MenuListRespDto>> getStoreMenus (@PathVariable(value = "storeId") Long storeId,
+                                                                     @PathVariable(value = "categoryId") Long categoryId,
+                                                                     @RequestParam(value = "page", defaultValue = "0") int page,
+                                                                     @RequestParam(value = "limit", defaultValue = "10") int limit) {
+        MenuListRespDto menuListRespDto = storeService.getStoreMenus(storeId, categoryId, page, limit);
+        return ResponseEntity.ok(ApiResult.success(menuListRespDto));
     }
 }

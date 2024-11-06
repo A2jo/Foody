@@ -57,6 +57,7 @@ public class Store extends BaseEntity {
         this.endTime = endTime;
         this.isDeleted = isDeleted;
     }
+
     public void updateAll(ModifyStoreReqDto modifyStoreReqDto) {
         Optional.ofNullable(modifyStoreReqDto.getName()).ifPresent(name -> this.name = name);
         Optional.ofNullable(modifyStoreReqDto.getDescription()).ifPresent(description -> this.description = description);

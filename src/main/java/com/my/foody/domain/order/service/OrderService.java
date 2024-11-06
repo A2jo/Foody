@@ -8,6 +8,9 @@ import com.my.foody.domain.cart.repo.CartRepository;
 import com.my.foody.domain.cartMenu.CartMenu;
 import com.my.foody.domain.cartMenu.CartMenuRepository;
 import com.my.foody.domain.menu.entity.Menu;
+import com.my.foody.domain.menu.service.MenuService;
+import com.my.foody.domain.order.dto.req.OrderCreateReqDto;
+import com.my.foody.domain.menu.entity.Menu;
 import com.my.foody.domain.menu.repo.MenuRepository;
 import com.my.foody.domain.menu.service.MenuService;
 import com.my.foody.domain.order.dto.req.OrderCreateReqDto;
@@ -26,19 +29,29 @@ import com.my.foody.domain.order.repo.dto.OrderProjectionRespDto;
 import com.my.foody.domain.order.service.timepro.TimeProvider;
 import com.my.foody.domain.orderMenu.entity.OrderMenu;
 import com.my.foody.domain.orderMenu.repo.OrderMenuRepository;
+import com.my.foody.domain.order.service.timepro.TimeProvider;
+import com.my.foody.domain.orderMenu.entity.OrderMenu;
+import com.my.foody.domain.orderMenu.repo.dto.OrderMenuProjectionDto;
+import com.my.foody.domain.orderMenu.repo.dto.OrderProjectionDto;
 import com.my.foody.domain.store.entity.Store;
 import com.my.foody.domain.store.service.StoreService;
-import com.my.foody.domain.order.repo.dto.OrderProjectionRespDto;
 import com.my.foody.domain.orderMenu.repo.OrderMenuRepository;
 import com.my.foody.domain.owner.entity.Owner;
 import com.my.foody.domain.owner.service.OwnerService;
 import com.my.foody.domain.store.repo.StoreRepository;
 import com.my.foody.domain.store.service.StoreService;
+import com.my.foody.domain.store.entity.Store;
+import com.my.foody.domain.store.service.StoreService;
 import com.my.foody.domain.user.entity.User;
-import com.my.foody.domain.user.repo.UserRepository;
 import com.my.foody.domain.user.service.UserService;
 import com.my.foody.global.ex.BusinessException;
 import com.my.foody.global.ex.ErrorCode;
+import java.time.LocalTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+
 import java.time.LocalTime;
 import java.util.HashMap;
 import java.util.List;
@@ -69,8 +82,12 @@ public class OrderService {
     private final UserService userService;
     private final StoreService storeService;
     private final CartMenuRepository cartMenuRepository;
+    private final OrderMenuRepository orderMenuRepository;
     private final AddressRepository addressRepository;
+
+    private final MenuService menuService;
     private final OwnerService ownerService;
+    private final TimeProvider timeProvider;
     private final StoreRepository storeRepository;
     private final OrderMenuRepository orderMenuRepository;
     private final MenuRepository menuRepository;
@@ -94,7 +111,7 @@ public class OrderService {
         Order order = orderRepository.findById(orderId).orElseThrow(() -> new BusinessException(ErrorCode.ORDER_NOT_FOUND));
 
         // 가게 주인 맞는지 확인
-        order.isStoreOwner(ownerId);
+        isStoreOwner(order, ownerId);
 
         // 주문 상태 업데이트
         order.updateOrderStatus(requestDto.getOrderStatus());
@@ -108,6 +125,7 @@ public class OrderService {
 
 
     public OrderPreviewRespDto getOrderPreview(Long userId, Long storeId, Long cartId) {
+
         User user = userService.findActivateUserByIdOrFail(userId);
         Store store = storeService.findActivateStoreByIdOrFail(storeId);
         Cart cart = cartRepository.findByIdAndUser(cartId, user)
@@ -128,7 +146,7 @@ public class OrderService {
         List<CartMenu> cartMenuList = cartMenuRepository.findByCartWithMenu(cart);
 
         //장바구니가 비어있는지 검사
-        if(cartMenuList.isEmpty()){
+        if (cartMenuList.isEmpty()) {
             throw new BusinessException(ErrorCode.CART_IS_EMPTY);
         }
         //품절 되거나 삭제된 메뉴가 포함되어 있는지 검사
@@ -149,10 +167,71 @@ public class OrderService {
                 .sum();
     }
 
+    @Transactional
+    public void createOrder(Long cartId, OrderCreateReqDto orderCreateReqDto, Long userId) {
+
+        User user = userService.findActivateUserByIdOrFail(userId);
+
+        Cart cart = cartRepository.findById(cartId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.CART_ITEM_NOT_FOUND));
+        Store store = storeService.findActivateStoreByIdOrFail(cart.getStore().getId());
+
+        Address mainAddress = addressRepository.findByUserIdAndIsMain(userId, true)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MAIN_ADDRESS_NOT_FOUND));
+
+        if (!mainAddress.getId().equals(orderCreateReqDto.getUserAddressId())) {
+            throw new BusinessException(ErrorCode.NOT_MAIN_ADDRESS);
+        }
+
+
+        if (orderCreateReqDto.getTotalAmount() < store.getMinOrderAmount()) {
+            throw new BusinessException(ErrorCode.UNDER_MINIMUM_ORDER_AMOUNT);
+        }
+
+        LocalTime now = timeProvider.now();
+
+        if (now.isBefore(store.getOpenTime()) || now.isAfter(store.getEndTime())) {
+            throw new BusinessException(ErrorCode.STORE_CLOSED);
+        }
+
+        Long totalAmount = 0L;
+        List<CartMenu> cartMenus = cartMenuRepository.findByCart(cart);
+
+        Map<Long, Menu> menuCache = new HashMap<>();
+        for (CartMenu cartMenu : cartMenus) {
+            Menu menu = menuCache.computeIfAbsent(cartMenu.getMenu().getId(), menuService::findActiveMenuByIdOrFail);
+
+            if (menu.getIsSoldOut()) {
+                throw new BusinessException(ErrorCode.MENU_IS_SOLD_OUT);
+            }
+
+            totalAmount += cartMenu.getQuantity() * menu.getPrice();
+        }
+
+        Order order = Order.builder()
+                .user(user)
+                .store(store)
+                .address(mainAddress)
+                .totalAmount(totalAmount)
+                .build();
+        orderRepository.save(order);
+
+        for (CartMenu cartMenu : cartMenus) {
+            Menu menu = menuCache.get(cartMenu.getMenu().getId());
+            OrderMenu orderMenu = OrderMenu.builder()
+                    .order(order)
+                    .menuId(menu.getId())
+                    .quantity(cartMenu.getQuantity())
+                    .price(menu.getPrice())
+                    .build();
+            orderMenuRepository.save(orderMenu);
+        }
+    }
+
     public OrderListRespDto getAllOrder(Long ownerId, int page, int limit) {
         Owner owner = ownerService.findActivateOwnerByIdOrFail(ownerId);
         Pageable pageable = PageRequest.of(page, limit, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<OrderProjectionRespDto> orderPage
+        Page<OrderProjectionDto> orderPage
                 = orderMenuRepository.findByOwnerWithOrderWithStoreWithMenu(owner, pageable);
         return new OrderListRespDto(orderPage);
     }
@@ -235,4 +314,20 @@ public class OrderService {
         return new OrderInfoRespDto(orderDetailProjection, order);
     }
 
+
+    public OrderInfoRespDto getOrderInfo(Long ownerId, Long orderId) {
+        ownerService.findActivateOwnerByIdOrFail(ownerId);
+        Order order = orderRepository.findOrderWithDetails(orderId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_NOT_FOUND));
+        List<OrderMenuProjectionDto> orderDetailProjection = orderMenuRepository.findOrderMenuDetailByOrder(order);
+        return new OrderInfoRespDto(orderDetailProjection, order);
+    }
+
+    // 가게주인 확인 메소드
+    private void isStoreOwner(Order order, Long ownerId) {
+        if (!order.getStore().getOwner().getId().equals(ownerId)) {
+            throw new BusinessException(ErrorCode.FORBIDDEN_ACCESS);
+        }
+
+    }
 }

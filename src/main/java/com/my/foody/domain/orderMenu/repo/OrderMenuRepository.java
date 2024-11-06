@@ -78,5 +78,19 @@ public interface OrderMenuRepository extends JpaRepository<OrderMenu, Long> {
         where s.owner = :owner
     """
     )
-    Page<OrderProjectionRespDto> findByOwnerWithOrderWithStoreWithMenu(@Param("owner") Owner owner, Pageable pageable);
+    Page<OrderProjectionDto> findByOwnerWithOrderWithStoreWithMenu(@Param("owner") Owner owner, Pageable pageable);
+
+
+
+    @Query("""
+        select 
+            om.menuId as menuId,
+            m.name as menuName,
+            om.quantity as quantity,
+            om.price as price
+        from OrderMenu om
+        join Menu m on om.menuId = m.id
+        where om.order = :order
+    """)
+    List<OrderMenuProjectionDto> findOrderMenuDetailByOrder(@Param("order") Order order);
 }
