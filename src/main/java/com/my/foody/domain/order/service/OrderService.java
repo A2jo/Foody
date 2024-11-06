@@ -8,14 +8,16 @@ import com.my.foody.domain.cart.repo.CartRepository;
 import com.my.foody.domain.cartMenu.CartMenu;
 import com.my.foody.domain.cartMenu.CartMenuRepository;
 import com.my.foody.domain.order.dto.req.OrderStatusUpdateReqDto;
+import com.my.foody.domain.order.dto.resp.OrderInfoRespDto;
 import com.my.foody.domain.order.dto.resp.OrderListRespDto;
 import com.my.foody.domain.order.dto.resp.OrderPreviewRespDto;
 import com.my.foody.domain.order.dto.resp.OrderStatusUpdateRespDto;
 import com.my.foody.domain.order.entity.Order;
 import com.my.foody.domain.order.repo.OrderRepository;
+import com.my.foody.domain.orderMenu.repo.dto.OrderMenuProjectionDto;
+import com.my.foody.domain.orderMenu.repo.dto.OrderProjectionDto;
 import com.my.foody.domain.store.entity.Store;
 import com.my.foody.domain.store.service.StoreService;
-import com.my.foody.domain.order.repo.dto.OrderProjectionRespDto;
 import com.my.foody.domain.orderMenu.repo.OrderMenuRepository;
 import com.my.foody.domain.owner.entity.Owner;
 import com.my.foody.domain.owner.service.OwnerService;
@@ -105,8 +107,17 @@ public class OrderService {
     public OrderListRespDto getAllOrder(Long ownerId, int page, int limit) {
         Owner owner = ownerService.findActivateOwnerByIdOrFail(ownerId);
         Pageable pageable = PageRequest.of(page, limit, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<OrderProjectionRespDto> orderPage
+        Page<OrderProjectionDto> orderPage
                 = orderMenuRepository.findByOwnerWithOrderWithStoreWithMenu(owner, pageable);
         return new OrderListRespDto(orderPage);
     }
+
+    public OrderInfoRespDto getOrderInfo(Long ownerId, Long orderId) {
+        ownerService.findActivateOwnerByIdOrFail(ownerId);
+        Order order = orderRepository.findOrderWithDetails(orderId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_NOT_FOUND));
+        List<OrderMenuProjectionDto> orderDetailProjection = orderMenuRepository.findOrderMenuDetailByOrder(order);
+        return new OrderInfoRespDto(orderDetailProjection, order);
+    }
+
 }

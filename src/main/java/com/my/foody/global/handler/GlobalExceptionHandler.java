@@ -3,7 +3,9 @@ package com.my.foody.global.handler;
 import com.my.foody.global.ex.BusinessException;
 import com.my.foody.global.util.api.ApiError;
 import com.my.foody.global.util.api.ApiResult;
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.validator.internal.engine.path.PathImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +20,14 @@ import java.util.Map;
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ApiResult<Map<String, String>>> queryParameterValidationException(ConstraintViolationException e) {
+        Map<String, String> errorMap = new HashMap<>();
+        e.getConstraintViolations().forEach(error ->
+                errorMap.put(((PathImpl) (error.getPropertyPath())).getLeafNode().getName(), error.getMessage()));
+        return new ResponseEntity<>(ApiResult.error("유효성 검사 실패",HttpStatus.BAD_REQUEST.value(),  errorMap), HttpStatus.BAD_REQUEST);
+    }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResult<ApiError>> handleGeneralException(Exception e){
