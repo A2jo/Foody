@@ -15,7 +15,7 @@ public class OrderCreateReqDto {
     private Long userId;
 
     @NotNull(message = "최소 금액 이상 주문이 가능합니다.")
-    private Long paymentAmount;
+    private Long totalAmount;
 
     @NotNull
     private Long menuItemId;
