@@ -20,18 +20,18 @@ public class MenuService {
     private final MenuRepository menuRepository;
     private final StoreRepository storeRepository;
 
-    public Menu findActiveMenuByIdOrFail(Long menuId){
+    public Menu findActiveMenuByIdOrFail(Long menuId) {
         Menu menu = menuRepository.findActivateMenu(menuId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MENU_NOT_FOUND));
-        if(menu.getIsSoldOut()){
+        if (menu.getIsSoldOut()) {
             throw new BusinessException(ErrorCode.MENU_NOT_AVAILABLE);
         }
         return menu;
     }
-  
-  
-  // 메뉴 등록
-    @Transational
+
+
+    // 메뉴 등록
+    @Transactional
     public MenuCreateRespDto createMenu(Long storeId, MenuCreateReqDto menuCreateReqDto, Long ownerId) {
 
         Store store = storeRepository.findById(storeId).orElseThrow(() -> new BusinessException(ErrorCode.STORE_NOT_FOUND));
@@ -49,7 +49,7 @@ public class MenuService {
 
         menuRepository.save(menu);
 
-        // 메세제 응답 반환
+        // 메세지 응답 반환
         return new MenuCreateRespDto();
     }
 
@@ -58,4 +58,5 @@ public class MenuService {
         if (!store.getOwner().getId().equals(ownerId)) {
             throw new BusinessException(ErrorCode.FORBIDDEN_ACCESS);
         }
+    }
 }
