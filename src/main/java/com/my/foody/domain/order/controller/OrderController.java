@@ -1,6 +1,7 @@
 package com.my.foody.domain.order.controller;
 
 import com.my.foody.domain.order.dto.req.OrderStatusUpdateReqDto;
+import com.my.foody.domain.order.dto.resp.OrderListRespDto;
 import com.my.foody.domain.order.dto.resp.OrderPreviewRespDto;
 import com.my.foody.domain.order.dto.resp.OrderStatusUpdateRespDto;
 import com.my.foody.domain.order.service.OrderService;
@@ -48,5 +49,13 @@ public class OrderController {
     ApiResult<OrderPreviewRespDto> apiResult = ApiResult.success(orderPreview);
 
     return new ResponseEntity<>(apiResult, HttpStatus.OK);
+  }
+
+  @RequireAuth(userType = UserType.OWNER)
+  @GetMapping("/api/owners/orders")
+  public ResponseEntity<ApiResult<OrderListRespDto>> getAllOrder(@RequestParam(value = "page", required = false)int page,
+                                                                  @RequestParam(value = "limit", required = false)int limit,
+                                                                  @CurrentUser TokenSubject tokenSubject){
+    return new ResponseEntity<>(ApiResult.success(orderService.getAllOrder(tokenSubject.getId(), page, limit)), HttpStatus.OK);
   }
 }

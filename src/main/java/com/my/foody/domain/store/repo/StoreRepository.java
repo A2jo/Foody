@@ -1,7 +1,11 @@
 package com.my.foody.domain.store.repo;
 
+import com.my.foody.domain.order.repo.dto.OrderProjectionRespDto;
+import com.my.foody.domain.owner.entity.Owner;
 import com.my.foody.domain.store.entity.Store;
 import com.my.foody.domain.user.entity.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -22,4 +26,5 @@ public interface StoreRepository extends JpaRepository<Store, Long> {
 
     @Query("select s from Store s where s.id = :storeId and s.isDeleted = false")
     Optional<Store> findActivateStore(@Param(value = "storeId")Long storeId);
+
 }
