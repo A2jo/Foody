@@ -2,6 +2,8 @@ package com.my.foody.domain.menu.controller;
 
 import com.my.foody.domain.menu.dto.req.MenuUpdateReqDto;
 import com.my.foody.domain.menu.dto.resp.MenuUpdateRespDto;
+import com.my.foody.domain.menu.dto.req.MenuCreateReqDto;
+import com.my.foody.domain.menu.dto.resp.MenuCreateRespDto;
 import com.my.foody.domain.menu.service.MenuService;
 import com.my.foody.global.config.valid.CurrentUser;
 import com.my.foody.global.config.valid.RequireAuth;
@@ -23,7 +25,21 @@ public class MenuController {
 
     private final MenuService menuService;
 
-    // 2. 메뉴수정
+    // 1. 메뉴등록
+    @PostMapping("/api/owners/stores/{storeId}/menus")
+    // 권한 확인
+    @RequireAuth(userType = UserType.OWNER)
+    public ResponseEntity<ApiResult<MenuCreateRespDto>> createMenu(@PathVariable("storeId") Long storeId,
+                                                                   @Valid @RequestBody MenuCreateReqDto menuCreateReqDto,
+                                                                   @CurrentUser TokenSubject tokenSubject) {
+        //userId
+        Long ownerId = tokenSubject.getId();
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResult.success(menuService.createMenu(storeId, menuCreateReqDto, ownerId)));
+    }
+  
+   // 2. 메뉴수정
     @PutMapping("/api/owners/stores/{storeId}/menus/{menuId}")
     //권한 확인
     @RequireAuth(userType = UserType.OWNER)
@@ -35,6 +51,5 @@ public class MenuController {
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(ApiResult.success(menuService.updateMenu(storeId, menuId, menuUpdateReqDto, ownerId)));
-
     }
 }
