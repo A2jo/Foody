@@ -1,5 +1,6 @@
 package com.my.foody.domain.socialAccount.service;
 
+import com.my.foody.domain.socialAccount.dto.resp.SocialAccountListRespDto;
 import com.my.foody.domain.socialAccount.dto.resp.SocialLoginRespDto;
 import com.my.foody.domain.socialAccount.entity.SocialAccount;
 import com.my.foody.domain.socialAccount.repo.SocialAccountRepository;
@@ -10,6 +11,7 @@ import com.my.foody.domain.user.repo.UserRepository;
 import com.my.foody.domain.user.service.UserService;
 import com.my.foody.global.ex.BusinessException;
 import com.my.foody.global.ex.ErrorCode;
+import com.my.foody.global.ex.ServerException;
 import com.my.foody.global.jwt.JwtProvider;
 import com.my.foody.global.jwt.TokenSubject;
 import com.my.foody.global.util.api.ApiResult;
@@ -21,10 +23,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.util.UriComponentsBuilder;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class SocialAccountService {
 
     private final OAuth2Properties oAuth2Properties;
@@ -94,8 +100,8 @@ public class SocialAccountService {
                 throw e;
             }
         }catch (FeignException e){
-            log.error("OAuth2 프로세스 실패 - provider: {}, error: {}", provider, e.getMessage());
-            throw new IllegalStateException("OAuth2 콜백 실패: {}"+e.getMessage(), e);
+            log.error("OAuth2 콜백 프로세스 실패 - provider: {}, error: {}", provider, e.getMessage());
+            throw new ServerException(ErrorCode.OAUTH_CALLBACK_FAILED);
         }
     }
 
@@ -115,6 +121,7 @@ public class SocialAccountService {
     }
 
     // 소셜 계정으로 최초 가입 (소셜 계정이 없는 경우)
+    @Transactional
     public SocialLoginRespDto registerWithSocialAccount(OAuth2UserInfo userInfo, Provider provider) {
 
         User user = userInfo.toEntity();
@@ -138,5 +145,11 @@ public class SocialAccountService {
                 .name(userInfo.getName())
                 .isPrimary(isPrimary)
                 .build();
+    }
+
+    public SocialAccountListRespDto getAllSocialAccount(Long userId) {
+        User user = userService.findActivateUserByIdOrFail(userId);
+        List<SocialAccount> socialAccountList = socialAccountRepository.findByUser(user);
+        return new SocialAccountListRespDto(socialAccountList);
     }
 }
