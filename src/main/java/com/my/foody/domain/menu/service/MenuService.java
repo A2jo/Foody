@@ -83,6 +83,5 @@ public class MenuService {
         if (!store.getOwner().getId().equals(ownerId)) {
             throw new BusinessException(ErrorCode.FORBIDDEN_ACCESS);
         }
-
     }
 }
