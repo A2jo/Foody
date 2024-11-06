@@ -34,7 +34,6 @@ public enum ErrorCode {
     HAVE_FULL_STORE(HttpStatus.CONFLICT.value(), "생성 가능한 가게 수를 초과합니다."),
     OWNER_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "OWNER를 찾을 수 없습니다."),
     CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "존재하지 않는 카테고리입니다."),
-    MENU_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "존재하지 않는 메뉴입니다." );
     MENU_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "존재하지 않는 메뉴입니다"),
     INVALID_MENU_NAME(HttpStatus.BAD_REQUEST.value(), "메뉴 이름은 1자 이상 30자 이하여야 합니다"),
     INVALID_MENU_PRICE(HttpStatus.BAD_REQUEST.value(), "메뉴 가격은 1원 이상이어야 합니다"),
@@ -48,8 +47,8 @@ public enum ErrorCode {
     MENU_NOT_FOUND(HttpStatus.BAD_REQUEST.value(), "존재하지 않는 메뉴입니다"),
     MENU_NOT_AVAILABLE(HttpStatus.BAD_REQUEST.value(), "현재 주문할 수 없는 메뉴입니다"),
     UNDER_MINIMUM_ORDER_AMOUNT(HttpStatus.BAD_REQUEST.value(), "최소 금액 이상만 주문이 가능합니다."),
-    STORE_CLOSED(HttpStatus.BAD_REQUEST.value(), "가계의 영업 시간이 아닙니다.")
-    ;
+    STORE_CLOSED(HttpStatus.BAD_REQUEST.value(), "가계의 영업 시간이 아닙니다."),
+
     MENU_NOT_AVAILABLE(HttpStatus.BAD_REQUEST.value(), "현재 주문할 수 없는 메뉴입니다"),
     ORDER_NOT_COMPLETED(HttpStatus.BAD_REQUEST.value(), "리뷰는 완료된 주문에 대해서만 작성할 수 있습니다"),
     REVIEW_ALREADY_EXISTS(HttpStatus.BAD_REQUEST.value(), "해당 주문에 대한 리뷰가 존재합니다"),
@@ -65,12 +64,13 @@ public enum ErrorCode {
 
 
     ORDER_NOT_COMPLETED(HttpStatus.BAD_REQUEST.value(), "리뷰는 완료된 주문에 대해서만 작성할 수 있습니다"),
-    REVIEW_ALREADY_EXISTS(HttpStatus.BAD_REQUEST.value(), "해당 주문에 대한 리뷰가 존재합니다");
+    REVIEW_ALREADY_EXISTS(HttpStatus.BAD_REQUEST.value(), "해당 주문에 대한 리뷰가 존재합니다"),
 
     MENU_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "존재하지 않는 메뉴입니다"),
     INVALID_MENU_NAME(HttpStatus.BAD_REQUEST.value(), "메뉴 이름은 1자 이상 30자 이하여야 합니다"),
-    INVALID_MENU_PRICE(HttpStatus.BAD_REQUEST.value(), "메뉴 가격은 1원 이상이어야 합니다");
+    INVALID_MENU_PRICE(HttpStatus.BAD_REQUEST.value(), "메뉴 가격은 1원 이상이어야 합니다"),
 
+    NOT_MAIN_ADDRESS(HttpStatus.BAD_REQUEST.value(), "기본 주소가 아닙니다.");
 
 
 
