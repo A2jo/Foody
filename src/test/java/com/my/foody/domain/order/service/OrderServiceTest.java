@@ -37,13 +37,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.*;
-<<<<<<< HEAD
-
-=======
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
->>>>>>> 3026e1f8ec9d880953a208c4360131283915115b
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
@@ -84,6 +80,8 @@ public class OrderServiceTest extends DummyObject {
 
     @Mock
     private CartMenuRepository cartMenuRepository;
+
+    @Mock
     private OwnerService ownerService;
 
     @Mock
@@ -444,6 +442,49 @@ public class OrderServiceTest extends DummyObject {
         verify(orderRepository).findOrderWithDetails(orderId);
         verify(orderMenuRepository).findOrderMenuDetailByOrder(order);
     }
+
+
+    @Test
+    @DisplayName("주문 상세 조회 실패 테스트: 존재하지 않는 주문")
+    void getOrderInfo_OrderNotFound() {
+        // Given
+        Long ownerId = 1L;
+        Long orderId = 999L;
+        Owner owner = newOwner(orderId);
+
+        when(ownerService.findActivateOwnerByIdOrFail(ownerId)).thenReturn(owner);
+        when(orderRepository.findOrderWithDetails(orderId)).thenReturn(Optional.empty());
+
+        // When & Then
+        assertThatThrownBy(() -> orderService.getOrderInfo(ownerId, orderId))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ORDER_NOT_FOUND);
+
+        verify(ownerService).findActivateOwnerByIdOrFail(ownerId);
+        verify(orderRepository).findOrderWithDetails(orderId);
+        verify(orderMenuRepository, never()).findOrderMenuDetailByOrder(any());
+    }
+
+    @Test
+    @DisplayName("주문 상세 조회 실패 테스트: 비활성화된 사장님")
+    void getOrderInfo_InactiveOwner() {
+        // Given
+        Long ownerId = 1L;
+        Long orderId = 1L;
+
+        when(ownerService.findActivateOwnerByIdOrFail(ownerId))
+                .thenThrow(new BusinessException(ErrorCode.OWNER_NOT_FOUND));
+
+        // When & Then
+        assertThatThrownBy(() -> orderService.getOrderInfo(ownerId, orderId))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.OWNER_NOT_FOUND);
+
+        verify(ownerService).findActivateOwnerByIdOrFail(ownerId);
+        verify(orderRepository, never()).findOrderWithDetails(anyLong());
+        verify(orderMenuRepository, never()).findOrderMenuDetailByOrder(any());
+    }
+
 
     private Order createOrder() {
         Store store = Store.builder()

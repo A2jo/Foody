@@ -61,7 +61,7 @@ public class OrderController {
 
   @RequireAuth(userType = UserType.OWNER)
   @GetMapping("/api/owners/orders/{orderId}")
-  public ResponseEntity<ApiResult<OrderInfoRespDto>> getOrderInfo(@RequestParam(value = "orderId", required = true) @Positive Long orderId,
+  public ResponseEntity<ApiResult<OrderInfoRespDto>> getOrderInfo(@PathVariable(value = "orderId", required = true) @Positive Long orderId,
                                                                   @CurrentUser TokenSubject tokenSubject){
     return new ResponseEntity<>(ApiResult.success(orderService.getOrderInfo(tokenSubject.getId(), orderId)), HttpStatus.OK);
   }
