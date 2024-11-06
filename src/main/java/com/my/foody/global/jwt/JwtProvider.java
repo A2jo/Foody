@@ -9,18 +9,25 @@ import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.my.foody.global.ex.CustomJwtException;
 import com.my.foody.global.ex.ErrorCode;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 @Component
 @Slf4j
+@RequiredArgsConstructor
 public class JwtProvider {
     @Value("${jwt.secret}")
     private String secretKey;
+    private final RedisTemplate<String, String> redisTemplate;
+    private final static String LOGOUT_KEY = "BL:";
 
     // 블랙리스트로 사용할 Map 추가
     private final ConcurrentHashMap<String, Date> tokenBlacklist = new ConcurrentHashMap<>();
@@ -37,6 +44,11 @@ public class JwtProvider {
     }
 
     public TokenSubject validate(String token){
+        String key = LOGOUT_KEY + token.replace(JwtVo.TOKEN_PREFIX, "");
+        if (Boolean.TRUE.equals(redisTemplate.hasKey(key))) {
+            throw new CustomJwtException(ErrorCode.INVALID_TOKEN);
+        }
+
         DecodedJWT decodedJWT;
         try {
             // 블랙리스트에 있는지 확인
@@ -71,5 +83,12 @@ public class JwtProvider {
         DecodedJWT decodedJWT = JWT.decode(token);
         Date expiresAt = decodedJWT.getExpiresAt();
         tokenBlacklist.put(token, expiresAt); // 블랙리스트에 추가
+    }
+    public void logout(Long userId, String token) {
+        String key = LOGOUT_KEY + token.replace(JwtVo.TOKEN_PREFIX, "");
+        DecodedJWT jwt = JWT.decode(token.replace(JwtVo.TOKEN_PREFIX, ""));
+        long remainingTime = jwt.getExpiresAt().getTime() - System.currentTimeMillis();
+
+        redisTemplate.opsForValue().set(key, userId.toString(), remainingTime, TimeUnit.MILLISECONDS);
     }
 }

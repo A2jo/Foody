@@ -24,6 +24,7 @@ import com.my.foody.global.jwt.TokenSubject;
 import com.my.foody.infra.oauth.common.OAuth2UserInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -176,4 +177,8 @@ public class UserService {
         return new SocialLoginRespDto(user, socialAccount, token);
     }
 
+    public UserLogoutRespDto logout(Long userId, String token) {
+        jwtProvider.logout(userId, token);
+        return new UserLogoutRespDto();
+    }
 }
