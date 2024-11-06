@@ -49,6 +49,9 @@ dependencies {
 
     //jwt
     implementation group: 'com.auth0', name: 'java-jwt', version: '4.2.2'
+
+    //redis
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 }
 
 tasks.named('test') {
