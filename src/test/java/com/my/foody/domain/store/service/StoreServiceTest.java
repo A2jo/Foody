@@ -14,17 +14,18 @@ import com.my.foody.domain.storeCategory.entity.StoreCategory;
 import com.my.foody.domain.storeCategory.repo.StoreCategoryRepository;
 import com.my.foody.global.ex.BusinessException;
 import com.my.foody.global.ex.ErrorCode;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
-import java.nio.file.AccessDeniedException;
 import java.time.LocalTime;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -198,6 +199,10 @@ public class StoreServiceTest {
     @Test
     public void testGetStoreByCategory_Success() {
         Long categoryId = 1L;
+        int page = 0;
+        int limit = 10;
+
+        Pageable pageable = PageRequest.of(page, limit);
 
         when(categoryRepository.existsById(categoryId)).thenReturn(true);
 
@@ -219,43 +224,65 @@ public class StoreServiceTest {
                 .endTime(LocalTime.of(23, 0))
                 .build();
 
-        StoreCategory storeCategory1 = StoreCategory.builder()
-                .store(store1)
-                .build();
+        StoreCategory storeCategory1 = StoreCategory.builder().store(store1).build();
+        StoreCategory storeCategory2 = StoreCategory.builder().store(store2).build();
 
-        StoreCategory storeCategory2 = StoreCategory.builder()
-                .store(store2)
-                .build();
+        Page<StoreCategory> storeCategories = new PageImpl<>(List.of(storeCategory1, storeCategory2), pageable, 2);
 
-        when(storeCategoryRepository.findByCategoryId(categoryId)).thenReturn(List.of(storeCategory1, storeCategory2));
+        when(storeCategoryRepository.findByCategoryId(categoryId, pageable)).thenReturn(storeCategories);
 
-        List<GetStoreRespDto> result = storeService.getStoreByCategory(categoryId);
+        Page<GetStoreRespDto> result = storeService.getStoreByCategory(categoryId, page, limit);
 
-        assertEquals(2, result.size());
-        assertEquals("Store A", result.get(0).getName());
-        assertEquals(10000L, result.get(0).getMinOrderAmount());
-        assertEquals("Store B", result.get(1).getName());
-        assertEquals(15000L, result.get(1).getMinOrderAmount());
+        assertEquals(2, result.getTotalElements());
+        assertEquals("Store A", result.getContent().get(0).getName());
+        assertEquals(10000L, result.getContent().get(0).getMinOrderAmount());
+        assertEquals("Store B", result.getContent().get(1).getName());
+        assertEquals(15000L, result.getContent().get(1).getMinOrderAmount());
 
         verify(categoryRepository, times(1)).existsById(categoryId);
-        verify(storeCategoryRepository, times(1)).findByCategoryId(categoryId);
+        verify(storeCategoryRepository, times(1)).findByCategoryId(categoryId, pageable);
     }
 
     @DisplayName("가게 조회 성공 테스트 - 빈 목록 반환")
     @Test
-    public void testGetStoreByCategory_Fail_NotFoundStore() {
+    public void testGetStoreByCategory_Success_NotFoundStore() {
         Long categoryId = 1L;
+        int page = 0;
+        int limit = 10;
+
+        Pageable pageable = PageRequest.of(page, limit);
 
         when(categoryRepository.existsById(categoryId)).thenReturn(true);
 
-        when(storeCategoryRepository.findByCategoryId(categoryId)).thenReturn(List.of());
+        Page<StoreCategory> emptyStoreCategories = new PageImpl<>(List.of(), pageable, 0);
 
-        List<GetStoreRespDto> result = storeService.getStoreByCategory(categoryId);
+        when(storeCategoryRepository.findByCategoryId(categoryId, pageable)).thenReturn(emptyStoreCategories);
 
-        assertEquals(0, result.size());
+        Page<GetStoreRespDto> result = storeService.getStoreByCategory(categoryId, page, limit);
 
-        verify(categoryRepository, times(1)).existsById(categoryId); // 카테고리 존재 여부 확인 호출 검증
-        verify(storeCategoryRepository, times(1)).findByCategoryId(categoryId);
+        assertEquals(0, result.getTotalElements());
+
+        verify(categoryRepository, times(1)).existsById(categoryId);
+        verify(storeCategoryRepository, times(1)).findByCategoryId(categoryId, pageable);
     }
 
+    @DisplayName("가게 조회 실패 테스트 - 존재하지 않는 카테고리")
+    @Test
+    public void testGetStoreByCategory_Fail_NotFoundCategory() {
+        Long categoryId = 999L; // 존재하지 않는 카테고리 ID
+        int page = 0;
+        int limit = 10;
+
+        when(categoryRepository.existsById(categoryId)).thenReturn(false);
+
+        BusinessException exception = assertThrows(BusinessException.class, () ->
+                storeService.getStoreByCategory(categoryId, page, limit)
+        );
+
+        assertEquals(ErrorCode.CATEGORY_NOT_FOUND, exception.getErrorCode());
+        System.out.println(exception.getMessage());
+
+        verify(categoryRepository, times(1)).existsById(categoryId);
+        verify(storeCategoryRepository, times(0)).findByCategoryId(anyLong(), any(Pageable.class));
+    }
 }
