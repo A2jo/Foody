@@ -120,6 +120,7 @@ class UserServiceTest extends DummyObject {
         User user = User.builder()
                 .email(email)
                 .password(PasswordEncoder.encode(password))
+                .isDeleted(false)
                 .build();
         UserLoginReqDto userLoginReqDto = mockUserLoginReqDto(email, password);
 
@@ -163,6 +164,7 @@ class UserServiceTest extends DummyObject {
         User user = User.builder()
                 .email(email)
                 .password(PasswordEncoder.encode(password+"000"))
+                .isDeleted(false)
                 .build();
 
         when(userRepository.findByEmail(userLoginReqDto.getEmail())).thenReturn(Optional.of(user));
@@ -178,8 +180,9 @@ class UserServiceTest extends DummyObject {
     @Test
     @DisplayName("마이페이지 조회 성공 테스트")
     void getUserInfo_Success(){
-        User user = mockUser();
-        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+        Long userId = 1L;
+        User user = newUser(userId);
+        when(userRepository.findActivateUser(user.getId())).thenReturn(Optional.of(user));
 
         //when
         UserInfoRespDto result = userService.getUserInfo(user.getId());
@@ -189,20 +192,20 @@ class UserServiceTest extends DummyObject {
         assertThat(result.getContact()).isEqualTo(user.getContact());
         assertThat(result.getEmail()).isEqualTo(user.getEmail());
         assertThat(result.getNickname()).isEqualTo(user.getNickname());
-        verify(userRepository, times(1)).findById(user.getId());
+        verify(userRepository, times(1)).findActivateUser(user.getId());
     }
 
     @Test
     @DisplayName("마이페이지 조회 실패 테스트: 존재하지 않는 유저")
     void getUserInfo_UserNotFound(){
         User user = mockUser();
-        when(userRepository.findById(user.getId())).thenReturn(Optional.empty());
+        when(userRepository.findActivateUser(user.getId())).thenReturn(Optional.empty());
 
         //when & then
         assertThatThrownBy(() -> userService.getUserInfo(user.getId()))
                 .isInstanceOf(BusinessException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.USER_NOT_FOUND);
-        verify(userRepository, times(1)).findById(user.getId());
+        verify(userRepository, times(1)).findActivateUser(user.getId());
     }
 
     @Test
@@ -217,14 +220,14 @@ class UserServiceTest extends DummyObject {
                 .detailedAddress(address.getDetailedAddress())
                 .build();
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(userRepository.findActivateUser(userId)).thenReturn(Optional.of(user));
         when(addressRepository.save(any(Address.class))).thenReturn(address);
 
         //when
         AddressCreateRespDto result = userService.registerAddress(addressCreateReqDto, userId);
 
         //then
-        verify(userRepository, times(1)).findById(userId);
+        verify(userRepository, times(1)).findActivateUser(userId);
         verify(addressRepository, times(1)).save(any(Address.class));
     }
 
@@ -240,13 +243,13 @@ class UserServiceTest extends DummyObject {
                 .detailedAddress(address.getDetailedAddress())
                 .build();
 
-        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+        when(userRepository.findActivateUser(userId)).thenReturn(Optional.empty());
 
         // when & then
         assertThrows(BusinessException.class, () ->
                 userService.registerAddress(addressCreateReqDto, userId)
         );
-        verify(userRepository, times(1)).findById(userId);
+        verify(userRepository, times(1)).findActivateUser(userId);
         verify(addressRepository, never()).save(any(Address.class));
     }
 
@@ -261,8 +264,9 @@ class UserServiceTest extends DummyObject {
         AddressModifyReqDto modifyReqDto = AddressModifyReqDto.builder()
                 .roadAddress("새로운 도로명주소")
                 .detailedAddress("새로운 상세주소")
+                .isMain(true)
                 .build();
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(userRepository.findActivateUser(userId)).thenReturn(Optional.of(user));
         when(addressService.findByIdOrFail(addressId)).thenReturn(address);
 
         // when
@@ -270,7 +274,7 @@ class UserServiceTest extends DummyObject {
 
         // then
         assertNotNull(result);
-        verify(userRepository).findById(userId);
+        verify(userRepository).findActivateUser(userId);
         verify(addressService).findByIdOrFail(addressId);
     }
 
@@ -285,12 +289,12 @@ class UserServiceTest extends DummyObject {
                 .roadAddress("새로운 도로명주소")
                 .detailedAddress("새로운 상세주소")
                 .build();
-        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+        when(userRepository.findActivateUser(userId)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> userService.modifyAddress(modifyReqDto, userId, addressId))
                 .isInstanceOf(BusinessException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.USER_NOT_FOUND);
-        verify(userRepository).findById(userId);
+        verify(userRepository).findActivateUser(userId);
         verify(addressService, never()).findByIdOrFail(anyLong());
     }
 
@@ -304,15 +308,16 @@ class UserServiceTest extends DummyObject {
         AddressModifyReqDto modifyReqDto = AddressModifyReqDto.builder()
                 .roadAddress("새로운 도로명주소")
                 .detailedAddress("새로운 상세주소")
+                .isMain(true)
                 .build();
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(userRepository.findActivateUser(userId)).thenReturn(Optional.of(user));
         when(addressService.findByIdOrFail(addressId))
                 .thenThrow(new BusinessException(ErrorCode.ADDRESS_NOT_FOUND));
 
         assertThatThrownBy(() -> userService.modifyAddress(modifyReqDto, userId, addressId))
                 .isInstanceOf(BusinessException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ADDRESS_NOT_FOUND);
-        verify(userRepository).findById(userId);
+        verify(userRepository).findActivateUser(userId);
         verify(addressService).findByIdOrFail(addressId);
     }
 
@@ -324,14 +329,14 @@ class UserServiceTest extends DummyObject {
         User user = newUser(userId);
         Address address = mockAddress(user);
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(userRepository.findActivateUser(userId)).thenReturn(Optional.of(user));
         when(addressService.findByIdOrFail(addressId)).thenReturn(address);
         doNothing().when(addressRepository).delete(address);
 
         AddressDeleteRespDto result = userService.deleteAddressById(addressId, userId);
 
         assertNotNull(result);
-        verify(userRepository).findById(userId);
+        verify(userRepository).findActivateUser(userId);
         verify(addressService).findByIdOrFail(addressId);
         verify(addressRepository).delete(address);
     }
@@ -342,14 +347,14 @@ class UserServiceTest extends DummyObject {
         Long userId = 1111L;
         Long addressId = 1L;
 
-        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+        when(userRepository.findActivateUser(userId)).thenReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() -> userService.deleteAddressById(addressId, userId))
                 .isInstanceOf(BusinessException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.USER_NOT_FOUND);
 
-        verify(userRepository).findById(userId);
+        verify(userRepository).findActivateUser(userId);
         verify(addressService, never()).findByIdOrFail(anyLong());
         verify(addressRepository, never()).delete(any(Address.class));
     }
@@ -361,7 +366,7 @@ class UserServiceTest extends DummyObject {
         Long addressId = 999L;
         User user = newUser(userId);
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(userRepository.findActivateUser(userId)).thenReturn(Optional.of(user));
         when(addressService.findByIdOrFail(addressId))
                 .thenThrow(new BusinessException(ErrorCode.ADDRESS_NOT_FOUND));
 
@@ -370,7 +375,7 @@ class UserServiceTest extends DummyObject {
                 .isInstanceOf(BusinessException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ADDRESS_NOT_FOUND);
 
-        verify(userRepository).findById(userId);
+        verify(userRepository).findActivateUser(userId);
         verify(addressService).findByIdOrFail(addressId);
         verify(addressRepository, never()).delete(any(Address.class));
     }
@@ -386,7 +391,7 @@ class UserServiceTest extends DummyObject {
         User otherUser = newUser(otherUserId);
         Address address = mockAddress(otherUser);
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(userRepository.findActivateUser(userId)).thenReturn(Optional.of(user));
         when(addressService.findByIdOrFail(addressId)).thenReturn(address);
 
         // when & then
@@ -394,7 +399,7 @@ class UserServiceTest extends DummyObject {
                 .isInstanceOf(BusinessException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.UNAUTHORIZED_ADDRESS_ACCESS);
 
-        verify(userRepository).findById(userId);
+        verify(userRepository).findActivateUser(userId);
         verify(addressService).findByIdOrFail(addressId);
         verify(addressRepository, never()).delete(any(Address.class));
     }
@@ -412,14 +417,14 @@ class UserServiceTest extends DummyObject {
                 .newPassword(newPassword)
                 .build();
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(userRepository.findActivateUser(userId)).thenReturn(Optional.of(user));
 
         // when
         UserPasswordModifyRespDto respDto = userService.modifyUserPassword(reqDto, userId);
 
         // then
         assertThat(PasswordEncoder.matches(newPassword, user.getPassword())).isTrue();
-        verify(userRepository, times(1)).findById(userId);
+        verify(userRepository, times(1)).findActivateUser(userId);
     }
 
     @Test
@@ -428,7 +433,7 @@ class UserServiceTest extends DummyObject {
         Long userId = 999L;
         UserPasswordModifyReqDto reqDto = new UserPasswordModifyReqDto();
 
-        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+        when(userRepository.findActivateUser(userId)).thenReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() -> userService.modifyUserPassword(reqDto, userId))
@@ -450,7 +455,7 @@ class UserServiceTest extends DummyObject {
                 .newPassword(newPassword)
                 .build();
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(userRepository.findActivateUser(userId)).thenReturn(Optional.of(user));
 
         // when & then
         assertThatThrownBy(() -> userService.modifyUserPassword(reqDto, userId))
@@ -484,13 +489,13 @@ class UserServiceTest extends DummyObject {
     @DisplayName(value = "전체 주소지 조회 실패 테스트: 존재하지 않는 유저")
     void getAllAddress_UserNotFound(){
         Long userId = 1L;
-        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+        when(userRepository.findActivateUser(userId)).thenReturn(Optional.empty());
 
         //when & then
         assertThatThrownBy(() -> userService.getAllAddress(userId))
                 .isInstanceOf(BusinessException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.USER_NOT_FOUND);
-        verify(userRepository, times(1)).findById(userId);
+        verify(userRepository, times(1)).findActivateUser(userId);
         verify(addressRepository, never()).findAllByUserOrderByCreatedAtDesc(any(User.class));
     }
 
@@ -506,7 +511,7 @@ class UserServiceTest extends DummyObject {
                 .contact("010-2222-2222")
                 .build();
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(userRepository.findActivateUser(userId)).thenReturn(Optional.of(user));
         when(userRepository.existsByEmail(requestDto.getEmail())).thenReturn(false);
         when(userRepository.existsByNickname(requestDto.getNickname())).thenReturn(false);
 
@@ -515,7 +520,7 @@ class UserServiceTest extends DummyObject {
 
         // then
         assertNotNull(response);
-        verify(userRepository).findById(userId);
+        verify(userRepository).findActivateUser(userId);
         verify(userRepository).existsByEmail(requestDto.getEmail());
         verify(userRepository).existsByNickname(requestDto.getNickname());
     }
@@ -531,14 +536,14 @@ class UserServiceTest extends DummyObject {
                 .nickname("newNickname")
                 .contact("010-2222-2222")
                 .build();
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(userRepository.findActivateUser(userId)).thenReturn(Optional.of(user));
         when(userRepository.existsByEmail(requestDto.getEmail())).thenReturn(true);
 
         // when & then
         BusinessException exception = assertThrows(BusinessException.class,
                 () -> userService.modifyUserInfo(requestDto, userId));
         assertEquals(ErrorCode.EMAIL_ALREADY_EXISTS, exception.getErrorCode());
-        verify(userRepository).findById(userId);
+        verify(userRepository).findActivateUser(userId);
         verify(userRepository).existsByEmail(requestDto.getEmail());
         verify(userRepository, never()).existsByNickname(any());
     }
@@ -547,22 +552,22 @@ class UserServiceTest extends DummyObject {
     @DisplayName("유저 정보 수정 실패 테스트: 중복된 닉네임")
     void modifyUserInfo_DuplicateNickname() {
         Long userId = 1L;
-        User user = newUser(userId);
+        User user = mockUser();
         UserInfoModifyReqDto requestDto = UserInfoModifyReqDto.builder()
                 .email("new@test.com")
                 .name("newName")
                 .nickname("newNickname")
                 .contact("010-2222-2222")
                 .build();
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(userRepository.existsByEmail(requestDto.getEmail())).thenReturn(true);
-        when(userRepository.existsByNickname(requestDto.getNickname())).thenReturn(false);  // 조건문 로직상 false일 때 예외 발생
+        when(userRepository.findActivateUser(userId)).thenReturn(Optional.of(user));
+        when(userRepository.existsByEmail(requestDto.getEmail())).thenReturn(false);
+        when(userRepository.existsByNickname(requestDto.getNickname())).thenReturn(true);
 
         // when & then
         BusinessException exception = assertThrows(BusinessException.class,
                 () -> userService.modifyUserInfo(requestDto, userId));
         assertEquals(ErrorCode.NICKNAME_ALREADY_EXISTS, exception.getErrorCode());
-        verify(userRepository).findById(userId);
+        verify(userRepository).findActivateUser(userId);
         verify(userRepository).existsByEmail(requestDto.getEmail());
         verify(userRepository).existsByNickname(requestDto.getNickname());
     }
@@ -630,6 +635,22 @@ class UserServiceTest extends DummyObject {
                 () -> userService.deleteUserById(requestDto, userId));
         assertEquals(ErrorCode.USER_NOT_FOUND, exception.getErrorCode());
         verify(userRepository).findActivateUser(userId);
+    }
+
+
+    @Test
+    @DisplayName("로그아웃 성공 테스트")
+    void logout_success() {
+        // Given
+        Long userId = 1L;
+        String token = "Bearer test.token.here";
+
+        // When
+        UserLogoutRespDto result = userService.logout(userId, token);
+
+        // Then
+        verify(jwtProvider, times(1)).logout(userId, token);
+        assertNotNull(result);
     }
 
 

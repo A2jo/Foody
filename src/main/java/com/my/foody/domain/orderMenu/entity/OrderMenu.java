@@ -3,13 +3,13 @@ package com.my.foody.domain.orderMenu.entity;
 import com.my.foody.domain.order.entity.Order;
 import com.my.foody.domain.base.BaseEntity;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 
 @Entity
 @Getter
+@Builder
+@AllArgsConstructor
 @Table(name = "order_menu")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class OrderMenu extends BaseEntity {
