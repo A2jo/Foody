@@ -16,7 +16,7 @@ public class GetStoreRespDto {
     private Long reviewCount;
     private LocalTime openTime;
     private LocalTime endTime;
-    private boolean isDeleted;
+    private Boolean isDeleted;
 
     public GetStoreRespDto(Store store) {
         this.storeId = store.getId();

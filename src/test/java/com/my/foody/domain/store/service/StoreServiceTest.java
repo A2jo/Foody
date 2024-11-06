@@ -3,6 +3,10 @@ package com.my.foody.domain.store.service;
 
 import com.my.foody.domain.category.entity.Category;
 import com.my.foody.domain.category.repo.CategoryRepository;
+import com.my.foody.domain.menu.dto.resp.GetMenuRespDto;
+import com.my.foody.domain.menu.dto.resp.MenuListRespDto;
+import com.my.foody.domain.menu.repo.MenuProjection;
+import com.my.foody.domain.menu.repo.MenuRepository;
 import com.my.foody.domain.owner.entity.Owner;
 import com.my.foody.domain.owner.repo.OwnerRepository;
 import com.my.foody.domain.review.repo.ReviewRepository;
@@ -54,6 +58,8 @@ public class StoreServiceTest {
     private StoreCategoryRepository storeCategoryRepository;
     @Mock
     private ReviewRepository reviewRepository;
+    @Mock
+    private MenuRepository menuRepository;
 
     // -[가게 생성 테스트]---------------------------------------------------
     @DisplayName("가게 생성 성공")
@@ -186,16 +192,13 @@ public class StoreServiceTest {
         assertEquals(3, result.size());
 
         assertEquals("Store 1", result.get(0).getName());
-        assertFalse(result.get(0).isDeleted());
-        System.out.println("이름 : " + result.get(0).getName() + "\n" + "영업 상태 : " + result.get(0).isDeleted());
+        assertFalse(result.get(0).getIsDeleted());
 
         assertEquals("Store 2", result.get(1).getName());
-        assertTrue(result.get(1).isDeleted());
-        System.out.println("이름 : " + result.get(1).getName() + "\n" + "영업 상태 : " + result.get(1).isDeleted());
+        assertTrue(result.get(1).getIsDeleted());
 
         assertEquals("Store 3", result.get(2).getName());
-        assertFalse(result.get(2).isDeleted());
-        System.out.println("이름 : " + result.get(2).getName() + "\n" + "영업 상태 : " + result.get(2).isDeleted());
+        assertFalse(result.get(2).getIsDeleted());
 
         assertTrue(result.stream().anyMatch(store -> store.getName().equals("Store 2")));
     }
@@ -547,7 +550,96 @@ public class StoreServiceTest {
 
         verify(categoryRepository, times(1)).existsById(categoryId);
         verify(storeCategoryRepository, never()).findStoresByCategoryId(anyLong(), any(Pageable.class));
+    }
 
+    // -[가게 메뉴 조회]---------------------------------------------------
+
+    @DisplayName("가게 메뉴 조회 성공 테스트")
+    @Test
+    public void testGetStoreMenus_Success() {
+        Long storeId = 1L;
+        Long categoryId = 1L;
+        int page = 0;
+        int limit = 10;
+
+        when(categoryRepository.existsById(categoryId)).thenReturn(true);
+        when(storeCategoryRepository.findByCategoryIdAndStoreId(categoryId, storeId))
+                .thenReturn(Optional.of(mock(StoreCategory.class)));
+        when(storeRepository.findById(storeId)).thenReturn(Optional.of(Store.builder()
+                .id(storeId)
+                .isDeleted(false)
+                .build()));
+
+        MenuProjection menu1 = mock(MenuProjection.class);
+        when(menu1.getId()).thenReturn(1L);
+        when(menu1.getName()).thenReturn("Menu 1");
+        when(menu1.getPrice()).thenReturn(12000L);
+
+        MenuProjection menu2 = mock(MenuProjection.class);
+        when(menu2.getId()).thenReturn(2L);
+        when(menu2.getName()).thenReturn("Menu 2");
+        when(menu2.getPrice()).thenReturn(15000L);
+
+        Pageable pageable = PageRequest.of(page, limit);
+        Page<MenuProjection> menuPage = new PageImpl<>(List.of(menu1, menu2), pageable, 2);
+
+        when(menuRepository.findMenusByStoreId(storeId, pageable)).thenReturn(menuPage);
+
+        MenuListRespDto result = storeService.getStoreMenus(storeId, categoryId, page, limit);
+
+        assertNotNull(result);
+        assertEquals(2, result.getMenuList().size());
+
+        GetMenuRespDto menuDto1 = result.getMenuList().get(0);
+        assertEquals("Menu 1", menuDto1.getName());
+        assertEquals(12000L, menuDto1.getPrice());
+
+        GetMenuRespDto menuDto2 = result.getMenuList().get(1);
+        assertEquals("Menu 2", menuDto2.getName());
+        assertEquals(15000L, menuDto2.getPrice());
+
+        verify(categoryRepository, times(1)).existsById(categoryId);
+        verify(storeCategoryRepository, times(1)).findByCategoryIdAndStoreId(categoryId, storeId);
+        verify(storeRepository, times(1)).findById(storeId);
+        verify(menuRepository, times(1)).findMenusByStoreId(storeId, pageable);
+    }
+
+    @DisplayName("가게 메뉴 조회 실패 테스트 - 존재하지 않는 카테고리")
+    @Test
+    public void testGetStoreMenus_Fail_NotFoundCategory() {
+        Long storeId = 1L;
+        Long categoryId = 999L; // 존재하지 않는 카테고리 ID
+        int page = 0;
+        int limit = 10;
+
+        when(categoryRepository.existsById(categoryId)).thenReturn(false);
+
+        BusinessException exception = assertThrows(BusinessException.class, () ->
+                storeService.getStoreMenus(storeId, categoryId, page, limit)
+        );
+
+        assertEquals(ErrorCode.CATEGORY_NOT_FOUND, exception.getErrorCode());
+        System.out.println(exception.getMessage());
+    }
+
+    @DisplayName("가게 메뉴 조회 실패 테스트 - 카테고리 내에 존재하지 않는 가게")
+    @Test
+    public void testGetStoreMenus_Fail_NotStoreInCategory() {
+        Long storeId = 1L;
+        Long categoryId = 1L;
+        int page = 0;
+        int limit = 10;
+
+        when(categoryRepository.existsById(categoryId)).thenReturn(true);
+        when(storeCategoryRepository.findByCategoryIdAndStoreId(categoryId, storeId)).thenReturn(Optional.empty());
+
+
+        BusinessException exception = assertThrows(BusinessException.class, () ->
+                storeService.getStoreMenus(storeId, categoryId, page, limit)
+        );
+
+        assertEquals(ErrorCode.STORE_NOT_FOUND_IN_CATEGORY, exception.getErrorCode());
+        System.out.println(exception.getMessage());
     }
 
     // -[가게 상세 정보 조회]---------------------------------------------------
@@ -628,6 +720,30 @@ public class StoreServiceTest {
 
             verify(categoryRepository, times(1)).existsById(categoryId);
             verify(storeCategoryRepository, times(1)).findByCategoryIdAndStoreId(categoryId, storeId);
+    }
+
+
+    @DisplayName("가게 메뉴 조회 실패 테스트 - 가게에 존재하지 않는 메뉴")
+    @Test
+    public void testGetStoreMenus_Fail_NotFoundMenu() {
+        Long storeId = 1L;
+        Long categoryId = 1L;
+        int page = 0;
+        int limit = 10;
+
+        when(categoryRepository.existsById(categoryId)).thenReturn(true);
+        when(storeCategoryRepository.findByCategoryIdAndStoreId(categoryId, storeId)).thenReturn(Optional.of(mock(StoreCategory.class)));
+        when(storeRepository.findById(storeId)).thenReturn(Optional.of(mock(Store.class)));  // 가게도 유효하다고 설정
+
+        // 메뉴가 없는 상황 설정
+        when(menuRepository.findMenusByStoreId(storeId, PageRequest.of(page, limit))).thenReturn(Page.empty());
+
+        BusinessException exception = assertThrows(BusinessException.class, () ->
+                storeService.getStoreMenus(storeId, categoryId, page, limit)
+        );
+
+        assertEquals(ErrorCode.MENU_NOT_FOUND_IN_STORE, exception.getErrorCode());
+        System.out.println(exception.getMessage());
     }
 
 }
