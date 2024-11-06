@@ -12,6 +12,7 @@ import com.my.foody.domain.review.entity.Review;
 import com.my.foody.domain.review.repo.ReviewRepository;
 import com.my.foody.domain.store.entity.Store;
 import com.my.foody.domain.store.repo.StoreRepository;
+import com.my.foody.domain.store.service.StoreService;
 import com.my.foody.domain.user.entity.User;
 import com.my.foody.global.ex.BusinessException;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,6 +43,9 @@ public class ReviewCreateServiceTest {
 
     @Mock
     private OrderRepository orderRepository;
+
+    @Mock
+    private StoreService storeService;
 
 
     private Owner owner;
@@ -113,6 +117,7 @@ public class ReviewCreateServiceTest {
         // Mockito가 findById로 주문을 찾을 수 있도록 설정
         when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
         when(reviewRepository.existsByOrderId(orderId)).thenReturn(false);
+        when(storeService.findActivateStoreByIdOrFail(orderId)).thenReturn(store);
 
         // When: 리뷰 생성 메서드 실행
         ReviewCreateReqDto requestDto = new ReviewCreateReqDto(rating, comment);
@@ -144,6 +149,7 @@ public class ReviewCreateServiceTest {
         // Mockito가 findById로 주문을 찾을 수 있도록 설정
         when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
         when(reviewRepository.existsByOrderId(orderId)).thenReturn(false);
+        when(storeService.findActivateStoreByIdOrFail(order.getStore().getId())).thenReturn(store);
 
         // 어떤 데이터가 들어오는지 확인
         System.out.println("주문 상태: " + orderStatus);
@@ -167,6 +173,7 @@ public class ReviewCreateServiceTest {
         // Mockito가 findById로 주문을 찾을 수 있도록 설정
         when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
         when(reviewRepository.existsByOrderId(orderId)).thenReturn(true); // 리뷰가 이미 존재함
+        when(storeService.findActivateStoreByIdOrFail(order.getStore().getId())).thenReturn(store);
 
         // when & then: 예외 발생 검증
         assertThrows(BusinessException.class, () -> {
