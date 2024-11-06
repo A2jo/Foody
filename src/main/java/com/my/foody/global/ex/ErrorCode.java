@@ -48,7 +48,7 @@ public enum ErrorCode {
     OAUTH_CALLBACK_FAILED(HttpStatus.INTERNAL_SERVER_ERROR.value(), "소셜 인증 서버와 통신 중 오류가 발생했습니다"),
     NO_UPDATE_DATA(HttpStatus.NO_CONTENT.value(), "수정된 내용이 존재하지 않습니다."),
   
-    MENU_NOT_AVAILABLE(HttpStatus.BAD_REQUEST.value(), "현재 주문할 수 없는 메뉴입니다"),
+
     ORDER_NOT_COMPLETED(HttpStatus.BAD_REQUEST.value(), "리뷰는 완료된 주문에 대해서만 작성할 수 있습니다"),
     REVIEW_ALREADY_EXISTS(HttpStatus.BAD_REQUEST.value(), "해당 주문에 대한 리뷰가 존재합니다")
       
