@@ -1,5 +1,6 @@
 package com.my.foody.domain.store.controller;
 
+import com.my.foody.domain.menu.dto.resp.MenuListRespDto;
 import com.my.foody.domain.review.dto.resp.DetailedReviewListRespDto;
 import com.my.foody.domain.review.dto.resp.ReviewListRespDto;
 import com.my.foody.domain.store.dto.req.ModifyStoreReqDto;
@@ -16,6 +17,7 @@ import com.my.foody.global.jwt.UserType;
 import com.my.foody.global.util.api.ApiResult;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -67,6 +69,15 @@ public class StoreController {
                                                                    @PathVariable(value = "storeId") Long storeId) {
         GetStoreRespDto storeRespDto = storeService.getStoreInfo(categoryId, storeId);
         return ResponseEntity.ok(ApiResult.success(storeRespDto));
+    }
+
+    @GetMapping("/home/categories/{categoryId}/stores/{storeId}/menus")
+    public ResponseEntity<ApiResult<MenuListRespDto>> getStoreMenus (@PathVariable(value = "storeId") Long storeId,
+                                                                     @PathVariable(value = "categoryId") Long categoryId,
+                                                                     @RequestParam(value = "page", defaultValue = "0") int page,
+                                                                     @RequestParam(value = "limit", defaultValue = "10") int limit) {
+        MenuListRespDto menuListRespDto = storeService.getStoreMenus(storeId, categoryId, page, limit);
+        return ResponseEntity.ok(ApiResult.success(menuListRespDto));
     }
 
     @GetMapping("/home/categories/{categoryId}/stores/{storeId}/reviews")

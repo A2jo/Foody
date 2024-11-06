@@ -2,16 +2,15 @@ package com.my.foody.domain.store.service;
 
 import com.my.foody.domain.category.entity.Category;
 import com.my.foody.domain.category.repo.CategoryRepository;
+import com.my.foody.domain.menu.dto.resp.GetMenuRespDto;
+import com.my.foody.domain.menu.dto.resp.MenuListRespDto;
+import com.my.foody.domain.menu.repo.MenuProjection;
+import com.my.foody.domain.menu.repo.MenuRepository;
 import com.my.foody.domain.owner.entity.Owner;
 import com.my.foody.domain.owner.repo.OwnerRepository;
 import com.my.foody.domain.review.dto.resp.DetailedReviewListRespDto;
-import com.my.foody.domain.review.dto.resp.GetReviewRespDto;
-import com.my.foody.domain.review.dto.resp.ReviewListRespDto;
-import com.my.foody.domain.review.dto.resp.ReviewListRespDto.PageInfo;
-import com.my.foody.domain.review.entity.Review;
 import com.my.foody.domain.review.repo.ReviewRepository;
 import com.my.foody.domain.review.repo.dto.DetailedReviewProjectionRespDto;
-import com.my.foody.domain.review.repo.dto.ReviewProjectionRespDto;
 import com.my.foody.domain.store.dto.req.ModifyStoreReqDto;
 import com.my.foody.domain.store.dto.req.StoreCreateReqDto;
 import com.my.foody.domain.store.dto.resp.GetStoreRespDto;
@@ -33,7 +32,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -45,6 +43,7 @@ public class StoreService {
     private final CategoryRepository categoryRepository;
     private final StoreCategoryRepository storeCategoryRepository;
     private final ReviewRepository reviewRepository;
+    private final MenuRepository menuRepository;
 
     // 사장님 가게 생성
     @Transactional
@@ -89,7 +88,6 @@ public class StoreService {
         //유효성 검사
         validateModifyStore(store, modifyStoreReqDto, ownerId);
 
-
         store.updateAll(modifyStoreReqDto);
 
         // 가게가 폐업 상태가 아닌 경우에만 카테고리 수정
@@ -103,7 +101,6 @@ public class StoreService {
         }
         return new ModifyStoreRespDto(store);
     }
-
 
     // 카테고리 저장
     public void saveCategory(StoreCreateReqDto storeCreateReqDto, Store store) {
@@ -215,6 +212,46 @@ public class StoreService {
             throw new BusinessException(ErrorCode.STORE_NOT_FOUND);
         }
         return storeCategory;
+    }
+
+    public MenuListRespDto getStoreMenus(Long storeId, Long categoryId, int page, int limit) {
+        // 유효성 검사
+        validateGetStoreMenu(storeId, categoryId);
+
+        Pageable pageable = PageRequest.of(page, limit);
+        Page<MenuProjection> menuProjections = menuRepository.findMenusByStoreId(storeId, pageable);
+
+        // 유효성 검사 - 메뉴가 존재하는지 확인
+        validateMenuExists(menuProjections);
+
+        Page<GetMenuRespDto> getMenuRespDtos = menuProjections.map(projection ->
+                new GetMenuRespDto(projection.getId(), projection.getName(), projection.getPrice())
+        );
+
+        return new MenuListRespDto(getMenuRespDtos);
+    }
+    // 가게 메뉴 조회 유효성 검사
+    public void validateGetStoreMenu(Long storeId, Long categoryId) {
+        // 카테고리가 있는지
+        if (!categoryRepository.existsById(categoryId)) {
+            throw new BusinessException(ErrorCode.CATEGORY_NOT_FOUND);
+        }
+        // 선택한 카테고리에 선택한 가게가 있는지
+        storeCategoryRepository.findByCategoryIdAndStoreId(categoryId, storeId).orElseThrow(() ->
+                new BusinessException(ErrorCode.STORE_NOT_FOUND_IN_CATEGORY)
+        );
+        // 가게 상태가 폐업인지
+        Store store = storeRepository.findById(storeId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.STORE_NOT_FOUND));
+        if (store.getIsDeleted()) {
+            throw new BusinessException(ErrorCode.STORE_NOT_FOUND);
+        }
+    }
+    // 메뉴가 존재하는지 유효성 검사
+    private void validateMenuExists(Page<MenuProjection> menuProjections) {
+        if (menuProjections.isEmpty()) {
+            throw new BusinessException(ErrorCode.MENU_NOT_FOUND_IN_STORE);
+        }
     }
 
     public DetailedReviewListRespDto getStoreReviews(Long categoryId, Long storeId, int page, int limit) {

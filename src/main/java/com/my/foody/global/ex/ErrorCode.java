@@ -52,6 +52,9 @@ public enum ErrorCode {
     REVIEW_ALREADY_EXISTS(HttpStatus.BAD_REQUEST.value(), "해당 주문에 대한 리뷰가 존재합니다"),
 
 
+
+    MENU_NOT_FOUND_IN_STORE(HttpStatus.NOT_FOUND.value(), "가게에 메뉴가 존재하지 않습니다."),
+
     MENU_NOT_AVAILABLE(HttpStatus.BAD_REQUEST.value(), "현재 주문할 수 없는 메뉴입니다"),
     UNDER_MINIMUM_ORDER_AMOUNT(HttpStatus.BAD_REQUEST.value(), "최소 금액 이상만 주문이 가능합니다."),
     STORE_CLOSED(HttpStatus.BAD_REQUEST.value(), "가계의 영업 시간이 아닙니다."),
