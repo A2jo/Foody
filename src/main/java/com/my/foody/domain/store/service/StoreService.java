@@ -94,8 +94,6 @@ public class StoreService {
     }
 
 
-
-
     // 카테고리 저장
     public void saveCategory(StoreCreateReqDto storeCreateReqDto, Store store) {
         List<Long> categoryIds = storeCreateReqDto.getCategoryIds();
@@ -110,6 +108,7 @@ public class StoreService {
             storeCategoryRepository.save(storeCategory);
         }
     }
+
     // 카테고리 수정
     public void modifyCategory(ModifyStoreReqDto modifyStoreReqDto, Store store) {
         List<Long> categoryIds = modifyStoreReqDto.getCategoryIds();
@@ -137,6 +136,7 @@ public class StoreService {
             throw new BusinessException(ErrorCode.HAVE_FULL_STORE);
         }
     }
+
     // 가게 수정 시 유효성 검사
     public void validateModifyStore(Store store, ModifyStoreReqDto modifyStoreReqDto, Long ownerId) {
         // 수정할 데이터가 없으면 예외 발생
@@ -157,7 +157,7 @@ public class StoreService {
         }
     }
 
-    public Store findActivateStoreByIdOrFail(Long storeId){
+    public Store findActivateStoreByIdOrFail(Long storeId) {
         return storeRepository.findActivateStore(storeId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.STORE_NOT_FOUND));
     }
@@ -189,25 +189,30 @@ public class StoreService {
     }
 
     public Page<GetStoreRespDto> getStoreByCategory(Long categoryId, int page, int limit) {
-        // 유효성 검사 - 카테고리를 찾을 수 없는 경우
-        if (!categoryRepository.existsById(categoryId)) {
-            throw new BusinessException(ErrorCode.CATEGORY_NOT_FOUND);
-        }
-        Pageable pageable = PageRequest.of(page, limit);
-        Page<StoreCategoryProjection> storeProjections = storeCategoryRepository.findStoresByCategoryId(categoryId, pageable);
+        public StoreListRespDto getStoreByCategory (Long categoryId,int page, int limit){
+            // 유효성 검사 - 카테고리를 찾을 수 없는 경우
+            if (!categoryRepository.existsById(categoryId)) {
+                throw new BusinessException(ErrorCode.CATEGORY_NOT_FOUND);
+            }
 
-        return storeProjections.map(projection ->
-                new GetStoreRespDto(projection.getStoreId(), projection.getStoreName(), projection.getMinOrderAmount()));
-    }
+            Pageable pageable = PageRequest.of(page, limit);
+            Page<StoreCategoryProjection> storeProjections = storeCategoryRepository.findStoresByCategoryId(categoryId, pageable);
 
-    public List<GetStoreRespDto> getStoreByCategory(Long categoryId) {
-        List<StoreCategory> storeCategories = storeCategoryRepository.findByCategoryId(categoryId);
-        // 유효성 검사 - 카테고리를 찾을 수 없는 경우
-        if (!categoryRepository.existsById(categoryId)) {
-            throw new BusinessException(ErrorCode.CATEGORY_NOT_FOUND);
+            Page<GetStoreRespDto> storeDtos = storeProjections.map(projection ->
+                    new GetStoreRespDto(projection.getStoreId(), projection.getStoreName(), projection.getMinOrderAmount()));
+
+            return new StoreListRespDto(storeDtos);
         }
-        return storeCategories.stream()
-                .map(storeCategory -> new GetStoreRespDto(storeCategory.getStore()))
-                .toList();
+
+        public List<GetStoreRespDto> getStoreByCategory (Long categoryId){
+            List<StoreCategory> storeCategories = storeCategoryRepository.findByCategoryId(categoryId);
+            // 유효성 검사 - 카테고리를 찾을 수 없는 경우
+            if (!categoryRepository.existsById(categoryId)) {
+                throw new BusinessException(ErrorCode.CATEGORY_NOT_FOUND);
+            }
+            return storeCategories.stream()
+                    .map(storeCategory -> new GetStoreRespDto(storeCategory.getStore()))
+                    .toList();
+        }
     }
 }
