@@ -50,7 +50,7 @@ public enum ErrorCode {
     CART_IS_EMPTY(HttpStatus.BAD_REQUEST.value(), "장바구니가 비어있습니다"),
 
     NO_UPDATE_DATA(HttpStatus.NO_CONTENT.value(), "수정된 내용이 존재하지 않습니다."),
-    ;
+    NOT_MAIN_ADDRESS(HttpStatus.BAD_REQUEST.value(), "기본 주소가 아닙니다.");
 
 
 
