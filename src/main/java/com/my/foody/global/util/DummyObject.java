@@ -44,6 +44,7 @@ public class DummyObject {
                 .contact("010-1234-5678")
                 .name("userA")
                 .nickname("절대중복되지않는닉네임..")
+                .isDeleted(false)
                 .build();
     }
 

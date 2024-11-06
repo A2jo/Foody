@@ -11,6 +11,7 @@ import com.my.foody.domain.menu.service.MenuService;
 import com.my.foody.domain.store.entity.Store;
 import com.my.foody.domain.store.service.StoreService;
 import com.my.foody.domain.user.entity.User;
+import com.my.foody.domain.user.repo.UserRepository;
 import com.my.foody.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
