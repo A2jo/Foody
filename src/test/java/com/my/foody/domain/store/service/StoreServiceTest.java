@@ -700,13 +700,13 @@ public class StoreServiceTest {
         when(storeCategoryRepository.findStoresByCategoryId(categoryId, PageRequest.of(page, limit)))
                 .thenReturn(projections);
 
-        Page<GetStoreRespDto> result = storeService.getStoreByCategory(categoryId, page, limit);
+        StoreListRespDto result = storeService.getStoreByCategory(categoryId, page, limit);
 
-        assertEquals(2, result.getTotalElements());
-        assertEquals("Store A", result.getContent().get(0).getName());
-        assertEquals(10000L, result.getContent().get(0).getMinOrderAmount());
-        assertEquals("Store B", result.getContent().get(1).getName());
-        assertEquals(15000L, result.getContent().get(1).getMinOrderAmount());
+        assertEquals(2, result.getStoreList().size());
+        assertEquals("Store A", result.getStoreList().get(0).getName());
+        assertEquals(10000L, result.getStoreList().get(0).getMinOrderAmount());
+        assertEquals("Store B", result.getStoreList().get(1).getName());
+        assertEquals(15000L, result.getStoreList().get(1).getMinOrderAmount());
 
         verify(categoryRepository, times(1)).existsById(categoryId);
         verify(storeCategoryRepository, times(1)).findStoresByCategoryId(categoryId, PageRequest.of(page, limit));
@@ -725,9 +725,9 @@ public class StoreServiceTest {
         when(storeCategoryRepository.findStoresByCategoryId(categoryId, PageRequest.of(page, limit)))
                 .thenReturn(projections);
 
-        Page<GetStoreRespDto> result = storeService.getStoreByCategory(categoryId, page, limit);
+        StoreListRespDto result = storeService.getStoreByCategory(categoryId, page, limit);
 
-        assertEquals(0, result.getTotalElements());
+        assertEquals(0, result.getStoreList().size());
 
         verify(categoryRepository, times(1)).existsById(categoryId);
         verify(storeCategoryRepository, times(1)).findStoresByCategoryId(categoryId, PageRequest.of(page, limit));
