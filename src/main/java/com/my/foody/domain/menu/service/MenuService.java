@@ -150,6 +150,22 @@ public class MenuService {
         if (!store.getOwner().getId().equals(ownerId)) {
             throw new BusinessException(ErrorCode.FORBIDDEN_ACCESS);
         }
+
+  //메뉴 전체 조회 (페이징처리)
+    public MenuReadResponseDto getMenus(Long storeId, Long ownerId, int page, int limit) {
+        //해당 가게가 존재 하는지 확인
+        Store store = storeRepository.findById(storeId).orElseThrow(() -> new BusinessException(ErrorCode.STORE_NOT_FOUND));
+
+        //가게 주인 확인
+        isStoreOwner(store, ownerId);
+
+        //pageable 객체 생성
+        Pageable pageable = PageRequest.of(page, limit);
+
+        //가게에 해당하는 모든 메뉴 조회
+        Page<Menu> menuPage = menuRepository.findAllByStoreId(storeId, pageable);
+
+        return new MenuReadResponseDto(menuPage);
     }
 }
 
