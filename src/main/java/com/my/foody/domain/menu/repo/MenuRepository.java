@@ -11,14 +11,11 @@ import java.util.Optional;
 
 @Repository
 public interface MenuRepository extends JpaRepository<Menu, Long> {
-
     @Query("select m from Menu m where m.id = :menuId and m.isDeleted = false")
     Optional<Menu> findActivateMenu(Long menuId);
-
+    Page<Menu> findAllByStoreId(Long storeId, Pageable pageable);
     Optional<Menu> findByIdAndIsDeletedFalse(Long menuId);
-
     Page<Menu> findByStoreId(Long storeId, Pageable pageable);
-
     @Query("SELECT m.id AS id, m.name AS name, m.price AS price, m.isDeleted AS isDeleted, m.isSoldOut AS isSoldOut " +
             "FROM Menu m WHERE m.store.id = :storeId AND m.isDeleted = false AND m.isSoldOut = false")
     Page<MenuProjection> findMenusByStoreId(Long storeId, Pageable pageable);
