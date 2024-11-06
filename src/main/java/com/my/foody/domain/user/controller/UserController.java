@@ -25,9 +25,9 @@ import com.my.foody.global.jwt.JwtVo;
 import com.my.foody.global.jwt.TokenSubject;
 import com.my.foody.global.jwt.UserType;
 import com.my.foody.global.util.api.ApiResult;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -115,6 +115,9 @@ public class UserController {
         return new ResponseEntity<>(ApiResult.success(userService.getAllAddress(tokenSubject.getId())), HttpStatus.OK);
     }
 
-
-
+    @RequireAuth(userType = UserType.USER)
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResult<UserLogoutRespDto>> logout(@CurrentUser TokenSubject tokenSubject, @RequestHeader("Authorization") String token){
+        return new ResponseEntity<>(ApiResult.success(userService.logout(tokenSubject.getId(), token)), HttpStatus.OK);
+    }
 }
