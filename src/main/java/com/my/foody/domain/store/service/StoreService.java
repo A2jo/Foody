@@ -57,35 +57,55 @@ public class StoreService {
                 .toList();
     }
 
+    @Transactional
     public ModifyStoreRespDto modifyStore(Long storeId, ModifyStoreReqDto modifyStoreReqDto, Long ownerId) {
         // 가게 조회
         Store store = storeRepository.findById(storeId).orElseThrow(() ->
                 new BusinessException(ErrorCode.STORE_NOT_FOUND)
         );
+        // 접속한 owner가 가게의 owner가 맞는지 확인
+        if (!store.getOwner().getId().equals(ownerId)) {
+            throw new BusinessException(ErrorCode.FORBIDDEN_ACCESS);
+        }
         //유효성 검사
         validateModifyStore(store, modifyStoreReqDto, ownerId);
 
-        // 가게 정보 수정: ModifyStoreReqDto의 값이 null이 아닌 경우만 업데이트
+        // 수정 flag
+        boolean isModified = false;
+
+        // 수정할 필드가 null이 아닌 경우만 업데이트
         if (modifyStoreReqDto.getName() != null) {
             store.setName(modifyStoreReqDto.getName());
+            isModified = true;
         }
         if (modifyStoreReqDto.getDescription() != null) {
             store.setDescription(modifyStoreReqDto.getDescription());
+            isModified = true;
         }
         if (modifyStoreReqDto.getContact() != null) {
             store.setContact(modifyStoreReqDto.getContact());
+            isModified = true;
         }
         if (modifyStoreReqDto.getMinOrderAmount() != null) {
             store.setMinOrderAmount(modifyStoreReqDto.getMinOrderAmount());
+            isModified = true;
         }
         if (modifyStoreReqDto.getOpenTime() != null) {
             store.setOpenTime(modifyStoreReqDto.getOpenTime());
+            isModified = true;
         }
         if (modifyStoreReqDto.getEndTime() != null) {
             store.setEndTime(modifyStoreReqDto.getEndTime());
+            isModified = true;
         }
         if (modifyStoreReqDto.getIsDeleted() != null) {
             store.setIsDeleted(modifyStoreReqDto.getIsDeleted());
+            isModified = true;
+        }
+
+        // 아무것도 수정되지 않은 경우 예외 처리
+        if (!isModified) {
+            throw new BusinessException(ErrorCode.NOT_UPDATE_DATA);
         }
 
         // 가게가 폐업 상태가 아닌 경우에만 카테고리 수정
