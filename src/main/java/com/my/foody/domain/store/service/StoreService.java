@@ -189,13 +189,12 @@ public class StoreService {
     }
 
     public Page<GetStoreRespDto> getStoreByCategory(Long categoryId, int page, int limit) {
-        Pageable pageable = PageRequest.of(page, limit);
-        Page<StoreCategory> storeCategories = storeCategoryRepository.findByCategoryId(categoryId, pageable);
-
         // 유효성 검사 - 카테고리를 찾을 수 없는 경우
         if (!categoryRepository.existsById(categoryId)) {
             throw new BusinessException(ErrorCode.CATEGORY_NOT_FOUND);
         }
+        Pageable pageable = PageRequest.of(page, limit);
+        Page<StoreCategory> storeCategories = storeCategoryRepository.findByCategoryId(categoryId, pageable);
         return storeCategories.map(storeCategory -> new GetStoreRespDto(storeCategory.getStore()));
     }
 
