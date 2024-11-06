@@ -25,4 +25,8 @@ public class Cart extends BaseEntity {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "store_id")
     private Store store;
+
+    public void changeStore(Store store){
+        this.store = store;
+    }
 }
