@@ -24,9 +24,8 @@ public class MenuReadResponseDto {
     private PageInfo pageInfo;
 
     public MenuReadResponseDto(Page<Menu> menuPage) {
-        this.menuList = menuPage.getContent()
-                .stream()
-                .map(MenuReadResponseDto::new)
+        this.menuList = menuPage.getContent().stream()
+                .map(MenuReadResponseDto::new) // Menu 객체를 MenuReadResponseDto로 변환
                 .collect(Collectors.toList());
         this.pageInfo = new PageInfo(menuPage);
     }
