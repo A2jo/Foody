@@ -12,6 +12,7 @@ import com.my.foody.domain.store.dto.resp.StoreCreateRespDto;
 import com.my.foody.domain.store.entity.Store;
 import com.my.foody.domain.store.repo.StoreRepository;
 import com.my.foody.domain.storeCategory.entity.StoreCategory;
+import com.my.foody.domain.storeCategory.repo.StoreCategoryProjection;
 import com.my.foody.domain.storeCategory.repo.StoreCategoryRepository;
 import com.my.foody.global.ex.BusinessException;
 import com.my.foody.global.ex.ErrorCode;
@@ -164,7 +165,9 @@ public class StoreService {
             throw new BusinessException(ErrorCode.CATEGORY_NOT_FOUND);
         }
         Pageable pageable = PageRequest.of(page, limit);
-        Page<StoreCategory> storeCategories = storeCategoryRepository.findByCategoryId(categoryId, pageable);
-        return storeCategories.map(storeCategory -> new GetStoreRespDto(storeCategory.getStore()));
+        Page<StoreCategoryProjection> storeProjections = storeCategoryRepository.findStoresByCategoryId(categoryId, pageable);
+
+        return storeProjections.map(projection ->
+                new GetStoreRespDto(projection.getStoreId(), projection.getStoreName(), projection.getMinOrderAmount()));
     }
 }
