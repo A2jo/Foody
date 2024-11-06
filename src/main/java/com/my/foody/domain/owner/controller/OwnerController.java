@@ -7,6 +7,8 @@ import com.my.foody.domain.owner.dto.req.OwnerLoginReqDto;
 import com.my.foody.domain.owner.dto.req.OwnerMyPageUpdateReqDto;
 import com.my.foody.domain.owner.dto.resp.*;
 import com.my.foody.domain.owner.service.OwnerService;
+import com.my.foody.global.config.valid.CurrentUser;
+import com.my.foody.global.jwt.TokenSubject;
 import com.my.foody.global.util.api.ApiResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -32,7 +34,8 @@ public class OwnerController {
     }
 
     @GetMapping("/mypage")
-    public ResponseEntity<ApiResult<OwnerMyPageRespDto>> getMyPage(@AuthenticationPrincipal Long ownerId) {
+    public ResponseEntity<ApiResult<OwnerMyPageRespDto>> getMyPage(@CurrentUser TokenSubject tokenSubject) {
+        Long ownerId = tokenSubject.getId();
         OwnerMyPageRespDto response = ownerService.getMyPage(ownerId);
         return ResponseEntity.ok(ApiResult.success(response));
     }
