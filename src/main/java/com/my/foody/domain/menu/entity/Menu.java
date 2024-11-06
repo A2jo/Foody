@@ -3,6 +3,11 @@ package com.my.foody.domain.menu.entity;
 import com.my.foody.domain.base.BaseEntity;
 import com.my.foody.domain.store.entity.Store;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
 import lombok.*;
 
 @Entity
@@ -11,6 +16,7 @@ import lombok.*;
 @Table(name = "menu")
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+
 public class Menu extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -41,6 +47,14 @@ public class Menu extends BaseEntity {
         this.isDeleted = false;
     }
 
+
+  
+  
+  
+  
+  
+  
+  
     //삭제
     public void softDeleteMenu() {
         this.isDeleted = true;
