@@ -44,11 +44,6 @@ public class Order extends BaseEntity {
 
     @Builder
     public Order(Long id, User user, Store store, Address address, Long totalAmount, OrderStatus orderStatus) {
-        this.id = id;
-
-    public Order(OrderStatus orderStatus, User user, Store store, Address address, Long totalAmount, Long id) {
-        this.orderStatus = orderStatus;
-
         this.user = user;
         this.store = store;
         this.address = address;

@@ -57,6 +57,7 @@ public class Menu extends BaseEntity {
             throw new BusinessException(ErrorCode.INVALID_MENU_PRICE);
         }
         this.price = price;
+    }
 
     //삭제
     public void softDeleteMenu() {
