@@ -105,7 +105,7 @@ public class StoreService {
 
         // 아무것도 수정되지 않은 경우 예외 처리
         if (!isModified) {
-            throw new BusinessException(ErrorCode.NOT_UPDATE_DATA);
+            throw new BusinessException(ErrorCode.NO_UPDATE_DATA);
         }
 
         // 가게가 폐업 상태가 아닌 경우에만 카테고리 수정
