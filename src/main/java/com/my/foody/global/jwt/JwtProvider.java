@@ -11,19 +11,25 @@ import com.my.foody.domain.owner.entity.Owner;
 import com.my.foody.domain.user.entity.User;
 import com.my.foody.global.ex.CustomJwtException;
 import com.my.foody.global.ex.ErrorCode;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import java.security.SignatureException;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 @Component
 @Slf4j
+@RequiredArgsConstructor
 public class JwtProvider {
     @Value("${jwt.secret}")
     private String secretKey;
+    private final RedisTemplate<String, String> redisTemplate;
+    private final static String LOGOUT_KEY = "BL:";
 
     public String create(TokenSubject tokenSubject){
         Date now = new Date();
@@ -37,6 +43,11 @@ public class JwtProvider {
     }
 
     public TokenSubject validate(String token){
+        String key = LOGOUT_KEY + token.replace(JwtVo.TOKEN_PREFIX, "");
+        if (Boolean.TRUE.equals(redisTemplate.hasKey(key))) {
+            throw new CustomJwtException(ErrorCode.INVALID_TOKEN);
+        }
+
         DecodedJWT decodedJWT;
         try {
             decodedJWT = JWT.require(Algorithm.HMAC512(secretKey)).build().verify(token);
@@ -60,4 +71,11 @@ public class JwtProvider {
         return new TokenSubject(id, userType);
     }
 
+    public void logout(Long userId, String token) {
+        String key = LOGOUT_KEY + token.replace(JwtVo.TOKEN_PREFIX, "");
+        DecodedJWT jwt = JWT.decode(token.replace(JwtVo.TOKEN_PREFIX, ""));
+        long remainingTime = jwt.getExpiresAt().getTime() - System.currentTimeMillis();
+
+        redisTemplate.opsForValue().set(key, userId.toString(), remainingTime, TimeUnit.MILLISECONDS);
+    }
 }

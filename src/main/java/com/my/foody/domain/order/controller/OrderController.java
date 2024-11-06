@@ -1,5 +1,7 @@
 package com.my.foody.domain.order.controller;
 
+import com.my.foody.domain.order.dto.req.OrderCreateReqDto;
+import com.my.foody.domain.order.dto.resp.OrderInfoRespDto;
 import com.my.foody.domain.order.dto.req.OrderStatusUpdateReqDto;
 import com.my.foody.domain.order.dto.resp.OrderListRespDto;
 import com.my.foody.domain.order.dto.resp.OrderPreviewRespDto;
@@ -10,6 +12,7 @@ import com.my.foody.global.config.valid.RequireAuth;
 import com.my.foody.global.jwt.TokenSubject;
 import com.my.foody.global.jwt.UserType;
 import com.my.foody.global.util.api.ApiResult;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
@@ -49,11 +52,29 @@ public class OrderController {
     return new ResponseEntity<>(ApiResult.success(orderService.getOrderPreview(tokenSubject.getId(), storeId, cartId)), HttpStatus.OK);
   }
 
+  @RequireAuth(userType = UserType.USER)
+  @PostMapping("/api/home/cart/{cartId}/orders")
+  public ResponseEntity<ApiResult<String>> createOrder(
+                                                       @PathVariable Long cartId,
+                                                       @RequestBody @Valid OrderCreateReqDto orderCreateReqDto,
+                                                       @CurrentUser TokenSubject tokenSubject) {
+    orderService.createOrder(cartId, orderCreateReqDto, tokenSubject.getId());
+    return new ResponseEntity<>(ApiResult.success("주문이 완료되었습니다."), HttpStatus.CREATED);
+  }
+
   @RequireAuth(userType = UserType.OWNER)
   @GetMapping("/api/owners/orders")
   public ResponseEntity<ApiResult<OrderListRespDto>> getAllOrder(@RequestParam(value = "page", required = false) @Min(value = 0) int page,
                                                                   @RequestParam(value = "limit", required = false) @Positive int limit,
                                                                   @CurrentUser TokenSubject tokenSubject){
     return new ResponseEntity<>(ApiResult.success(orderService.getAllOrder(tokenSubject.getId(), page, limit)), HttpStatus.OK);
+  }
+
+
+  @RequireAuth(userType = UserType.OWNER)
+  @GetMapping("/api/owners/orders/{orderId}")
+  public ResponseEntity<ApiResult<OrderInfoRespDto>> getOrderInfo(@PathVariable(value = "orderId", required = true) @Positive Long orderId,
+                                                                  @CurrentUser TokenSubject tokenSubject){
+    return new ResponseEntity<>(ApiResult.success(orderService.getOrderInfo(tokenSubject.getId(), orderId)), HttpStatus.OK);
   }
 }
