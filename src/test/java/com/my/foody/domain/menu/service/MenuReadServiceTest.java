@@ -107,13 +107,14 @@ public class MenuReadServiceTest {
         when(menuRepository.findAllByStoreId(1L, pageable)).thenReturn(new PageImpl<>(List.of(menu1), pageable, 1));
 
         // when: 가게1의 메뉴 조회 호출
-        Page<MenuReadResponseDto> response = menuService.getMenus(1L, 1L, 0,10);
+        //Page<MenuReadResponseDto> response = menuService.getMenus(1L, 1L, 0,10);
+        MenuReadResponseDto response = menuService.getMenus(1L, 1L, 0, 10);
 
         // then: 결과 검증 - store1의 메뉴만 반환되었는지 확인
         assertNotNull(response);
-        assertEquals(1, response.getTotalElements());
-        assertEquals("가게1 메뉴", response.getContent().get(0).getName());
-        assertEquals(1000L, response.getContent().get(0).getPrice());
+        assertEquals(1, response.getPageInfo().getTotalElements());
+        assertEquals("가게1 메뉴", response.getMenuList().get(0).getName());
+        assertEquals(1000L, response.getMenuList().get(0).getPrice());
 
         // verify: 메서드 호출 검증
         verify(storeRepository, times(1)).findById(1L);
