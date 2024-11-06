@@ -1,23 +1,16 @@
 package com.my.foody.domain.order.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.my.foody.domain.order.dto.resp.OrderListRespDto;
-import com.my.foody.domain.order.repo.dto.OrderProjectionRespDto;
+import com.my.foody.domain.orderMenu.repo.dto.OrderProjectionDto;
 import com.my.foody.domain.order.service.OrderService;
 import com.my.foody.domain.owner.entity.OrderStatus;
-import com.my.foody.domain.user.controller.UserController;
 import com.my.foody.global.jwt.JwtProvider;
 import com.my.foody.global.jwt.JwtVo;
 import com.my.foody.global.jwt.TokenSubject;
 import com.my.foody.global.jwt.UserType;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -27,14 +20,12 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -115,12 +106,12 @@ class OrderControllerTest {
     }
 
     private OrderListRespDto createMockOrderListRespDto() {
-        List<OrderProjectionRespDto> projections = Arrays.asList(
+        List<OrderProjectionDto> projections = Arrays.asList(
                 createMockProjection("맛있는 치킨", "후라이드 치킨,양념 치킨,콜라", 50000L, 1L),
                 createMockProjection("맛있는 피자", "페퍼로니피자", 25000L, 2L)
         );
 
-        Page<OrderProjectionRespDto> page = new PageImpl<>(
+        Page<OrderProjectionDto> page = new PageImpl<>(
                 projections,
                 PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt")),
                 projections.size()
@@ -139,9 +130,9 @@ class OrderControllerTest {
         );
     }
 
-    private OrderProjectionRespDto createMockProjection(
+    private OrderProjectionDto createMockProjection(
             String storeName, String menuNames, Long totalAmount, Long orderId) {
-        return new OrderProjectionRespDto() {
+        return new OrderProjectionDto() {
             @Override
             public String getStoreName() { return storeName; }
 
