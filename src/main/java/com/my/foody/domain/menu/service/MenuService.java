@@ -8,19 +8,31 @@ import com.my.foody.domain.store.entity.Store;
 import com.my.foody.domain.store.repo.StoreRepository;
 import com.my.foody.global.ex.BusinessException;
 import com.my.foody.global.ex.ErrorCode;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-@AllArgsConstructor
 @Service
+@RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class MenuService {
 
-    private MenuRepository menuRepository;
-    private StoreRepository storeRepository;
+    private final MenuRepository menuRepository;
+    private final StoreRepository storeRepository;
 
-    // 메뉴 등록
+    public Menu findActiveMenuByIdOrFail(Long menuId){
+        Menu menu = menuRepository.findActivateMenu(menuId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MENU_NOT_FOUND));
+        if(menu.getIsSoldOut()){
+            throw new BusinessException(ErrorCode.MENU_NOT_AVAILABLE);
+        }
+        return menu;
+    }
+  
+  
+  // 메뉴 등록
+    @Transational
     public MenuCreateRespDto createMenu(Long storeId, MenuCreateReqDto menuCreateReqDto, Long ownerId) {
-
 
         Store store = storeRepository.findById(storeId).orElseThrow(() -> new BusinessException(ErrorCode.STORE_NOT_FOUND));
 
@@ -46,6 +58,4 @@ public class MenuService {
         if (!store.getOwner().getId().equals(ownerId)) {
             throw new BusinessException(ErrorCode.FORBIDDEN_ACCESS);
         }
-
-    }
 }
