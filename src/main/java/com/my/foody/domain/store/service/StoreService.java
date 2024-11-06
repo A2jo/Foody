@@ -37,6 +37,7 @@ public class StoreService {
     private final CategoryRepository categoryRepository;
     private final StoreCategoryRepository storeCategoryRepository;
 
+    // 사장님 가게 생성
     @Transactional
     public StoreCreateRespDto createStore(StoreCreateReqDto storeCreateReqDto, Long ownerId) {
         // owner 조회
@@ -54,6 +55,7 @@ public class StoreService {
         return new StoreCreateRespDto(store);
     }
 
+    // 사장님 가게 목록 조회
     public List<GetStoreRespDto> getAllStoresByOwnerId(Long ownerId) {
         // 해당 ID의 가게 조회
         List<Store> storeList = storeRepository.findByOwnerId(ownerId);
@@ -63,6 +65,7 @@ public class StoreService {
                 .toList();
     }
 
+    // 사장님 가게 수정
     @Transactional
     public ModifyStoreRespDto modifyStore(Long storeId, ModifyStoreReqDto modifyStoreReqDto, Long ownerId) {
 
@@ -77,7 +80,6 @@ public class StoreService {
         //유효성 검사
         validateModifyStore(store, modifyStoreReqDto, ownerId);
 
-
         store.updateAll(modifyStoreReqDto);
 
         // 가게가 폐업 상태가 아닌 경우에만 카테고리 수정
@@ -91,7 +93,6 @@ public class StoreService {
         }
         return new ModifyStoreRespDto(store);
     }
-
 
     // 카테고리 저장
     public void saveCategory(StoreCreateReqDto storeCreateReqDto, Store store) {
@@ -161,6 +162,7 @@ public class StoreService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.STORE_NOT_FOUND));
     }
 
+    // 카테고리별 가게목록 조회
     public StoreListRespDto getStoreByCategory(Long categoryId, int page, int limit) {
         // 유효성 검사 - 카테고리를 찾을 수 없는 경우
         if (!categoryRepository.existsById(categoryId)) {
@@ -187,10 +189,6 @@ public class StoreService {
                 .toList();
     }
 
-    public Page<GetStoreRespDto> getStoreByCategory(Long categoryId, int page, int limit) {
-
-        validateGetStoreCategory(categoryId);
-
         Pageable pageable = PageRequest.of(page, limit);
         Page<StoreCategory> storeCategories = storeCategoryRepository.findByCategoryId(categoryId, pageable);
         return storeCategories.map(storeCategory -> new GetStoreRespDto(storeCategory.getStore()));
@@ -209,6 +207,7 @@ public class StoreService {
             return new StoreListRespDto(storeDtos);
         }
 
+    // 가게 상세목록 조회
         public List<GetStoreRespDto> getStoreByCategory (Long categoryId){
             List<StoreCategory> storeCategories = storeCategoryRepository.findByCategoryId(categoryId);
             // 유효성 검사 - 카테고리를 찾을 수 없는 경우
