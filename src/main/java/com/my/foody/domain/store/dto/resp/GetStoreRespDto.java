@@ -45,4 +45,9 @@ public class GetStoreRespDto {
         this.endTime = endTime;
         this.reviewCount = reviewCount;
     }
+
+    public GetStoreRespDto(Long storeId, String name, Long minOrderAmount) {
+        this.name = name;
+        this.minOrderAmount = minOrderAmount;
+    }
 }

@@ -194,8 +194,10 @@ public class StoreService {
             throw new BusinessException(ErrorCode.CATEGORY_NOT_FOUND);
         }
         Pageable pageable = PageRequest.of(page, limit);
-        Page<StoreCategory> storeCategories = storeCategoryRepository.findByCategoryId(categoryId, pageable);
-        return storeCategories.map(storeCategory -> new GetStoreRespDto(storeCategory.getStore()));
+        Page<StoreCategoryProjection> storeProjections = storeCategoryRepository.findStoresByCategoryId(categoryId, pageable);
+
+        return storeProjections.map(projection ->
+                new GetStoreRespDto(projection.getStoreId(), projection.getStoreName(), projection.getMinOrderAmount()));
     }
 
     public List<GetStoreRespDto> getStoreByCategory(Long categoryId) {
