@@ -104,10 +104,10 @@ public class MenuReadServiceTest {
     public void testUpdateMenu_ALL_Success() {
         // given: store1이 존재하고 소유자가 일치하는 경우
         when(storeRepository.findById(1L)).thenReturn(Optional.of(store1));
-        when(menuRepository.findAllByStoreId(1L, pageable)).thenReturn(new PageImpl<>(List.of(menu1)));
+        when(menuRepository.findAllByStoreId(1L, pageable)).thenReturn(new PageImpl<>(List.of(menu1), pageable, 1));
 
         // when: 가게1의 메뉴 조회 호출
-        Page<MenuReadResponseDto> response = menuService.getMenus(1L, 1L, pageable);
+        Page<MenuReadResponseDto> response = menuService.getMenus(1L, 1L, 0,10);
 
         // then: 결과 검증 - store1의 메뉴만 반환되었는지 확인
         assertNotNull(response);
@@ -128,7 +128,7 @@ public class MenuReadServiceTest {
 
         // when & then: 예외가 발생하는지 확인
         BusinessException exception = assertThrows(BusinessException.class, () -> {
-            menuService.getMenus(4L, 1L, pageable); // storeId 4L 사용
+            menuService.getMenus(4L, 1L, 0,10); // storeId 4L 사용
         });
 
         // 예외처리 메세지
@@ -152,7 +152,7 @@ public class MenuReadServiceTest {
 
         // when & then: 예외가 발생하는지 확인
         BusinessException exception = assertThrows(BusinessException.class, () -> {
-            menuService.getMenus(1L, nonOwnerId, pageable);
+            menuService.getMenus(1L, nonOwnerId, 0,10);
         });
 
         // 예외 메시지 검증
