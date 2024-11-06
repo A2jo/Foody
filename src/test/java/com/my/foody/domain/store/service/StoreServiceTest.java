@@ -5,6 +5,7 @@ import com.my.foody.domain.category.entity.Category;
 import com.my.foody.domain.category.repo.CategoryRepository;
 import com.my.foody.domain.owner.entity.Owner;
 import com.my.foody.domain.owner.repo.OwnerRepository;
+import com.my.foody.domain.review.repo.ReviewRepository;
 import com.my.foody.domain.review.dto.resp.ReviewListRespDto;
 import com.my.foody.domain.review.repo.ReviewRepository;
 import com.my.foody.domain.review.repo.dto.ReviewProjectionRespDto;
@@ -702,4 +703,85 @@ public class StoreServiceTest {
         assertEquals(ErrorCode.STORE_CLOSED, exception.getErrorCode());
         System.out.println(exception.getMessage());
     }
+
+    // -[가게 상세 정보 조회]---------------------------------------------------
+    @DisplayName("가게 상세 조회 성공 테스트")
+    @Test
+    public void testGetStoreInfo_Success() {
+        Long categoryId = 1L;
+        Long storeId = 1L;
+
+        Store store = Store.builder()
+                .id(storeId)
+                .name("Test Store")
+                .description("Test Description")
+                .minOrderAmount(10000L)
+                .openTime(LocalTime.of(9, 0))
+                .endTime(LocalTime.of(21, 0))
+                .isDeleted(false)
+                .build();
+
+        StoreCategory storeCategory = StoreCategory.builder()
+                .id(1L)
+                .store(store)
+                .category(Category.builder().id(categoryId).name("Category1").build())
+                .build();
+
+        // 리뷰 개수 설정 (예를 들어, 리뷰가 5개 있다고 가정)
+        long reviewCount = 5;
+
+        when(storeCategoryRepository.findByCategoryIdAndStoreId(categoryId, storeId)).thenReturn(Optional.of(storeCategory));
+        when(categoryRepository.existsById(categoryId)).thenReturn(true);
+        when(reviewRepository.countByStoreId(storeId)).thenReturn(reviewCount);
+
+        GetStoreRespDto storeRespDto = storeService.getStoreInfo(categoryId, storeId);
+
+        assertNotNull(storeRespDto);
+        assertEquals("Test Store", storeRespDto.getName());
+        assertEquals("Test Description", storeRespDto.getDescription());
+        assertEquals(10000L, storeRespDto.getMinOrderAmount());
+        assertEquals(LocalTime.of(9, 0), storeRespDto.getOpenTime());
+        assertEquals(LocalTime.of(21, 0), storeRespDto.getEndTime());
+        assertEquals(reviewCount, storeRespDto.getReviewCount());
+    }
+
+    @DisplayName("가게 상세 조회 실패 테스트 - 존재하지 않는 카테고리")
+    @Test
+    public void testGetStoreInfo_Fail_NotFoundCategory() {
+        Long categoryId = 999L; // 존재하지 않는 카테고리 ID
+        Long storeId = 1L;
+
+        when(categoryRepository.existsById(categoryId)).thenReturn(false);
+
+        BusinessException exception = assertThrows(BusinessException.class, () ->
+                storeService.getStoreInfo(categoryId, storeId)
+        );
+
+        assertEquals(ErrorCode.CATEGORY_NOT_FOUND, exception.getErrorCode());
+        System.out.println(exception.getMessage());
+
+        verify(categoryRepository, times(1)).existsById(categoryId);
+        verify(storeCategoryRepository, never()).findByCategoryIdAndStoreId(anyLong(), anyLong());
+    }
+
+    @DisplayName("가게 상세 조회 실패 테스트 - 해당 카테고리 에 존재하지 않는 가게")
+    @Test
+    public void testGetStoreInfo_Fail_NotFoundCategoryInStore() {
+            Long categoryId = 1L;
+            Long storeId = 999L; // 해당 카테고리에 존재하지 않는 가게 ID
+
+            when(categoryRepository.existsById(categoryId)).thenReturn(true);
+            when(storeCategoryRepository.findByCategoryIdAndStoreId(categoryId, storeId)).thenReturn(Optional.empty());
+
+            BusinessException exception = assertThrows(BusinessException.class, () ->
+                    storeService.getStoreInfo(categoryId, storeId)
+            );
+
+            assertEquals(ErrorCode.STORE_NOT_FOUND_IN_CATEGORY, exception.getErrorCode());
+            System.out.println(exception.getMessage());
+
+            verify(categoryRepository, times(1)).existsById(categoryId);
+            verify(storeCategoryRepository, times(1)).findByCategoryIdAndStoreId(categoryId, storeId);
+    }
+
 }
