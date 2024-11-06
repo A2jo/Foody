@@ -17,4 +17,5 @@ public interface CartMenuRepository extends JpaRepository<CartMenu, Long> {
 
     @Modifying
     void deleteByCart(Cart cart);
+    List<CartMenu> findByCart(Cart cart);
 }
