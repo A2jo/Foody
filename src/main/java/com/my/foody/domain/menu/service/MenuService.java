@@ -28,6 +28,10 @@ public class MenuService {
         }
         return menu;
     }
+  
+  
+  // 메뉴 등록
+    @Transactional
 
 
     // 메뉴 등록
