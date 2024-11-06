@@ -1,11 +1,17 @@
 package com.my.foody.domain.order.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import com.my.foody.domain.address.entity.Address;
+import com.my.foody.domain.order.dto.resp.OrderInfoRespDto;
 import com.my.foody.domain.order.dto.resp.OrderPreviewRespDto;
+import com.my.foody.domain.order.entity.Order;
 import com.my.foody.domain.order.service.OrderService;
+import com.my.foody.domain.orderMenu.repo.dto.OrderMenuProjectionDto;
+import com.my.foody.domain.store.entity.Store;
+import com.my.foody.domain.user.entity.User;
 import com.my.foody.global.ex.BusinessException;
 import com.my.foody.global.ex.ErrorCode;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.my.foody.domain.order.dto.resp.OrderListRespDto;
 import com.my.foody.domain.orderMenu.repo.dto.OrderProjectionDto;
 import com.my.foody.domain.order.service.OrderService;
@@ -214,6 +220,139 @@ class OrderControllerTest {
                 .andExpect(jsonPath("$.data.pageInfo.totalElements").value(0))
                 .andDo(print());
     }
+
+
+    @Test
+    @DisplayName("주문 상세 조회 성공 테스트")
+    void getOrderInfo_Success() throws Exception {
+        // Given
+        Long ownerId = 1L;
+        Long orderId = 1L;
+        String token = "test.token";
+        TokenSubject tokenSubject = new TokenSubject(ownerId, UserType.OWNER);
+        OrderInfoRespDto response = createOrderInfoRespDto();
+
+        when(jwtProvider.validate(token)).thenReturn(tokenSubject);
+        when(orderService.getOrderInfo(ownerId, orderId)).thenReturn(response);
+
+        // When & Then
+        mvc.perform(get("/api/owners/orders/{orderId}", orderId)
+                        .header(JwtVo.HEADER, JwtVo.TOKEN_PREFIX + token)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.storeName").value("맛있는 치킨"))
+                .andExpect(jsonPath("$.data.orderStatus").value("배달완료"))
+                .andExpect(jsonPath("$.data.totalAmount").value(50000))
+                .andExpect(jsonPath("$.data.orderList").isArray())
+                .andExpect(jsonPath("$.data.orderList[0].menuName").value("후라이드 치킨"))
+                .andDo(print());
+
+        verify(orderService).getOrderInfo(ownerId, orderId);
+    }
+
+    @Test
+    @DisplayName("주문 상세 조회 실패 테스트: 권한 없음")
+    void getOrderInfo_Unauthorized() throws Exception {
+        // Given
+        Long orderId = 1L;
+        String token = "test.token";
+        TokenSubject customerToken = new TokenSubject(1L, UserType.USER);
+
+        when(jwtProvider.validate(token)).thenReturn(customerToken);
+
+        // When & Then
+        mvc.perform(get("/api/owners/orders/{orderId}", orderId)
+                        .header(JwtVo.HEADER, JwtVo.TOKEN_PREFIX + token)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.apiError").exists())
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("주문 상세 조회 실패 테스트: 토큰 없음")
+    void getOrderInfo_NoToken() throws Exception {
+        // When & Then
+        mvc.perform(get("/api/owners/orders/{orderId}", 1L)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.apiError").exists())
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("주문 상세 조회 실패 테스트: 주문 찾을 수 없음")
+    void getOrderInfo_OrderNotFound() throws Exception {
+        // Given
+        Long ownerId = 1L;
+        Long orderId = 999L;
+        String token = "test.token";
+        TokenSubject tokenSubject = new TokenSubject(ownerId, UserType.OWNER);
+
+        when(jwtProvider.validate(token)).thenReturn(tokenSubject);
+        when(orderService.getOrderInfo(ownerId, orderId))
+                .thenThrow(new BusinessException(ErrorCode.ORDER_NOT_FOUND));
+
+        // When & Then
+        mvc.perform(get("/api/owners/orders/{orderId}", orderId)
+                        .header(JwtVo.HEADER, JwtVo.TOKEN_PREFIX + token)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.apiError.msg").value(ErrorCode.ORDER_NOT_FOUND.getMsg()))
+                .andDo(print());
+    }
+
+    @Test
+    @DisplayName("주문 상세 조회 실패 테스트: 잘못된 orderId")
+    void getOrderInfo_InvalidOrderId() throws Exception {
+        // Given
+        String token = "test.token";
+        TokenSubject tokenSubject = new TokenSubject(1L, UserType.OWNER);
+        when(jwtProvider.validate(token)).thenReturn(tokenSubject);
+
+        // When & Then
+        mvc.perform(get("/api/owners/orders/{orderId}", -1L)
+                        .header(JwtVo.HEADER, JwtVo.TOKEN_PREFIX + token)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.apiError").exists())
+                .andDo(print());
+    }
+
+        private OrderInfoRespDto createOrderInfoRespDto() {
+            List<OrderMenuProjectionDto> orderMenus = List.of(
+                    new OrderMenuProjectionDto() {
+                        @Override
+                        public Long getQuantity() { return 2L; }
+                        @Override
+                        public Long getPrice() { return 18000L; }
+                        @Override
+                        public Long getMenuId() { return 1L; }
+                        @Override
+                        public String getMenuName() { return "후라이드 치킨"; }
+                    }
+            );
+
+            Order order = Order.builder()
+                    .id(1L)
+                    .totalAmount(50000L)
+                    .orderStatus(OrderStatus.DELIVERED)
+                    .store(Store.builder().id(1L).name("맛있는 치킨").build())
+                    .user(User.builder().contact("010-1234-5678").build())
+                    .address(Address.builder()
+                            .roadAddress("서울시 강남구")
+                            .detailedAddress("테헤란로 123")
+                            .build())
+                    .build();
+
+            return new OrderInfoRespDto(orderMenus, order);
+        }
+
 
     private OrderListRespDto createMockOrderListRespDto() {
         List<OrderProjectionDto> projections = Arrays.asList(
