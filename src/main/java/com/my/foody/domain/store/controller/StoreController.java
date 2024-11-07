@@ -56,7 +56,7 @@ public class StoreController {
         return new ResponseEntity<>(ApiResult.success(storeService.modifyStore(storeId, modifyStoreReqDto, ownerId)), HttpStatus.OK);
     }
 
-    @GetMapping("/home/categories/{categoryId}/store")
+    @GetMapping("/home/categories/{categoryId}/stores")
     public ResponseEntity<ApiResult<StoreListRespDto>> getStoreByCategory(@PathVariable(value = "categoryId") Long categoryId,
                                                                           @RequestParam(value = "page", defaultValue = "0") int page,
                                                                           @RequestParam(value = "limit", defaultValue = "10") int limit) {
@@ -64,7 +64,7 @@ public class StoreController {
         return ResponseEntity.ok(ApiResult.success(storeListRespDto));
     }
 
-    @GetMapping("/home/categories/{categoryId}/store/{storeId}")
+    @GetMapping("/home/categories/{categoryId}/stores/{storeId}")
     public ResponseEntity<ApiResult<GetStoreRespDto>> getStoreInfo(@PathVariable(value = "categoryId") Long categoryId,
                                                                    @PathVariable(value = "storeId") Long storeId) {
         GetStoreRespDto storeRespDto = storeService.getStoreInfo(categoryId, storeId);
