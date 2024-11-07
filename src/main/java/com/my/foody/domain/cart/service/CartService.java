@@ -1,6 +1,7 @@
 package com.my.foody.domain.cart.service;
 
 import com.my.foody.domain.cart.dto.req.CartMenuCreateReqDto;
+import com.my.foody.domain.cart.dto.resp.CartItemListRespDto;
 import com.my.foody.domain.cart.dto.resp.CartMenuCreateRespDto;
 import com.my.foody.domain.cart.entity.Cart;
 import com.my.foody.domain.cart.repo.CartRepository;
@@ -11,7 +12,6 @@ import com.my.foody.domain.menu.service.MenuService;
 import com.my.foody.domain.store.entity.Store;
 import com.my.foody.domain.store.service.StoreService;
 import com.my.foody.domain.user.entity.User;
-import com.my.foody.domain.user.repo.UserRepository;
 import com.my.foody.domain.user.service.UserService;
 import com.my.foody.global.ex.BusinessException;
 import com.my.foody.global.ex.ErrorCode;
@@ -19,6 +19,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -34,28 +36,18 @@ public class CartService {
 
     //TODO 수정해야 함
 
-//    public Page<CartItemRespDto> getCartItems(Long userId, int page, int limit) {
-//
-//        //Active User의 존재 검증
-//        userService.findActivateUserByIdOrFail(userId);
-//
-//        Pageable pageable = PageRequest.of(page, limit, Sort.by("id").descending());
-//        Page<Cart> cartItemsPage = cartRepository.findByUserId(userId, pageable);
-//
-//    return cartItemsPage.map(
-//        cartItem -> {
-//          Long totalOrderAmount = cartItem.getMenu().getPrice() * cartItem.getQuantity();
-//          Long minOrderAmount = cartItem.getStore().getMinOrderAmount();
-//
-//          return new CartItemRespDto(
-//              cartItem.getStore().getName(),
-//              cartItem.getMenu().getName(),
-//              cartItem.getMenu().getPrice(),
-//              cartItem.getQuantity(),
-//              totalOrderAmount,
-//              minOrderAmount);
-//        });
-//    }
+    public CartItemListRespDto getCartItems(Long userId) {
+
+        //Active User의 존재 검증
+        userService.findActivateUserByIdOrFail(userId);
+
+        Cart cart = cartRepository.findByUserId(userId).orElseThrow(() -> new BusinessException(ErrorCode.CART_ITEM_NOT_FOUND));
+
+        List<CartMenu> cartMenuList = cartMenuRepository.findByCart(cart);
+        return new CartItemListRespDto(cart, cartMenuList);
+    }
+
+
 
     @Transactional
     public CartMenuCreateRespDto addCartItem(Long storeId, Long menuId, CartMenuCreateReqDto cartMenuCreateReqDto, Long userId) {
