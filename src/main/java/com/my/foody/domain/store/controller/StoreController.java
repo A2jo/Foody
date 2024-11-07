@@ -64,7 +64,7 @@ public class StoreController {
         return ResponseEntity.ok(ApiResult.success(storeListRespDto));
     }
 
-    @GetMapping("/home/categories/{categoryId}/store/{storeId}")
+    @GetMapping("/home/categories/{categoryId}/stores/{storeId}")
     public ResponseEntity<ApiResult<GetStoreRespDto>> getStoreInfo(@PathVariable(value = "categoryId") Long categoryId,
                                                                    @PathVariable(value = "storeId") Long storeId) {
         GetStoreRespDto storeRespDto = storeService.getStoreInfo(categoryId, storeId);
