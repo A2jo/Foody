@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -17,6 +18,6 @@ public interface StoreCategoryRepository extends JpaRepository<StoreCategory, Lo
     void deleteByStoreId(Long storeId);
     @Query("SELECT sc.store.id AS storeId, sc.store.name AS storeName, sc.category.id AS categoryId, sc.store.minOrderAmount AS minOrderAmount " +
                   "FROM StoreCategory sc WHERE sc.category.id = :categoryId")
-    Page<StoreCategoryProjection> findStoresByCategoryId(Long categoryId, Pageable pageable);
+    Page<StoreCategoryProjection> findStoresByCategoryId(@Param(value = "categoryId")Long categoryId, Pageable pageable);
 
 }
