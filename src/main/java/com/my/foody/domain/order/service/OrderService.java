@@ -113,7 +113,7 @@ public class OrderService {
     }
 
     @Transactional
-    public void createOrder(Long cartId, OrderCreateReqDto orderCreateReqDto, Long userId) {
+    public void createOrder(Long cartId,  Long userId) {
 
         User user = userService.findActivateUserByIdOrFail(userId);
 
@@ -124,12 +124,15 @@ public class OrderService {
         Address mainAddress = addressRepository.findByUserIdAndIsMain(userId, true)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MAIN_ADDRESS_NOT_FOUND));
 
-        if (!mainAddress.getId().equals(orderCreateReqDto.getUserAddressId())) {
-            throw new BusinessException(ErrorCode.NOT_MAIN_ADDRESS);
+        List<CartMenu> cartMenuList = cartMenuRepository.findByCart(cart);
+
+        long totalPrice = 0;
+
+        for (CartMenu cartMenu : cartMenuList) {
+            totalPrice += (cartMenu.getQuantity() * cartMenu.getMenu().getPrice());
         }
 
-
-        if (orderCreateReqDto.getTotalAmount() < store.getMinOrderAmount()) {
+        if (totalPrice < store.getMinOrderAmount()) {
             throw new BusinessException(ErrorCode.UNDER_MINIMUM_ORDER_AMOUNT);
         }
 
