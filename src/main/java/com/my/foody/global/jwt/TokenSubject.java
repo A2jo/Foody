@@ -2,7 +2,6 @@ package com.my.foody.global.jwt;
 
 import com.my.foody.domain.owner.entity.Owner;
 import com.my.foody.domain.user.entity.User;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.beans.ConstructorProperties;
