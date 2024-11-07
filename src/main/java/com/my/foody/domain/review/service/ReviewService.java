@@ -66,6 +66,7 @@ public class ReviewService {
         Review review = Review.builder()
                 .user(order.getUser())
                 .store(store)
+                .order(order)
                 .rating(requestDto.getRating())
                 .comment(requestDto.getComment())
                 .build();
