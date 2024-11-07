@@ -20,7 +20,7 @@ public class DummyObject {
 
     protected Order newOrder(Store store, User user, Address address){
         return Order.builder()
-                .orderStatus(OrderStatus.PENDING)
+                .orderStatus(OrderStatus.DELIVERED)
                 .user(user)
                 .store(store)
                 .address(address)

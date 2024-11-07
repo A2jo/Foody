@@ -6,6 +6,10 @@ import com.my.foody.domain.category.entity.Category;
 import com.my.foody.domain.category.repo.CategoryRepository;
 import com.my.foody.domain.menu.entity.Menu;
 import com.my.foody.domain.menu.repo.MenuRepository;
+import com.my.foody.domain.order.entity.Order;
+import com.my.foody.domain.order.repo.OrderRepository;
+import com.my.foody.domain.orderMenu.entity.OrderMenu;
+import com.my.foody.domain.orderMenu.repo.OrderMenuRepository;
 import com.my.foody.domain.owner.entity.Owner;
 import com.my.foody.domain.owner.repo.OwnerRepository;
 import com.my.foody.domain.review.entity.Review;
@@ -25,11 +29,12 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 @Configuration
 public class DevInit extends DummyObject{
 
-    @Profile("demo")
+    @Profile("dev")
     @Bean
     CommandLineRunner init(UserRepository userRepository, ReviewRepository reviewRepository, StoreRepository storeRepository, OwnerRepository ownerRepository,
                            StoreCategoryRepository storeCategoryRepository, CategoryRepository categoryRepository,
-                           MenuRepository menuRepository, AddressRepository addressRepository){
+                           MenuRepository menuRepository, AddressRepository addressRepository, OrderRepository orderRepository,
+                           OrderMenuRepository orderMenuRepository){
         return (args) -> {
 
             User user = mockUser();
@@ -69,15 +74,29 @@ public class DevInit extends DummyObject{
             menuRepository.save(menu2);
 
             //Order
+            Order order = newOrder(store1, reviewUser, address1);
+            Order order1 = newOrder(store1, reviewUser2, address2);
+            orderRepository.save(order);
+            orderRepository.save(order1);
+
 
 
             //OrderMenu
-            //newOrderMenu(menu1, )
+            OrderMenu orderMenu = newOrderMenu(menu, order);
+            OrderMenu orderMenu1 = newOrderMenu(menu, order1);
+            orderMenuRepository.save(orderMenu1);
+            orderMenuRepository.save(orderMenu);
+
 
 
             Category category = categoryRepository.findById(1L).get();
             StoreCategory storeCategory = newStoreCategory(category, store);
+            StoreCategory storeCategory1 = newStoreCategory(category, store1);
+            StoreCategory storeCategory2 = newStoreCategory(category, store2);
             storeCategoryRepository.save(storeCategory);
+            storeCategoryRepository.save(storeCategory1);
+            storeCategoryRepository.save(storeCategory2);
+
 
 
             Review review1 = newReview(store1, reviewUser);
