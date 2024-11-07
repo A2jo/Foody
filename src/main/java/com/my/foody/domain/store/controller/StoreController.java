@@ -1,6 +1,8 @@
 package com.my.foody.domain.store.controller;
 
 import com.my.foody.domain.menu.dto.resp.MenuListRespDto;
+import com.my.foody.domain.review.dto.resp.DetailedReviewListRespDto;
+import com.my.foody.domain.review.dto.resp.ReviewListRespDto;
 import com.my.foody.domain.store.dto.req.ModifyStoreReqDto;
 import com.my.foody.domain.store.dto.req.StoreCreateReqDto;
 import com.my.foody.domain.store.dto.resp.GetStoreRespDto;
@@ -114,7 +116,7 @@ public class StoreController {
         return ResponseEntity.ok(ApiResult.success(storeListRespDto));
     }
 
-    @GetMapping("/home/categories/{categoryId}/store/{storeId}")
+    @GetMapping("/home/categories/{categoryId}/stores/{storeId}")
     public ResponseEntity<ApiResult<GetStoreRespDto>> getStoreInfo(@PathVariable(value = "categoryId") Long categoryId,
                                                                    @PathVariable(value = "storeId") Long storeId) {
         GetStoreRespDto storeRespDto = storeService.getStoreInfo(categoryId, storeId);
@@ -128,5 +130,14 @@ public class StoreController {
                                                                      @RequestParam(value = "limit", defaultValue = "10") int limit) {
         MenuListRespDto menuListRespDto = storeService.getStoreMenus(storeId, categoryId, page, limit);
         return ResponseEntity.ok(ApiResult.success(menuListRespDto));
+    }
+
+    @GetMapping("/home/categories/{categoryId}/stores/{storeId}/reviews")
+    public ResponseEntity<ApiResult<DetailedReviewListRespDto>> getStoreReviews(@PathVariable(value = "categoryId") Long categoryId,
+                                                                        @PathVariable(value = "storeId") Long storeId,
+                                                                        @RequestParam(value = "page", defaultValue = "0") int page,
+                                                                        @RequestParam(value = "limit", defaultValue = "10") int limit) {
+        DetailedReviewListRespDto reviewListRespDto = storeService.getStoreReviews(categoryId, storeId, page, limit);
+        return ResponseEntity.ok(ApiResult.success(reviewListRespDto));
     }
 }

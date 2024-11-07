@@ -4,12 +4,13 @@ import com.my.foody.domain.category.entity.Category;
 import com.my.foody.domain.category.repo.CategoryRepository;
 import com.my.foody.domain.menu.dto.resp.GetMenuRespDto;
 import com.my.foody.domain.menu.dto.resp.MenuListRespDto;
-import com.my.foody.domain.menu.dto.resp.MenuListRespDto.PageInfo;
 import com.my.foody.domain.menu.repo.MenuProjection;
 import com.my.foody.domain.menu.repo.MenuRepository;
 import com.my.foody.domain.owner.entity.Owner;
 import com.my.foody.domain.owner.repo.OwnerRepository;
+import com.my.foody.domain.review.dto.resp.DetailedReviewListRespDto;
 import com.my.foody.domain.review.repo.ReviewRepository;
+import com.my.foody.domain.review.repo.dto.DetailedReviewProjectionRespDto;
 import com.my.foody.domain.store.dto.req.ModifyStoreReqDto;
 import com.my.foody.domain.store.dto.req.StoreCreateReqDto;
 import com.my.foody.domain.store.dto.resp.GetStoreRespDto;
@@ -26,12 +27,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -255,6 +256,7 @@ public class StoreService {
         }
     }
 
+<<<<<<< HEAD
     // 카테고리별 가게목록 조회
     public StoreListRespDto getStoreByCategory(Long categoryId, int page, int limit) {
         // 유효성 검사 - 카테고리를 찾을 수 없는 경우
@@ -339,4 +341,34 @@ public class StoreService {
         }
         return storeCategory;
     }
+=======
+    public DetailedReviewListRespDto getStoreReviews(Long categoryId, Long storeId, int page, int limit) {
+        // 유효성 검사 수행
+        validateGetStoreReviews(categoryId, storeId);
+
+        // 페이지 및 정렬 설정: 리뷰 생성일 기준 내림차순
+        Pageable pageable = PageRequest.of(page, limit, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<DetailedReviewProjectionRespDto> reviewProjections = reviewRepository.findDetailedReviewsByStoreId(storeId, pageable);
+
+        return new DetailedReviewListRespDto(reviewProjections);
+    }
+
+    // 카테고리 및 가게 존재 유효성 검사
+    private void validateGetStoreReviews(Long categoryId, Long storeId) {
+        // 카테고리가 존재하는지
+        if (!categoryRepository.existsById(categoryId)) {
+            throw new BusinessException(ErrorCode.CATEGORY_NOT_FOUND);
+        }
+        // 카테고리에 가게가 존재하는지
+        storeCategoryRepository.findByCategoryIdAndStoreId(categoryId, storeId).orElseThrow(() ->
+                new BusinessException(ErrorCode.STORE_NOT_FOUND_IN_CATEGORY)
+        );
+        // 가게 폐업처리 확인
+        Store store = storeRepository.findById(storeId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.STORE_NOT_FOUND));
+        if (store.getIsDeleted()) {
+            throw new BusinessException(ErrorCode.STORE_DELETED);
+        }
+    }
+>>>>>>> 3dd649c4c1bb980fe39dabe6cec562d89365fba6
 }

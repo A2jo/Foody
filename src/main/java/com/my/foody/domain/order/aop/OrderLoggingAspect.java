@@ -27,7 +27,7 @@ public class OrderLoggingAspect {
     public void logBeforeOrderCreation(JoinPoint joinPoint) {
         Object[] args = joinPoint.getArgs();
         Long cartId = (Long) args[0];
-        Long userId = (Long) args[2];
+        Long userId = (Long) args[1];
 
         logger.info("주문 생성 요청 수신: 시각: {}, Cart ID: {}, User ID: {}",
                 LocalDateTime.now(), cartId, userId);
