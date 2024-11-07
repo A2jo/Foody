@@ -30,11 +30,13 @@ import com.my.foody.domain.user.entity.User;
 import com.my.foody.domain.user.service.UserService;
 import com.my.foody.global.ex.BusinessException;
 import com.my.foody.global.ex.ErrorCode;
+
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
@@ -55,14 +57,14 @@ public class OrderService {
 
     private final MenuService menuService;
     private final OwnerService ownerService;
-    private  final TimeProvider timeProvider;
-   
+    private final TimeProvider timeProvider;
+
     @Transactional
     public OrderStatusUpdateRespDto updateOrderStatus(OrderStatusUpdateReqDto requestDto, Long orderId, Long ownerId) {
         Order order = orderRepository.findById(orderId).orElseThrow(() -> new BusinessException(ErrorCode.ORDER_NOT_FOUND));
 
         // 가게 주인 맞는지 확인
-        order.isStoreOwner(ownerId);
+        isStoreOwner(order, ownerId);
 
         // 주문 상태 업데이트
         order.updateOrderStatus(requestDto.getOrderStatus());
@@ -89,7 +91,7 @@ public class OrderService {
         List<CartMenu> cartMenuList = cartMenuRepository.findByCartWithMenu(cart);
 
         //장바구니가 비어있는지 검사
-        if(cartMenuList.isEmpty()){
+        if (cartMenuList.isEmpty()) {
             throw new BusinessException(ErrorCode.CART_IS_EMPTY);
         }
         //품절 되거나 삭제된 메뉴가 포함되어 있는지 검사
@@ -192,5 +194,12 @@ public class OrderService {
         Pageable pageable = PageRequest.of(page, limit, Sort.by("createdAt").descending());
         Page<OrderProjectionDto> orderPage = orderRepository.findByUserId(userId, pageable);
         return new OrderListRespDto(orderPage);
+    }
+    // 가게주인 확인 메소드
+    private void isStoreOwner(Order order, Long ownerId) {
+        if (!order.getStore().getOwner().getId().equals(ownerId)) {
+            throw new BusinessException(ErrorCode.FORBIDDEN_ACCESS);
+        }
+
     }
 }

@@ -23,6 +23,7 @@ public enum ErrorCode {
     ADDRESS_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "존재하지 않는 주소지입니다"),
     UNAUTHORIZED_ADDRESS_ACCESS(HttpStatus.UNAUTHORIZED.value(), "해당 주소지에 접근 권한이 없습니다"),
     INVALID_ADDRESS_FORMAT(HttpStatus.BAD_REQUEST.value(), "유효하지 않은 주소 형식입니다"),
+    STORE_DELETED(HttpStatus.NOT_FOUND.value(), "폐업처리된 가게입니다."),
 
     CART_ITEM_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "존재하지 않는 장바구니입니다."),
 
@@ -53,6 +54,10 @@ public enum ErrorCode {
 
     ORDER_NOT_COMPLETED(HttpStatus.BAD_REQUEST.value(), "리뷰는 완료된 주문에 대해서만 작성할 수 있습니다"),
     REVIEW_ALREADY_EXISTS(HttpStatus.BAD_REQUEST.value(), "해당 주문에 대한 리뷰가 존재합니다"),
+
+
+
+    MENU_NOT_FOUND_IN_STORE(HttpStatus.NOT_FOUND.value(), "가게에 메뉴가 존재하지 않습니다."),
 
     STORE_NOT_FOUND_IN_CATEGORY(HttpStatus.NOT_FOUND.value(), "해당 카테고리에 해당 가게가 존재하지 않습니다."),
     MENU_STORE_MISMATCH(HttpStatus.BAD_REQUEST.value(), "해당 메뉴가 가게에 존재하지 않습니다"),
