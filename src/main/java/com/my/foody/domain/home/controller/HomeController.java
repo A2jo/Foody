@@ -2,6 +2,9 @@ package com.my.foody.domain.home.controller;
 
 import com.my.foody.domain.home.dto.resp.MainHomeRespDto;
 import com.my.foody.domain.home.service.HomeService;
+import com.my.foody.global.util.api.ApiResult;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -17,7 +20,7 @@ public class HomeController {
     }
 
     @GetMapping
-    public MainHomeRespDto getMainHome() {
-        return homeService.getMainHome();
+    public ResponseEntity<ApiResult<MainHomeRespDto>> getMainHome() {
+        return new ResponseEntity<>(ApiResult.success(homeService.getMainHome()), HttpStatus.OK);
     }
 }

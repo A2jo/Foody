@@ -29,8 +29,6 @@ public class JwtProvider {
     private String secretKey;
     private final RedisTemplate<String, String> redisTemplate;
     private final static String LOGOUT_KEY = "BL:";
-    private final RedisTemplate<String, String> redisTemplate;
-    private final static String LOGOUT_KEY = "BL:";
 
     // 블랙리스트로 사용할 Map 추가
     private final ConcurrentHashMap<String, Date> tokenBlacklist = new ConcurrentHashMap<>();
@@ -81,19 +79,6 @@ public class JwtProvider {
     }
 
     // 토큰 무효화 메서드 추가
-    public void invalidateToken(TokenSubject tokenSubject) {
-        String token = create(tokenSubject);
-        DecodedJWT decodedJWT = JWT.decode(token);
-        Date expiresAt = decodedJWT.getExpiresAt();
-        tokenBlacklist.put(token, expiresAt); // 블랙리스트에 추가
-    }
-    public void logout(Long userId, String token) {
-        String key = LOGOUT_KEY + token.replace(JwtVo.TOKEN_PREFIX, "");
-        DecodedJWT jwt = JWT.decode(token.replace(JwtVo.TOKEN_PREFIX, ""));
-        long remainingTime = jwt.getExpiresAt().getTime() - System.currentTimeMillis();
-
-        redisTemplate.opsForValue().set(key, userId.toString(), remainingTime, TimeUnit.MILLISECONDS);
-    }
     public void logout(Long userId, String token) {
         String key = LOGOUT_KEY + token.replace(JwtVo.TOKEN_PREFIX, "");
         DecodedJWT jwt = JWT.decode(token.replace(JwtVo.TOKEN_PREFIX, ""));

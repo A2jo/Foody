@@ -102,12 +102,12 @@ public class OwnerService {
     }
 
     // 로그아웃 메서드 추가
-    public OwnerLogoutRespDto logout(TokenSubject tokenSubject) {
-        // JWT 토큰을 무효화
-        jwtProvider.invalidateToken(tokenSubject);
-
-        return new OwnerLogoutRespDto();
-    }
+//    public OwnerLogoutRespDto logout(TokenSubject tokenSubject, String token) {
+//        // JWT 토큰을 무효화
+//        jwtProvider.invalidateToken(tokenSubject);
+//
+//        return new OwnerLogoutRespDto();
+//    }
 
     // 이메일 중복 확인
     private void validateEmailUniqueness(String email) {
