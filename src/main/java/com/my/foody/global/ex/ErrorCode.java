@@ -25,7 +25,7 @@ public enum ErrorCode {
     INVALID_ADDRESS_FORMAT(HttpStatus.BAD_REQUEST.value(), "유효하지 않은 주소 형식입니다"),
     STORE_DELETED(HttpStatus.NOT_FOUND.value(), "폐업처리된 가게입니다."),
 
-    CART_ITEM_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "존재하지 않는 장바구니입니다."),
+    CART_ITEM_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "장바구니가 비어있습니다"),
 
     ALREADY_DEACTIVATED_USER(HttpStatus.BAD_REQUEST.value(), "탈퇴한 유저입니다"),
 

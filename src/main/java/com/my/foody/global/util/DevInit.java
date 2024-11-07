@@ -58,9 +58,9 @@ public class DevInit extends DummyObject{
 
 
 
-            Store store = newStore(owner, "너무맛있는가게");
-            Store store1 = newStore(owner, "진짜맛있는가게");
-            Store store2 = newStore(owner, "피자스쿨");
+            Store store = newStore(owner, "너무맛있는가게", 1L);
+            Store store1 = newStore(owner, "진짜맛있는가게", 2L);
+            Store store2 = newStore(owner, "피자스쿨", 3L);
             storeRepository.save(store);
             storeRepository.save(store1);
             storeRepository.save(store2);

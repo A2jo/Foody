@@ -188,10 +188,11 @@ public class DummyObject {
     }
 
 
-    protected Store newStore(Owner owner, String name) {
+    protected Store newStore(Owner owner, String name, Long id) {
         return Store.builder()
                 .name(name)
                 .owner(owner)
+                .id(id)
                 .description("맛있어요")
                 .contact("010-1234-5678")
                 .minOrderAmount(10000L)

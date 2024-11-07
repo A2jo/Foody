@@ -1,7 +1,7 @@
 package com.my.foody.domain.cart.controller;
 
 import com.my.foody.domain.cart.dto.req.CartMenuCreateReqDto;
-import com.my.foody.domain.cart.dto.resp.CartItemRespDto;
+import com.my.foody.domain.cart.dto.resp.CartItemListRespDto;
 import com.my.foody.domain.cart.dto.resp.CartMenuCreateRespDto;
 import com.my.foody.domain.cart.service.CartService;
 import com.my.foody.global.config.valid.CurrentUser;
@@ -15,7 +15,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.HttpServerErrorException;
 
 @RestController
 @RequestMapping("/api")
@@ -26,18 +25,15 @@ public class CartController {
 
 
     //TODO  이거 수정해야함!!!!
-//    @RequireAuth(userType = UserType.USER) // User 인증 확인
-//    @GetMapping("/cart")
-//    public ResponseEntity<ApiResult<Page<CartItemRespDto>>> getCartItems(
-//            @RequestParam int page,
-//            @RequestParam int limit,
-//            @CurrentUser TokenSubject tokenSubject) {
-//
-//        Long userId = tokenSubject.getId();
-//        Page<CartItemRespDto> cartItems = cartService.getCartItems(userId, page, limit);
-//
-//        return ResponseEntity.ok(ApiResult.success(cartItems));
-//    }
+    @RequireAuth(userType = UserType.USER) // User 인증 확인
+    @GetMapping("/cart")
+    public ResponseEntity<ApiResult<CartItemListRespDto>> getCartItems(@CurrentUser TokenSubject tokenSubject) {
+
+        Long userId = tokenSubject.getId();
+        CartItemListRespDto cartItems = cartService.getCartItems(userId);
+
+        return ResponseEntity.ok(ApiResult.success(cartItems));
+    }
 
     @RequireAuth(userType = UserType.USER)
     @PostMapping("/home/stores/{storeId}/menus/{menuId}")

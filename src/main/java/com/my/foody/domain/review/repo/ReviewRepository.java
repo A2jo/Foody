@@ -34,5 +34,5 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     Page<Review> findByStoreId(Long storeId, Pageable pageable);
     @Query("SELECT r.id AS reviewId, r.store.id AS storeId, r.store.name AS storeName, r.comment AS comment, r.rating AS rating, u.nickname AS userNickname " +
             "FROM Review r JOIN r.user u WHERE r.store.id = :storeId")
-    Page<DetailedReviewProjectionRespDto> findDetailedReviewsByStoreId(Long storeId, Pageable pageable);
+    Page<DetailedReviewProjectionRespDto> findDetailedReviewsByStoreId(@Param(value = "storeId") Long storeId, Pageable pageable);
 }
