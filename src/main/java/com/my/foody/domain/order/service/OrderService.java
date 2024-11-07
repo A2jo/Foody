@@ -67,7 +67,7 @@ public class OrderService {
         isStoreOwner(order, ownerId);
 
         // 주문 상태 업데이트
-        order.updateOrderStatus(requestDto.getOrderStatus());
+        order.updateOrderStatus(OrderStatus.valueOf(requestDto.getOrderStatus()));
 
         // 변경된 주문 저장
         Order savedOrder = orderRepository.save(order);

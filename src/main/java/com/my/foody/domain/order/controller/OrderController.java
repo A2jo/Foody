@@ -63,8 +63,8 @@ public class OrderController {
 
   @RequireAuth(userType = UserType.OWNER)
   @GetMapping("/api/owners/orders")
-  public ResponseEntity<ApiResult<OrderListRespDto>> getAllOrder(@RequestParam(value = "page", required = false) @Min(value = 0) int page,
-                                                                  @RequestParam(value = "limit", required = false) @Positive int limit,
+  public ResponseEntity<ApiResult<OrderListRespDto>> getAllOrder(@RequestParam(value = "page", required = false, defaultValue = "0") @Min(value = 0) Integer page,
+                                                                  @RequestParam(value = "limit", required = false, defaultValue = "10") @Positive Integer limit,
                                                                   @CurrentUser TokenSubject tokenSubject){
     return new ResponseEntity<>(ApiResult.success(orderService.getAllOrder(tokenSubject.getId(), page, limit)), HttpStatus.OK);
   }
