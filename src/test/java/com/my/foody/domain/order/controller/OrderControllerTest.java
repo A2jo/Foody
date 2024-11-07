@@ -20,12 +20,17 @@ import com.my.foody.global.jwt.JwtProvider;
 import com.my.foody.global.jwt.JwtVo;
 import com.my.foody.global.jwt.TokenSubject;
 import com.my.foody.global.jwt.UserType;
+import com.my.foody.global.util.api.ApiResult;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -39,8 +44,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -53,12 +59,18 @@ class OrderControllerTest {
     @Autowired
     private MockMvc mvc;
 
+    @InjectMocks
+    private OrderController orderController;
+
     @Autowired
     private ObjectMapper om;
 
 
     @MockBean
     private OrderService orderService;
+
+    @Mock
+    private TokenSubject tokenSubject;
 
     @MockBean
     private JwtProvider jwtProvider;
@@ -406,6 +418,35 @@ class OrderControllerTest {
             @Override
             public LocalDateTime getCreatedAt() { return LocalDateTime.now(); }
         };
+    }
+
+    @Test
+    @DisplayName("User 주문 내역 조회")
+    public void testGetUserOrders() {
+        // Arrange
+        Long userId = 1L;
+        int page = 0;
+        int limit = 10;
+
+        // Mock the TokenSubject to return the userId
+        when(tokenSubject.getId()).thenReturn(userId);
+
+        // Create a mock response for the service method
+        OrderListRespDto mockResponse = mock(OrderListRespDto.class);
+        when(orderService.getUserOrders(userId, page, limit)).thenReturn(mockResponse);
+
+        // Act: Call the controller method
+        ResponseEntity<ApiResult<OrderListRespDto>> responseEntity = orderController.getUserOrders(page, limit, tokenSubject);
+
+        // Assert: Check the response
+        assertNotNull(responseEntity);  // Ensure response is not null
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());  // Status should be 200 OK
+        assertNotNull(responseEntity.getBody());  // Response body should not be null
+        assertEquals(mockResponse, responseEntity.getBody().getData());  // Response data should match the mock response
+
+        // Verify interactions with the mocked objects
+        verify(orderService, times(1)).getUserOrders(userId, page, limit);  // Ensure service was called once
+        verify(tokenSubject, times(1)).getId();  // Ensure tokenSubject.getId() was called once
     }
 
 
