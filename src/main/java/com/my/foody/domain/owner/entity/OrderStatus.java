@@ -1,7 +1,6 @@
 package com.my.foody.domain.owner.entity;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 @Getter
 public enum OrderStatus {

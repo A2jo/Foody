@@ -14,7 +14,6 @@ import com.my.foody.global.ex.BusinessException;
 import com.my.foody.global.ex.ErrorCode;
 import com.my.foody.domain.order.dto.resp.OrderListRespDto;
 import com.my.foody.domain.orderMenu.repo.dto.OrderProjectionDto;
-import com.my.foody.domain.order.service.OrderService;
 import com.my.foody.domain.owner.entity.OrderStatus;
 import com.my.foody.global.jwt.JwtProvider;
 import com.my.foody.global.jwt.JwtVo;
@@ -37,7 +36,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;

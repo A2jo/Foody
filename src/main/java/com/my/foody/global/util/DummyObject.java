@@ -11,9 +11,7 @@ import com.my.foody.domain.owner.entity.Owner;
 import com.my.foody.domain.store.entity.Store;
 import com.my.foody.domain.storeCategory.entity.StoreCategory;
 import com.my.foody.domain.user.entity.User;
-import io.lettuce.core.ScoredValueScanCursor;
 
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 public class DummyObject {

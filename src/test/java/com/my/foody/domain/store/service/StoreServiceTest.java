@@ -11,10 +11,7 @@ import com.my.foody.domain.owner.entity.Owner;
 import com.my.foody.domain.owner.repo.OwnerRepository;
 import com.my.foody.domain.review.dto.resp.DetailedReviewListRespDto;
 import com.my.foody.domain.review.repo.ReviewRepository;
-import com.my.foody.domain.review.dto.resp.ReviewListRespDto;
-import com.my.foody.domain.review.repo.ReviewRepository;
 import com.my.foody.domain.review.repo.dto.DetailedReviewProjectionRespDto;
-import com.my.foody.domain.review.repo.dto.ReviewProjectionRespDto;
 import com.my.foody.domain.store.dto.req.ModifyStoreReqDto;
 import com.my.foody.domain.store.dto.req.StoreCreateReqDto;
 import com.my.foody.domain.store.dto.resp.GetStoreRespDto;
@@ -38,7 +35,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import com.my.foody.domain.review.dto.resp.DetailedReviewListRespDto.PageInfo;
 
 
 import java.time.LocalTime;

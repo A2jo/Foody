@@ -9,7 +9,6 @@ import com.my.foody.domain.cartMenu.CartMenu;
 import com.my.foody.domain.cartMenu.CartMenuRepository;
 import com.my.foody.domain.menu.entity.Menu;
 import com.my.foody.domain.menu.service.MenuService;
-import com.my.foody.domain.order.dto.req.OrderCreateReqDto;
 import com.my.foody.domain.order.dto.req.OrderStatusUpdateReqDto;
 import com.my.foody.domain.order.dto.resp.OrderInfoRespDto;
 import com.my.foody.domain.order.dto.resp.OrderListRespDto;
@@ -22,20 +21,19 @@ import com.my.foody.domain.orderMenu.entity.OrderMenu;
 import com.my.foody.domain.orderMenu.repo.OrderMenuRepository;
 import com.my.foody.domain.orderMenu.repo.dto.OrderMenuProjectionDto;
 import com.my.foody.domain.orderMenu.repo.dto.OrderProjectionDto;
-import com.my.foody.domain.owner.entity.Owner;
-import com.my.foody.domain.owner.service.OwnerService;
+import com.my.foody.domain.owner.entity.OrderStatus;
 import com.my.foody.domain.store.entity.Store;
 import com.my.foody.domain.store.service.StoreService;
+import com.my.foody.domain.orderMenu.repo.OrderMenuRepository;
+import com.my.foody.domain.owner.entity.Owner;
+import com.my.foody.domain.owner.service.OwnerService;
 import com.my.foody.domain.user.entity.User;
 import com.my.foody.domain.user.service.UserService;
 import com.my.foody.global.ex.BusinessException;
 import com.my.foody.global.ex.ErrorCode;
 
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
@@ -142,30 +140,17 @@ public class OrderService {
             throw new BusinessException(ErrorCode.STORE_CLOSED);
         }
 
-        Long totalAmount = 0L;
-        List<CartMenu> cartMenus = cartMenuRepository.findByCart(cart);
-
-        Map<Long, Menu> menuCache = new HashMap<>();
-        for (CartMenu cartMenu : cartMenus) {
-            Menu menu = menuCache.computeIfAbsent(cartMenu.getMenu().getId(), menuService::findActiveMenuByIdOrFail);
-
-            if (menu.getIsSoldOut()) {
-                throw new BusinessException(ErrorCode.MENU_IS_SOLD_OUT);
-            }
-
-            totalAmount += cartMenu.getQuantity() * menu.getPrice();
-        }
-
         Order order = Order.builder()
                 .user(user)
                 .store(store)
                 .address(mainAddress)
-                .totalAmount(totalAmount)
+                .totalAmount(totalPrice)
+                .orderStatus(OrderStatus.PENDING)
                 .build();
         orderRepository.save(order);
 
-        for (CartMenu cartMenu : cartMenus) {
-            Menu menu = menuCache.get(cartMenu.getMenu().getId());
+        for (CartMenu cartMenu : cartMenuList) {
+            Menu menu = cartMenu.getMenu();
             OrderMenu orderMenu = OrderMenu.builder()
                     .order(order)
                     .menuId(menu.getId())
