@@ -181,9 +181,11 @@ public class StoreService {
         Pageable pageable = PageRequest.of(page, limit);
         Page<StoreCategoryProjection> storeProjections = storeCategoryRepository.findStoresByCategoryId(categoryId, pageable);
 
-        Page<GetStoreRespDto> storeDtos = storeProjections.map(projection ->
-                new GetStoreRespDto(projection.getStoreId(), projection.getStoreName(), projection.getMinOrderAmount()));
-
+        Page<GetStoreRespDto> storeDtos = storeProjections.map(projection -> {
+            Store store = storeRepository.findById(projection.getStoreId())
+                    .orElseThrow(() -> new BusinessException(ErrorCode.STORE_NOT_FOUND));
+            return new GetStoreRespDto(store);
+        });
         return new StoreListRespDto(storeDtos);
     }
 
