@@ -4,7 +4,7 @@ import com.my.foody.domain.owner.dto.req.OwnerDeleteReqDto;
 import com.my.foody.domain.owner.dto.req.OwnerJoinReqDto;
 import com.my.foody.domain.owner.dto.req.OwnerLoginReqDto;
 import com.my.foody.domain.owner.dto.req.OwnerMyPageUpdateReqDto;
-import com.my.foody.domain.owner.dto.resp.OwnerJoinRespDto;
+import com.my.foody.domain.owner.dto.resp.*;
 import com.my.foody.domain.owner.entity.Owner;
 import com.my.foody.domain.owner.repo.OwnerRepository;
 import com.my.foody.global.ex.BusinessException;
@@ -51,7 +51,7 @@ public class OwnerService {
     public OwnerLoginRespDto login(OwnerLoginReqDto reqDto) {
         // 1. 이메일로 Owner 조회
         Owner owner = ownerRepository.findByEmail(reqDto.getEmail())
-                .orElseThrow(() -> new BusinessException(ErrorCode.EMAIL_NOT_FOUND));
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         // 2. 삭제된 회원인지 확인
         if (owner.getIsDeleted()) {
