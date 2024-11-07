@@ -10,8 +10,6 @@ public class GetMenuRespDto {
     private Long id;
     private String name;
     private Long price;
-    private Boolean isDeleted;
-    private Boolean isSoldOut;
 
     public GetMenuRespDto(Long id, String name, Long price) {
         this.id = id;
