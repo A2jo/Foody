@@ -2,6 +2,8 @@ package com.my.foody.domain.order.repo;
 
 import com.my.foody.domain.order.entity.Order;
 import com.my.foody.domain.orderMenu.repo.dto.OrderProjectionDto;
+
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -20,18 +22,19 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
             "where o.id = :orderId")
     Optional<Order> findOrderWithDetails(@Param("orderId") Long orderId);
 
-
-    @Query("select new com.my.foody.domain.orderMenu.repo.dto.OrderProjectionDto(" +
-            "s.name, o.orderStatus, a.roadAddress, a.detailedAddress, o.totalAmount, " +
-            "GROUP_CONCAT(m.menuName SEPARATOR,', '), o.id, o.createdAt) " +
-            "from Order o " +
-            "join o.user u " +
-            "join o.store s " +
-            "join o.address a " +
-            "join o.orderMenus om " +
-            "join om.menu m " +
-            "where o.id = :userId " +
-            "group by o.id")
+    @Query(value = "SELECT s.name AS storeName, o.order_status AS orderStatus, " +
+            "a.road_address AS roadAddress, a.detailed_address AS detailedAddress, " +
+            "o.total_amount AS totalAmount, " +
+            "GROUP_CONCAT(m.name ORDER BY m.name SEPARATOR ', ') AS menuNames, " +
+            "o.id AS orderId, o.created_at AS createdAt " +
+            "FROM orders o " +
+            "JOIN users u ON o.user_id = u.id " +
+            "JOIN store s ON o.store_id = s.id " +
+            "JOIN address a ON o.address_id = a.id " +
+            "JOIN order_menu om ON o.id = om.order_id " +
+            "JOIN menu m ON om.menu_id = m.id " +
+            "WHERE o.user_id = :userId " +
+            "GROUP BY o.id",
+            nativeQuery = true)
     Page<OrderProjectionDto> findByUserId(@Param("userId") Long userId, Pageable pageable);
-
 }
