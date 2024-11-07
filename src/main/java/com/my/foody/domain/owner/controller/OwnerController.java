@@ -9,11 +9,15 @@ import com.my.foody.domain.owner.service.OwnerService;
 import com.my.foody.global.config.valid.CurrentUser;
 import com.my.foody.global.config.valid.RequireAuth;
 import com.my.foody.global.jwt.JwtProvider;
+import com.my.foody.global.jwt.JwtVo;
 import com.my.foody.global.jwt.TokenSubject;
 import com.my.foody.global.jwt.UserType;
 import com.my.foody.global.util.api.ApiResult;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,13 +35,10 @@ public class OwnerController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResult<OwnerLoginRespDto>> login(@RequestBody @Valid OwnerLoginReqDto ownerLoginReqDto) {
+    public ResponseEntity<ApiResult<OwnerLoginRespDto>> login(@RequestBody @Valid OwnerLoginReqDto ownerLoginReqDto, HttpServletResponse response) {
         OwnerLoginRespDto responseMessage = ownerService.login(ownerLoginReqDto);
-
-        // 응답 헤더에 토큰 추가
-        return ResponseEntity.ok()
-                .header("Authorization", "Bearer " + responseMessage.getToken())
-                .body(ApiResult.success(responseMessage));
+        response.setHeader(JwtVo.HEADER, responseMessage.getToken());
+        return new ResponseEntity<>(ApiResult.success(responseMessage), HttpStatus.OK);
     }
 
     @GetMapping("/mypage")

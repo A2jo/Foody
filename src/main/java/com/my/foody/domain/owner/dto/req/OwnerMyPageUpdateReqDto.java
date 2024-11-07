@@ -5,9 +5,11 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
 @AllArgsConstructor
+@NoArgsConstructor
 public class OwnerMyPageUpdateReqDto {
 
     @Email(message = "올바른 이메일 형식이 아닙니다.")

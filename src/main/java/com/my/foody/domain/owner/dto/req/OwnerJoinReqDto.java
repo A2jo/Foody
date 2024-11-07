@@ -3,9 +3,11 @@ package com.my.foody.domain.owner.dto.req;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
 @AllArgsConstructor
+@NoArgsConstructor
 public class OwnerJoinReqDto {
 
     @NotBlank(message = "이름은 필수 입력 항목입니다.")

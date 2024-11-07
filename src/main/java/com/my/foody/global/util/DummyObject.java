@@ -147,7 +147,7 @@ public class DummyObject {
     }
 
     protected Owner mockOwner(){
-        String password = "password123!";
+        String password = "Password123!";
         return Owner.builder()
                 .email("ownertest@naver.com")
                 .password(PasswordEncoder.encode(password))
