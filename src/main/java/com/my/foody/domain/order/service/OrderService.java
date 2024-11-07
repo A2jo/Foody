@@ -21,6 +21,7 @@ import com.my.foody.domain.order.service.timepro.TimeProvider;
 import com.my.foody.domain.orderMenu.entity.OrderMenu;
 import com.my.foody.domain.orderMenu.repo.dto.OrderMenuProjectionDto;
 import com.my.foody.domain.orderMenu.repo.dto.OrderProjectionDto;
+import com.my.foody.domain.owner.entity.OrderStatus;
 import com.my.foody.domain.store.entity.Store;
 import com.my.foody.domain.store.service.StoreService;
 import com.my.foody.domain.orderMenu.repo.OrderMenuRepository;
@@ -146,30 +147,17 @@ public class OrderService {
             throw new BusinessException(ErrorCode.STORE_CLOSED);
         }
 
-        Long totalAmount = 0L;
-        List<CartMenu> cartMenus = cartMenuRepository.findByCart(cart);
-
-        Map<Long, Menu> menuCache = new HashMap<>();
-        for (CartMenu cartMenu : cartMenus) {
-            Menu menu = menuCache.computeIfAbsent(cartMenu.getMenu().getId(), menuService::findActiveMenuByIdOrFail);
-
-            if (menu.getIsSoldOut()) {
-                throw new BusinessException(ErrorCode.MENU_IS_SOLD_OUT);
-            }
-
-            totalAmount += cartMenu.getQuantity() * menu.getPrice();
-        }
-
         Order order = Order.builder()
                 .user(user)
                 .store(store)
                 .address(mainAddress)
-                .totalAmount(totalAmount)
+                .totalAmount(totalPrice)
+                .orderStatus(OrderStatus.PENDING)
                 .build();
         orderRepository.save(order);
 
-        for (CartMenu cartMenu : cartMenus) {
-            Menu menu = menuCache.get(cartMenu.getMenu().getId());
+        for (CartMenu cartMenu : cartMenuList) {
+            Menu menu = cartMenu.getMenu();
             OrderMenu orderMenu = OrderMenu.builder()
                     .order(order)
                     .menuId(menu.getId())
